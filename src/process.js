@@ -1,5 +1,16 @@
 import { unzlibSync, zipSync } from 'fflate';
-import avifEncoderFactory from './vendor/avif_enc.js';
+import AvifWorker from './avif.worker.js?worker&inline';
+
+export const ASPECTS = [
+  { id: 'original', label: 'Original' },
+  ...['1:1', '4:3', '3:4', '3:2', '2:3', '16:9', '9:16'].map((ratio) => ({ id: ratio, label: ratio })),
+];
+
+function aspectRatio(id) {
+  if (!id || id === 'original') return null;
+  const [w, h] = id.split(':').map(Number);
+  return w / h;
+}
 
 export const FORMATS = [
   { id: 'avif', label: 'AVIF', mime: 'image/avif', ext: 'avif', lossy: true },
@@ -39,30 +50,82 @@ async function loadWasmBytes() {
   return new Uint8Array(await response.arrayBuffer());
 }
 
-let avifModule;
-function loadAvifEncoder() {
-  if (!avifModule) {
-    avifModule = loadWasmBytes()
-      .then((bytes) => WebAssembly.compile(bytes))
-      .then((compiled) => avifEncoderFactory({
-        noInitialRun: true,
-        instantiateWasm: (imports, done) => {
-          WebAssembly.instantiate(compiled, imports).then(done);
-          return {};
-        },
-      }));
-    avifModule.catch(() => { avifModule = null; });
-  }
-  return avifModule;
+/** Above this many pixels the encoder risks running out of memory, so AVIF input is scaled down to fit. */
+export const AVIF_MAX_PIXELS = 24_000_000;
+
+let worker = null;
+let wasmBytes = null;
+let wasmInitialized = false;
+let wasmInitPromise = null;
+let nextJobId = 0;
+const pending = new Map();
+
+function failAll(message) {
+  pending.forEach(({ reject }) => reject(new Error(message)));
+  pending.clear();
 }
 
-async function encodeAvif(canvas, quality) {
-  const encoder = await loadAvifEncoder();
-  const { width, height } = canvas;
-  const { data } = canvas.getContext('2d').getImageData(0, 0, width, height);
-  const output = encoder.encode(new Uint8Array(data.buffer), width, height, { ...AVIF_OPTIONS, quality });
-  if (!output) throw new Error('AVIF encoding failed.');
-  return new Blob([output], { type: 'image/avif' });
+function dropWorker(message) {
+  if (worker) worker.terminate();
+  worker = null;
+  wasmInitialized = false;
+  wasmInitPromise = null;
+  failAll(message);
+}
+
+async function getWorker(needsAvif = false) {
+  if (!worker) {
+    worker = new AvifWorker();
+    worker.onmessage = ({ data }) => {
+      const job = pending.get(data.id);
+      if (!job) return;
+      pending.delete(data.id);
+      if (data.error) {
+        // An aborted wasm instance cannot be trusted again; the next job gets a fresh worker.
+        dropWorker('AVIF encoder restarted.');
+        job.reject(new Error(data.error));
+      } else {
+        job.resolve(data.bytes ?? data.blob);
+      }
+    };
+    worker.onerror = () => dropWorker('Image processing worker crashed.');
+  }
+  const current = worker;
+  if (needsAvif && !wasmInitialized) {
+    if (!wasmInitPromise) {
+      wasmInitPromise = (async () => {
+        const bytes = await (wasmBytes || (wasmBytes = loadWasmBytes()));
+        if (worker !== current) return;
+        const wasm = bytes.slice(); // the worker gets its own copy; ours is reused on respawn
+        current.postMessage({ type: 'init', wasm }, [wasm.buffer]);
+        wasmInitialized = true;
+      })().catch((error) => {
+        wasmInitPromise = null;
+        throw error;
+      });
+    }
+    await wasmInitPromise;
+    if (worker !== current) return getWorker(needsAvif);
+  }
+  return current;
+}
+
+/** Stop any in-flight AVIF encode immediately (settings changed, so its result is not wanted). */
+export function cancelEncoding() {
+  if (pending.size) dropWorker('cancelled');
+}
+
+async function encodeInWorker(bitmap, { width, height, format, quality }) {
+  const target = await getWorker(format === 'avif');
+  const id = nextJobId++;
+  const bytes = await new Promise((resolve, reject) => {
+    pending.set(id, { resolve, reject });
+    target.postMessage({
+      id, bitmap, width, height, format, mime: FORMATS.find((item) => item.id === format).mime,
+      quality, options: { ...AVIF_OPTIONS, quality },
+    }, [bitmap]);
+  });
+  return format === 'avif' ? new Blob([bytes], { type: 'image/avif' }) : bytes;
 }
 
 function loadImage(url) {
@@ -75,36 +138,52 @@ function loadImage(url) {
 }
 
 /** Re-encode one image. Only ever shrinks: maxWidth never upscales. */
-export async function processImage(url, fallbackSize, { format, quality, maxWidth }) {
+export async function processImage(url, fallbackSize, { format, quality, maxWidth, aspect }) {
   const target = FORMATS.find((item) => item.id === format);
   const source = await loadImage(url);
   const sourceWidth = source.naturalWidth || fallbackSize.width || 1;
   const sourceHeight = source.naturalHeight || fallbackSize.height || 1;
-  const limit = Number(maxWidth) > 0 ? Number(maxWidth) : sourceWidth;
-  const scale = Math.min(1, limit / sourceWidth);
-  const width = Math.max(1, Math.round(sourceWidth * scale));
-  const height = Math.max(1, Math.round(sourceHeight * scale));
 
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext('2d');
-  if (target.id === 'jpeg') {
-    context.fillStyle = '#fff'; // JPEG has no alpha
-    context.fillRect(0, 0, width, height);
+  // A fixed aspect ratio crops from the centre; "original" keeps the whole image.
+  const ratio = aspectRatio(aspect);
+  let cropWidth = sourceWidth;
+  let cropHeight = sourceHeight;
+  if (ratio) {
+    if (sourceWidth / sourceHeight > ratio) cropWidth = Math.max(1, Math.round(sourceHeight * ratio));
+    else cropHeight = Math.max(1, Math.round(sourceWidth / ratio));
   }
-  context.drawImage(source, 0, 0, width, height);
+  const cropX = Math.floor((sourceWidth - cropWidth) / 2);
+  const cropY = Math.floor((sourceHeight - cropHeight) / 2);
 
-  const blob = target.id === 'avif'
-    ? await encodeAvif(canvas, quality)
-    : await new Promise((resolve) => canvas.toBlob(resolve, target.mime, quality / 100));
+  const limit = Number(maxWidth) > 0 ? Number(maxWidth) : cropWidth;
+  const scale = Math.min(1, limit / cropWidth);
+  let width = Math.max(1, Math.round(cropWidth * scale));
+  let height = ratio ? Math.max(1, Math.round(width / ratio)) : Math.max(1, Math.round(cropHeight * scale));
+  let note = '';
+  if (target.id === 'avif' && width * height > AVIF_MAX_PIXELS) {
+    const fit = Math.sqrt(AVIF_MAX_PIXELS / (width * height));
+    width = Math.max(1, Math.floor(width * fit));
+    height = Math.max(1, Math.floor(height * fit));
+    note = `Scaled to ${width} × ${height} to fit AVIF memory limits`;
+  }
+
+  // Cropping here (not in the worker) also keeps the transferred bitmap small.
+  const bitmap = ratio
+    ? await createImageBitmap(source, cropX, cropY, cropWidth, cropHeight)
+    : await createImageBitmap(source);
+  const blob = await encodeInWorker(bitmap, { width, height, format: target.id, quality });
   if (!blob || blob.type !== target.mime) throw new Error(`${target.label} is not supported in this browser.`);
-  return { blob, width, height, ext: target.ext };
+  return { blob, width, height, ext: target.ext, note };
 }
 
 export function baseName(name) {
   const dot = name.lastIndexOf('.');
   return dot > 0 ? name.slice(0, dot) : name;
+}
+
+/** File name for an exported image: new extension, no path separators or reserved characters. */
+export function exportName(name, ext) {
+  return `${baseName(name).replace(/[\\/:*?"<>|]+/g, '-').trim() || 'image'}.${ext}`;
 }
 
 export async function zipBlobs(entries) {

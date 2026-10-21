@@ -1,8 +1,11 @@
-/** Add an image extraction command to each Google Docs editor session. */
+/**
+ * @OnlyCurrentDoc
+ * Add an image extraction command to each Google Docs editor session.
+ */
 function onOpen() {
   DocumentApp.getUi()
     .createMenu('Pluckr')
-    .addItem('Extract images', 'openPluckrSidebar')
+    .addItem('Extract images — Google reads this Doc’s images', 'openPluckrSidebar')
     .addToUi();
 }
 
@@ -11,45 +14,136 @@ function onInstall() {
 }
 
 function openPluckrSidebar() {
-  var html = HtmlService.createHtmlOutputFromFile('Sidebar')
-    .setTitle('Pluckr');
-  DocumentApp.getUi().showSidebar(html);
+  // Rendered here, before the page loads: a still-valid entitlement lets the sidebar open straight onto the images
+  // instead of flashing a "checking your licence" screen first.
+  var boot = JSON.stringify(cachedEntitlement_()).replace(/</g, '\\u003c');
+  var page = HtmlService.createHtmlOutputFromFile('Sidebar').getContent()
+    .replace('<!--PLUCKR_BOOT-->', function () { return '<script>window.PLUCKR_BOOT = ' + boot + ';</script>'; });
+  DocumentApp.getUi().showSidebar(HtmlService.createHtmlOutput(page).setTitle('Pluckr'));
+}
+
+/**
+ * The last entitlement the licence service issued to this user, if it is still valid. Otherwise null.
+ * Stored with the user's Google ID, so the signature can be checked here without asking Google for a token.
+ */
+function cachedEntitlement_() {
+  try {
+    var secret = PropertiesService.getScriptProperties().getProperty('ENTITLEMENT_SECRET');
+    var saved = JSON.parse(PropertiesService.getUserProperties().getProperty('entitlement') || 'null');
+    if (!secret || !saved) return null;
+    var parts = String(saved.entitlement).split('.');
+    var exp = Number(parts[0]);
+    var valid = parts.length === 2 && exp > Date.now() / 1000 + 60 &&
+      constantTimeEquals_(signEntitlement_(secret, saved.sub + '.' + exp), parts[1]);
+    return valid ? { entitlement: saved.entitlement, expiresAt: exp } : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+/** Called by the sidebar after the licence service confirms a licence. Only a verified entitlement is kept. */
+function rememberEntitlement(entitlement) {
+  if (!PropertiesService.getScriptProperties().getProperty('ENTITLEMENT_SECRET')) return;
+  requireEntitlement_(entitlement);
+  var sub = decodeJwtPayload_(ScriptApp.getIdentityToken()).sub;
+  PropertiesService.getUserProperties().setProperty('entitlement', JSON.stringify({ entitlement: entitlement, sub: sub }));
+}
+
+function forgetEntitlement() {
+  PropertiesService.getUserProperties().deleteProperty('entitlement');
+}
+
+/** Google identity token for the licence service. Needs the openid and userinfo.email scopes in the manifest. */
+function getIdentityToken() {
+  return ScriptApp.getIdentityToken();
+}
+
+/**
+ * Run once from the Apps Script editor. Logs the identity token's issuer and audience, which Convex needs
+ * (GOOGLE_CLIENT_ID must equal "aud"). Logs claims only, never the token itself.
+ */
+function logIdentityTokenClaims() {
+  var token = ScriptApp.getIdentityToken();
+  if (!token) throw new Error('No identity token: add the openid and userinfo.email scopes to the manifest and re-authorize.');
+  var claims = decodeJwtPayload_(token);
+  Logger.log(JSON.stringify({ iss: claims.iss, aud: claims.aud, azp: claims.azp, emailInToken: Boolean(claims.email) }));
+}
+
+/**
+ * The paywall. The sidebar gets an entitlement from the licence service and passes it with every call that
+ * reads images; it is checked here offline with a secret shared with the licence service. Enforcement turns on
+ * only once ENTITLEMENT_SECRET exists in Script Properties, so the add-on keeps working while that is unset.
+ */
+function requireEntitlement_(entitlement) {
+  var secret = PropertiesService.getScriptProperties().getProperty('ENTITLEMENT_SECRET');
+  if (!secret) return;
+
+  var parts = String(entitlement || '').split('.');
+  var exp = Number(parts[0]);
+  var token = ScriptApp.getIdentityToken();
+  var sub = token ? decodeJwtPayload_(token).sub : '';
+  var valid = parts.length === 2 && exp && sub && exp > Date.now() / 1000 &&
+    constantTimeEquals_(signEntitlement_(secret, sub + '.' + exp), parts[1]);
+  if (!valid) throw new Error('LICENCE_REQUIRED');
+}
+
+function signEntitlement_(secret, text) {
+  return Utilities.base64EncodeWebSafe(Utilities.computeHmacSha256Signature(text, secret)).replace(/=+$/, '');
+}
+
+function decodeJwtPayload_(jwt) {
+  var payload = String(jwt).split('.')[1] || '';
+  while (payload.length % 4) payload += '=';
+  return JSON.parse(Utilities.newBlob(Utilities.base64DecodeWebSafe(payload)).getDataAsString());
+}
+
+function constantTimeEquals_(a, b) {
+  if (a.length !== b.length) return false;
+  var diff = 0;
+  for (var index = 0; index < a.length; index += 1) diff |= a.charCodeAt(index) ^ b.charCodeAt(index);
+  return diff === 0;
 }
 
 /** Revoke this add-on's authorization for the current user; Docs asks for consent again next run. */
 function logout() {
+  forgetEntitlement();
   ScriptApp.invalidateAuth();
 }
 
 /** Return image previews and metadata for every document tab. */
-function getDocumentImages() {
+function getDocumentInfo(entitlement) {
+  requireEntitlement_(entitlement);
   var document = DocumentApp.getActiveDocument();
-  var images = collectDocumentImages_(document);
+  return { documentName: document.getName(), count: collectDocumentImages_(document).length };
+}
+
+/**
+ * One image's preview data. The sidebar asks for every image at once: Apps Script runs the calls in parallel, so
+ * a scan takes as long as the slowest image instead of the sum of all of them.
+ */
+function getDocumentImage(index, entitlement) {
+  requireEntitlement_(entitlement);
+  var image = collectDocumentImages_(DocumentApp.getActiveDocument())[index];
+  if (!image) throw new Error('This image is no longer in the document. Scan again.');
+  var blob = image.getBlob();
+  var bytes = blob.getBytes();
+  var mimeType = blob.getContentType() || 'image/png';
 
   return {
-    documentName: document.getName(),
-    images: images.map(function (image, index) {
-      var blob = image.getBlob();
-      var bytes = blob.getBytes();
-      var mimeType = blob.getContentType() || 'image/png';
-      var name = 'image-' + String(index + 1).padStart(2, '0') + '.' + extensionForMime_(mimeType);
-
-      return {
-        id: 'image-' + index,
-        sourceIndex: index,
-        name: name,
-        mimeType: mimeType,
-        size: bytes.length,
-        width: image.getWidth(),
-        height: image.getHeight(),
-        data: Utilities.base64Encode(bytes)
-      };
-    })
+    id: 'image-' + index,
+    sourceIndex: index,
+    name: 'image-' + String(index + 1).padStart(2, '0') + '.' + extensionForMime_(mimeType),
+    mimeType: mimeType,
+    size: bytes.length,
+    width: image.getWidth(),
+    height: image.getHeight(),
+    data: Utilities.base64Encode(bytes)
   };
 }
 
 /** Package selected document images into a ZIP. `names` maps sourceIndex to a custom file name. */
-function getImagesArchive(sourceIndexes, names) {
+function getImagesArchive(sourceIndexes, names, entitlement) {
+  requireEntitlement_(entitlement);
   var document = DocumentApp.getActiveDocument();
   var images = collectDocumentImages_(document);
   var selected = {};
@@ -87,7 +181,8 @@ function collectDocumentImages_(document) {
   function visitTabs(tabs) {
     tabs.forEach(function (tab) {
       if (tab.getType() === DocumentApp.TabType.DOCUMENT_TAB) {
-        visitElement_(tab.asDocumentTab().getBody(), images);
+        // One call per tab. Walking the tree with getChild() costs one call per element, which is slow in long documents.
+        images = images.concat(tab.asDocumentTab().getBody().getImages());
       }
       visitTabs(tab.getChildTabs());
     });
@@ -95,18 +190,6 @@ function collectDocumentImages_(document) {
 
   visitTabs(document.getTabs());
   return images;
-}
-
-function visitElement_(element, images) {
-  if (element.getType() === DocumentApp.ElementType.INLINE_IMAGE) {
-    images.push(element.asInlineImage());
-    return;
-  }
-
-  if (typeof element.getNumChildren !== 'function') return;
-  for (var index = 0; index < element.getNumChildren(); index += 1) {
-    visitElement_(element.getChild(index), images);
-  }
 }
 
 function extensionForMime_(mimeType) {

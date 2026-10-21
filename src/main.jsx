@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { FORMATS, baseName, detectSupportedFormats, processImage, zipBlobs } from './process.js';
+import { ASPECTS, FORMATS, cancelEncoding, detectSupportedFormats, exportName, processImage, zipBlobs } from './process.js';
+import { PAYWALL_ENABLED, PRICE_LABEL, createCheckout, fetchLicence } from './licence.js';
 import './styles.css';
 
 const DEMO_IMAGES = [
@@ -95,7 +96,7 @@ function withExtension(name, original) {
   return clean.includes('.') || !extension ? clean : clean + extension;
 }
 
-function ImageRow({ image, result, onRename, onDownload }) {
+function ImageRow({ image, result, thumbAspect, onRename, onDownload }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(image.name);
   const [copyLabel, setCopyLabel] = useState('Copy');
@@ -122,7 +123,7 @@ function ImageRow({ image, result, onRename, onDownload }) {
 
   return (
     <article className="image-row" aria-label={`Extracted image ${image.name}`}>
-      <img className="thumb" src={imageUrl(image)} alt="" />
+      <img className="thumb" src={imageUrl(image)} alt="" style={{ aspectRatio: thumbAspect }} />
       <div className="image-body">
         <div className="image-info">
           <div className="name-row">
@@ -155,6 +156,7 @@ function ImageRow({ image, result, onRename, onDownload }) {
           <div className="meta-row">
             {meta.map((item) => <p className="trim" key={item}>{item}</p>)}
           </div>
+          {result?.note && <p className="meta-note">{result.note}</p>}
         </div>
         <div className="actions">
           <button className="action-button" type="button" onClick={copy}><span className="trim">{copyLabel}</span></button>
@@ -168,12 +170,65 @@ function ImageRow({ image, result, onRename, onDownload }) {
 function useImageExtractor() {
   const scriptRun = useMemo(() => window.google?.script?.run, []);
   const isAppsScript = Boolean(scriptRun);
+  const paywall = isAppsScript && PAYWALL_ENABLED;
+  // 'ready' also covers "paywall off". Otherwise: checking | unpaid | waiting (payment in progress) | error.
+  // PLUCKR_BOOT is filled in by the add-on's server code when it still holds a valid entitlement.
+  const boot = window.PLUCKR_BOOT;
+  const [licence, setLicence] = useState(paywall && !boot?.entitlement ? 'checking' : 'ready');
+  const [licenceError, setLicenceError] = useState('');
+  const [checkoutUrl, setCheckoutUrl] = useState('');
+  const entitlementRef = useRef({ token: boot?.entitlement || '', expiresAt: boot?.expiresAt || 0 });
   const [images, setImages] = useState(isAppsScript ? [] : DEMO_IMAGES);
+  // Starts true in the add-on so the panel never paints an empty "no images" frame before the first scan begins.
   const [loading, setLoading] = useState(isAppsScript);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState('');
 
-  const extractImages = useCallback(() => {
+  /** Ask the licence service. `silent` keeps the current screen unless the licence turns out to be missing. */
+  const checkLicence = useCallback(async ({ silent = false } = {}) => {
+    if (!paywall) return true;
+    if (!silent) {
+      setLicence('checking');
+      setLicenceError('');
+    }
+    try {
+      const result = await fetchLicence(scriptRun);
+      if (result.licensed) {
+        entitlementRef.current = { token: result.entitlement, expiresAt: result.expiresAt };
+        scriptRun.withFailureHandler(() => {}).rememberEntitlement(result.entitlement);
+        setLicence('ready');
+        return true;
+      }
+      entitlementRef.current = { token: '', expiresAt: 0 };
+      scriptRun.withFailureHandler(() => {}).forgetEntitlement();
+      setLicence((current) => (current === 'waiting' ? current : 'unpaid'));
+      return false;
+    } catch (failure) {
+      setLicenceError(failure.message);
+      setLicence('error');
+      return false;
+    }
+  }, [paywall, scriptRun]);
+
+  /** A fresh entitlement for server calls, refreshed quietly when it is about to expire. Null = not licensed. */
+  const ensureEntitlement = useCallback(async () => {
+    if (!paywall) return '';
+    const current = entitlementRef.current;
+    if (current.token && current.expiresAt * 1000 > Date.now() + 60_000) return current.token;
+    return (await checkLicence({ silent: true })) ? entitlementRef.current.token : null;
+  }, [paywall, checkLicence]);
+
+  const handleServerFailure = useCallback((failure, fallback) => {
+    if (String(failure?.message || '').includes('LICENCE_REQUIRED')) {
+      entitlementRef.current = { token: '', expiresAt: 0 };
+      scriptRun.withFailureHandler(() => {}).forgetEntitlement();
+      setLicence('unpaid');
+      return;
+    }
+    setError(failure?.message || fallback);
+  }, [scriptRun]);
+
+  const extractImages = useCallback(async () => {
     setError('');
     setLoading(true);
 
@@ -183,23 +238,48 @@ function useImageExtractor() {
       return;
     }
 
-    scriptRun
-      .withSuccessHandler((result) => {
-        setImages(result.images || []);
-        setLoading(false);
-      })
-      .withFailureHandler((failure) => {
-        setError(failure?.message || 'Could not read images from this document. Try again.');
-        setLoading(false);
-      })
-      .getDocumentImages();
-  }, [isAppsScript, scriptRun]);
+    const entitlement = await ensureEntitlement();
+    if (entitlement === null) {
+      setLoading(false);
+      return;
+    }
+
+    const call = (method, ...args) => new Promise((resolve, reject) => {
+      scriptRun.withSuccessHandler(resolve).withFailureHandler(reject)[method](...args);
+    });
+
+    try {
+      const info = await call('getDocumentInfo', entitlement);
+      // Every image is requested at once; Apps Script serves them in parallel.
+      const found = await Promise.all(Array.from({ length: info.count }, (_, index) => call('getDocumentImage', index, entitlement)));
+      setImages(found);
+    } catch (failure) {
+      handleServerFailure(failure, 'Could not read images from this document. Try again.');
+    }
+    setLoading(false);
+  }, [isAppsScript, scriptRun, ensureEntitlement, handleServerFailure]);
+
+  const startCheckout = useCallback(async () => {
+    setLicenceError('');
+    try {
+      const result = await createCheckout(scriptRun);
+      if (result.licensed) {
+        await checkLicence();
+        return;
+      }
+      setCheckoutUrl(result.url);
+      window.open(result.url, '_blank', 'noopener');
+      setLicence('waiting');
+    } catch (failure) {
+      setLicenceError(failure.message);
+    }
+  }, [scriptRun, checkLicence]);
 
   const renameImage = useCallback((id, name) => {
     setImages((current) => current.map((image) => (image.id === id ? { ...image, name } : image)));
   }, []);
 
-  const downloadAll = useCallback(() => {
+  const downloadAll = useCallback(async () => {
     if (images.length === 0) return;
     setError('');
 
@@ -207,6 +287,9 @@ function useImageExtractor() {
       images.forEach((image, index) => window.setTimeout(() => downloadImage(image), index * 250));
       return;
     }
+
+    const entitlement = await ensureEntitlement();
+    if (entitlement === null) return;
 
     const names = {};
     images.forEach((image) => { names[image.sourceIndex] = image.name; });
@@ -218,10 +301,10 @@ function useImageExtractor() {
       })
       .withFailureHandler((failure) => {
         setDownloading(false);
-        setError(failure?.message || 'Could not prepare the image download. Try again.');
+        handleServerFailure(failure, 'Could not prepare the image download. Try again.');
       })
-      .getImagesArchive(images.map((image) => image.sourceIndex), names);
-  }, [images, isAppsScript, scriptRun]);
+      .getImagesArchive(images.map((image) => image.sourceIndex), names, entitlement);
+  }, [images, isAppsScript, scriptRun, ensureEntitlement, handleServerFailure]);
 
   const closeSidebar = useCallback(() => {
     if (window.google?.script?.host?.close) window.google.script.host.close();
@@ -235,14 +318,52 @@ function useImageExtractor() {
       .logout();
   }, [isAppsScript, scriptRun, closeSidebar]);
 
+  // Check the licence on open, then scan once it is confirmed.
   useEffect(() => {
-    if (isAppsScript) extractImages();
-  }, [isAppsScript, extractImages]);
+    if (paywall && !entitlementRef.current.token) checkLicence();
+  }, [paywall, checkLicence]);
 
-  return { images, loading, downloading, error, extractImages, renameImage, downloadAll, closeSidebar, logout };
+  useEffect(() => {
+    if (isAppsScript && licence === 'ready') extractImages();
+  }, [licence, isAppsScript, extractImages]);
+
+  // While a checkout is open in another tab, poll until the payment shows up (about 5 minutes at most).
+  useEffect(() => {
+    if (licence !== 'waiting') return undefined;
+    let attempts = 0;
+    const timer = window.setInterval(() => {
+      attempts += 1;
+      if (attempts > 75) {
+        window.clearInterval(timer);
+        setLicence('unpaid');
+        return;
+      }
+      checkLicence({ silent: true });
+    }, 4000);
+    return () => window.clearInterval(timer);
+  }, [licence, checkLicence]);
+
+  // Coming back from the checkout tab: re-check right away instead of waiting for the next poll.
+  useEffect(() => {
+    if (licence !== 'waiting' && licence !== 'unpaid') return undefined;
+    const recheck = () => { if (document.visibilityState === 'visible') checkLicence({ silent: true }); };
+    window.addEventListener('focus', recheck);
+    document.addEventListener('visibilitychange', recheck);
+    return () => {
+      window.removeEventListener('focus', recheck);
+      document.removeEventListener('visibilitychange', recheck);
+    };
+  }, [licence, checkLicence]);
+
+  const ready = licence === 'ready';
+
+  return {
+    images, loading, downloading, error, ready, licence, licenceError, checkoutUrl,
+    checkLicence, startCheckout, extractImages, renameImage, downloadAll, closeSidebar, logout,
+  };
 }
 
-function TopBar({ loading, extractImages, closeSidebar, logout }) {
+function TopBar({ loading, canScan, extractImages, closeSidebar, logout }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -259,9 +380,11 @@ function TopBar({ loading, extractImages, closeSidebar, logout }) {
     <header className="top-bar" ref={menuRef}>
       <Asset name="mark" className="brand-mark" />
       <p className="brand trim">Pluckr</p>
-      <button className="icon-button" type="button" aria-label="Extract images again" onClick={extractImages} disabled={loading}>
-        <Asset name="refresh" className={loading ? 'is-spinning' : ''} />
-      </button>
+      {canScan && (
+        <button className="icon-button" type="button" aria-label="Extract images again" onClick={extractImages} disabled={loading}>
+          <Asset name="refresh" className={loading ? 'is-spinning' : ''} />
+        </button>
+      )}
       <button className="icon-button" type="button" aria-label="More options" aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}>
         <Asset name="more" />
       </button>
@@ -269,103 +392,156 @@ function TopBar({ loading, extractImages, closeSidebar, logout }) {
         <div className="menu" role="menu">
           <button className="menu-item" type="button" role="menuitem" onClick={closeSidebar}>Close sidebar</button>
           <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); logout(); }}>Log out</button>
+          <a className="menu-item" role="menuitem" href="https://docpluckr.com/privacy" target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>Privacy policy</a>
+          <a className="menu-item" role="menuitem" href="https://docpluckr.com/terms" target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>Terms of use</a>
         </div>
       )}
     </header>
   );
 }
 
-function Panel({ images, results, loading, error, onRename, onDownload }) {
+function Panel({ images, results, thumbAspect, loading, error, onRename, onDownload }) {
   return (
     <section className="panel" aria-label="Extracted images" aria-live="polite">
       <div className="panel-texture" aria-hidden="true" />
-      {loading && <p className="panel-message"><span className="loading-indicator" />Scanning your document…</p>}
+      {loading && <p className="panel-message is-delayed"><span className="loading-indicator" />Scanning your document…</p>}
       {!loading && error && <p className="panel-message is-error" role="alert">{error}</p>}
       {!loading && !error && images.length === 0 && <p className="panel-message">No images found in this document.</p>}
       {!loading && !error && images.map((image) => (
-        <ImageRow key={image.id} image={image} result={results[image.id]} onRename={onRename} onDownload={onDownload} />
+        <ImageRow key={image.id} image={image} result={results[image.id]} thumbAspect={thumbAspect} onRename={onRename} onDownload={onDownload} />
       ))}
     </section>
   );
 }
 
-const DEFAULT_SETTINGS = { format: null, quality: 80, maxWidth: '' };
+const DEFAULT_SETTINGS = { format: null, quality: 80, maxWidth: '', aspect: 'original' };
+const FORMAT_OPTIONS = [{ id: null, label: 'Original' }, ...FORMATS];
 
-function useProcessedImages(images, settings) {
-  const [results, setResults] = useState({});
+/** Converts only when asked. Changing any setting discards earlier results instead of re-running. */
+function useConverter(images, settings) {
+  const [done, setDone] = useState({ key: null, results: {} });
   const [busy, setBusy] = useState(false);
+  const runRef = useRef(0);
   const imagesRef = useRef(images);
   imagesRef.current = images;
-  const idKey = images.map((image) => image.id).join('|');
-  const { format, quality, maxWidth } = settings;
+  const { format, quality, maxWidth, aspect } = settings;
+  // Ids repeat after a refresh, so key on content traits too; a renamed image must not invalidate results.
+  const idKey = images.map((image) => `${image.id}:${image.size}:${image.width}x${image.height}`).join('|');
+  const key = format ? `${idKey}|${format}|${quality}|${maxWidth}|${aspect}` : null;
 
+  // Settings or images changed: abandon a running conversion, its result would be for the wrong settings.
   useEffect(() => {
-    if (!format) {
-      setResults({});
-      setBusy(false);
-      return undefined;
-    }
+    runRef.current += 1;
+    cancelEncoding();
+    setBusy(false);
+  }, [key]);
 
-    let cancelled = false;
+  useEffect(() => cancelEncoding, []);
+
+  const convert = useCallback(async () => {
+    if (!key) return;
+    const run = runRef.current + 1;
+    runRef.current = run;
     setBusy(true);
-    const timer = window.setTimeout(async () => {
-      const next = {};
-      for (const image of imagesRef.current) {
-        try {
-          next[image.id] = await processImage(imageUrl(image), image, { format, quality, maxWidth });
-        } catch (failure) {
-          next[image.id] = { error: failure.message };
-        }
-        if (cancelled) return;
+    const results = {};
+    for (const image of imagesRef.current) {
+      try {
+        results[image.id] = await processImage(imageUrl(image), image, { format, quality, maxWidth, aspect });
+      } catch (failure) {
+        results[image.id] = { error: failure.message };
       }
-      setResults(next);
-      setBusy(false);
-    }, 250);
+      if (runRef.current !== run) return;
+    }
+    setDone({ key, results });
+    setBusy(false);
+  }, [key, format, quality, maxWidth, aspect]);
 
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [idKey, format, quality, maxWidth]);
-
-  return { results, busy };
+  const converted = key !== null && done.key === key;
+  return { results: converted ? done.results : {}, converted, busy, convert };
 }
 
-function ExportPanel({ settings, onChange, supported }) {
-  const [open, setOpen] = useState(true);
+function Select({ value, options, onChange, label, disabled = false, isAvailable = () => true }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const current = options.find((option) => option.id === value) || options[0];
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const dismiss = (event) => {
+      if (!ref.current?.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', dismiss);
+    return () => document.removeEventListener('mousedown', dismiss);
+  }, [open]);
+
+  return (
+    <div className="select" ref={ref} onKeyDown={(event) => { if (event.key === 'Escape') setOpen(false); }}>
+      <button
+        className="select-button"
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={`${label}: ${current.label}`}
+        disabled={disabled}
+        onClick={() => setOpen((isOpen) => !isOpen)}
+      >
+        <span className="select-value">{current.label}</span>
+        <Asset name="chevron-down" className={`chevron${open ? ' is-flipped' : ''}`} />
+      </button>
+      {open && (
+        <div className="select-list" role="listbox" aria-label={label}>
+          {options.map((option) => {
+            const available = isAvailable(option);
+            return (
+              <button
+                key={option.label}
+                className="select-option"
+                type="button"
+                role="option"
+                aria-selected={option.id === value}
+                disabled={!available}
+                title={available ? undefined : `${option.label} is not supported in this browser`}
+                onClick={() => { onChange(option.id); setOpen(false); }}
+              >
+                <span>{option.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ExportPanel({ settings, onChange, supported, open, onToggle }) {
   const lossy = FORMATS.find((item) => item.id === settings.format)?.lossy;
 
   return (
-    <section className="export" aria-label="Export settings">
-      <button className="export-toggle" type="button" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
-        <span className="trim">Format</span>
-        <svg className={`chevron${open ? ' is-open' : ''}`} width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-          <path d="M2.5 4.5L6 8l3.5-3.5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+    <section className="export" aria-label="Output settings">
+      <div className="panel-texture" aria-hidden="true" />
+      <button className="export-toggle" type="button" aria-expanded={open} onClick={onToggle}>
+        <span className="trim">Output settings</span>
+        <Asset name="chevron-down" className={`chevron${open ? '' : ' is-closed'}`} />
       </button>
       {open && (
         <>
-          <div className="format-row" role="group" aria-label="Format">
-            {FORMATS.map((item) => {
-              const available = supported[item.id] !== false;
-              return (
-                <button
-                  key={item.id}
-                  className={`format-button${settings.format === item.id ? ' is-active' : ''}`}
-                  type="button"
-                  aria-pressed={settings.format === item.id}
-                  disabled={!available}
-                  title={available ? undefined : `${item.label} is not supported in this browser`}
-                  onClick={() => onChange({ format: settings.format === item.id ? null : item.id })}
-                >
-                  <span className="trim">{item.label}</span>
-                </button>
-              );
-            })}
+          <div className="field">
+            <span className="field-label" id="format-label">Format</span>
+            <Select
+              label="Output format"
+              value={settings.format}
+              options={FORMAT_OPTIONS}
+              onChange={(format) => onChange({ format })}
+              isAvailable={(option) => option.id === null || supported[option.id] !== false}
+            />
           </div>
-          <label className={`slider-row${settings.format && lossy ? '' : ' is-off'}`}>
-            <span className="tiny trim">Quality</span>
+          <div className={`field${settings.format && lossy ? '' : ' is-off'}`}>
+            <label className="field-head" htmlFor="quality">
+              <span className="field-label is-strong">Quality</span>
+              <span className="field-value">{settings.quality}%</span>
+            </label>
             <input
+              id="quality"
               className="slider"
               type="range"
               min="10"
@@ -376,12 +552,22 @@ function ExportPanel({ settings, onChange, supported }) {
               style={{ '--pct': `${((settings.quality - 10) / 90) * 100}%` }}
               onChange={(event) => onChange({ quality: Number(event.target.value) })}
             />
-            <span className="tiny trim value">{settings.quality}%</span>
-          </label>
-          <label className={`slider-row${settings.format ? '' : ' is-off'}`}>
-            <span className="tiny trim">Max width</span>
+          </div>
+          <div className={`field${settings.format ? '' : ' is-off'}`}>
+            <span className="field-label">Aspect ratio</span>
+            <Select
+              label="Aspect ratio"
+              value={settings.aspect}
+              options={ASPECTS}
+              disabled={!settings.format}
+              onChange={(aspect) => onChange({ aspect })}
+            />
+          </div>
+          <div className={`field${settings.format ? '' : ' is-off'}`}>
+            <label className="field-label" htmlFor="max-width">Max width (px)</label>
             <input
-              className="width-input"
+              id="max-width"
+              className="field-input"
               type="number"
               min="16"
               inputMode="numeric"
@@ -390,8 +576,59 @@ function ExportPanel({ settings, onChange, supported }) {
               disabled={!settings.format}
               onChange={(event) => onChange({ maxWidth: event.target.value })}
             />
-            <span className="tiny trim value">PX</span>
-          </label>
+          </div>
+          <p className="export-hint">A fixed aspect ratio crops from the centre. Leave the width empty to keep the original size; images are never enlarged.</p>
+        </>
+      )}
+    </section>
+  );
+}
+
+function PaywallNotice({ state, error, price, checkoutUrl, onBuy, onCheck }) {
+  const [agreed, setAgreed] = useState(false);
+  const checking = state === 'checking';
+  const waiting = state === 'waiting';
+  return (
+    <section className={`privacy-notice${checking ? ' is-checking' : ''}`} aria-labelledby="paywall-title" aria-live="polite">
+      <div className="panel-texture" aria-hidden="true" />
+      <Asset name="mark" className="notice-mark" />
+      {checking ? (
+        <p className="panel-message is-delayed"><span className="loading-indicator" />Checking your licence…</p>
+      ) : (
+        <>
+          <h1 id="paywall-title">{waiting ? 'Waiting for your payment' : 'Unlock Pluckr'}</h1>
+          {waiting ? (
+            <p>Finish checking out in the tab that just opened. This screen updates by itself when your payment goes through.</p>
+          ) : (
+            <>
+              <p>Pluckr is a one-time purchase of {price}. Pay once and use it on any Doc with this Google account.</p>
+              <p>You check out securely with Polar. Pluckr never sees your card details, and uses your Google email only to find your licence. Document images are never sent to Pluckr's servers.</p>
+              {state !== 'error' && (
+                <label className="notice-agree">
+                  <input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} />
+                  <span>
+                    I agree to the <a href="https://docpluckr.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a> and <a href="https://docpluckr.com/terms" target="_blank" rel="noopener noreferrer">Terms</a>.
+                  </span>
+                </label>
+              )}
+            </>
+          )}
+          {error && <p className="notice-error" role="alert">{error}</p>}
+          <div className="notice-actions">
+            {waiting ? (
+              <>
+                <a className="secondary-button" href={checkoutUrl} target="_blank" rel="noopener noreferrer">Open checkout again</a>
+                <button className="primary-button" type="button" onClick={onCheck}>I have paid, check again</button>
+              </>
+            ) : (
+              <>
+                {state === 'unpaid' && <button className="secondary-button" type="button" onClick={onCheck}>I have already paid</button>}
+                <button className="primary-button" type="button" disabled={state !== 'error' && !agreed} onClick={state === 'error' ? onCheck : onBuy}>
+                  {state === 'error' ? 'Try again' : `Buy Pluckr for ${price}`}
+                </button>
+              </>
+            )}
+          </div>
         </>
       )}
     </section>
@@ -401,18 +638,23 @@ function ExportPanel({ settings, onChange, supported }) {
 function App() {
   const extractor = useImageExtractor();
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [exportOpen, setExportOpen] = useState(false);
   const [supported, setSupported] = useState({});
   const [zipping, setZipping] = useState(false);
   const [exportError, setExportError] = useState('');
-  const { results, busy } = useProcessedImages(extractor.images, settings);
-  const { format } = settings;
+  // A collapsed export section means "no conversion"; the choices are kept for when it reopens.
+  const activeSettings = exportOpen ? settings : { ...settings, format: null };
+  const { results, converted, busy, convert } = useConverter(extractor.images, activeSettings);
+  const { format } = activeSettings;
+  // The thumbnail previews the centred crop a fixed aspect ratio will make; otherwise the design's square.
+  const previewAspect = format && activeSettings.aspect !== 'original' ? activeSettings.aspect.replace(':', ' / ') : '1 / 1';
   const target = FORMATS.find((item) => item.id === format);
 
   useEffect(() => { detectSupportedFormats().then(setSupported); }, []);
 
   const updateSettings = (patch) => setSettings((current) => ({ ...current, ...patch }));
 
-  const processedName = (image, result) => `${baseName(image.name)}.${result.ext}`;
+  const processedName = (image, result) => exportName(image.name, result.ext);
 
   const downloadOne = (image, result) => {
     if (result?.blob) saveBlob(result.blob, processedName(image, result));
@@ -422,6 +664,10 @@ function App() {
   const downloadAll = async () => {
     if (!format) {
       extractor.downloadAll();
+      return;
+    }
+    if (!converted) {
+      convert();
       return;
     }
     setExportError('');
@@ -441,31 +687,48 @@ function App() {
   const label = (() => {
     if (extractor.downloading || zipping) return 'Preparing download…';
     if (!format) return 'Download originals';
-    if (busy) return 'Processing…';
+    if (busy) return 'Converting…';
+    if (!converted) return 'Convert';
     return `Download ${extractor.images.length} as ${target.label}`;
   })();
 
   return (
     <main className="app-shell">
       <div className="sidebar">
-        <TopBar loading={extractor.loading} extractImages={extractor.extractImages} closeSidebar={extractor.closeSidebar} logout={extractor.logout} />
-        <Panel
-          images={extractor.images}
-          results={results}
-          loading={extractor.loading}
-          error={extractor.error || exportError}
-          onRename={extractor.renameImage}
-          onDownload={downloadOne}
-        />
-        <ExportPanel settings={settings} onChange={updateSettings} supported={supported} />
-        <button
-          className="primary-button"
-          type="button"
-          onClick={downloadAll}
-          disabled={extractor.images.length === 0 || extractor.loading || extractor.downloading || zipping || (Boolean(format) && busy)}
-        >
-          <span className="trim">{label}</span>
-        </button>
+<TopBar loading={extractor.loading} canScan={extractor.ready} extractImages={extractor.extractImages} closeSidebar={extractor.closeSidebar} logout={extractor.logout} />
+        {extractor.ready ? (
+          <Panel
+            images={extractor.images}
+            results={results}
+          thumbAspect={previewAspect}
+            loading={extractor.loading}
+            error={extractor.error || exportError}
+            onRename={extractor.renameImage}
+            onDownload={downloadOne}
+          />
+        ) : (
+          <PaywallNotice
+            state={extractor.licence}
+            error={extractor.licenceError}
+            price={PRICE_LABEL}
+            checkoutUrl={extractor.checkoutUrl}
+            onBuy={extractor.startCheckout}
+            onCheck={() => extractor.checkLicence()}
+          />
+        )}
+        {extractor.ready && (
+          <>
+          <ExportPanel settings={settings} onChange={updateSettings} supported={supported} open={exportOpen} onToggle={() => setExportOpen((value) => !value)} />
+          <button
+            className="primary-button"
+            type="button"
+            onClick={downloadAll}
+            disabled={extractor.images.length === 0 || extractor.loading || extractor.downloading || zipping || busy}
+          >
+            <span className="trim">{label}</span>
+          </button>
+          </>
+        )}
       </div>
     </main>
   );
