@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ASPECTS, FORMATS, cancelEncoding, detectSupportedFormats, exportName, processImage, zipBlobs } from './process.js';
+import { ASPECTS, FORMATS, cancelEncoding, detectSupportedFormats, exportName, prefetchAvifCodec, processImage, zipBlobs } from './process.js';
 import { PAYWALL_ENABLED, PRICE_LABEL, createCheckout, fetchLicence } from './licence.js';
 import './styles.css';
 
@@ -43,6 +43,16 @@ function decodeBase64(base64) {
   return bytes;
 }
 
+/** Google reports the size an image is drawn at in the Doc, not its real pixels, so read the real size from the file. */
+function naturalSize(image) {
+  return new Promise((resolve) => {
+    const probe = new Image();
+    probe.onload = () => resolve({ width: probe.naturalWidth, height: probe.naturalHeight });
+    probe.onerror = () => resolve({});
+    probe.src = imageUrl(image);
+  });
+}
+
 function imageUrl(image) {
   return image.data ? `data:${image.mimeType || 'image/png'};base64,${image.data}` : image.src;
 }
@@ -59,9 +69,23 @@ function saveBlob(blob, fileName) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+// Original-image blob URLs are built ahead of the click, so pressing Download only has to start the download.
+const originalUrls = new Map();
+function prepareOriginal(image) {
+  if (!image.data || originalUrls.has(image.id + image.size)) return;
+  originalUrls.set(image.id + image.size, URL.createObjectURL(new Blob([decodeBase64(image.data)], { type: image.mimeType })));
+}
+
 function downloadImage(image) {
   if (image.data) {
-    saveBlob(new Blob([decodeBase64(image.data)], { type: image.mimeType }), image.name);
+    prepareOriginal(image);
+    const anchor = document.createElement('a');
+    anchor.href = originalUrls.get(image.id + image.size);
+    anchor.download = image.name;
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
     return;
   }
 
@@ -71,8 +95,11 @@ function downloadImage(image) {
   anchor.click();
 }
 
-/** The async clipboard only reliably takes PNG, so redraw whatever the image is. */
-function copyImage(image) {
+/** The async clipboard only reliably takes PNG, so anything else is redrawn. PNGs are copied as they are. */
+function imageAsPng(image) {
+  if (image.data && image.mimeType === 'image/png') {
+    return Promise.resolve(new Blob([decodeBase64(image.data)], { type: 'image/png' }));
+  }
   return new Promise((resolve, reject) => {
     const source = new Image();
     source.onload = () => {
@@ -80,15 +107,15 @@ function copyImage(image) {
       canvas.width = source.naturalWidth || image.width || 1;
       canvas.height = source.naturalHeight || image.height || 1;
       canvas.getContext('2d').drawImage(source, 0, 0);
-      canvas.toBlob((blob) => {
-        if (!blob) return reject(new Error('Could not read image.'));
-        return navigator.clipboard.write([new window.ClipboardItem({ 'image/png': blob })]).then(resolve, reject);
-      }, 'image/png');
+      canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('Could not read image.'))), 'image/png');
     };
     source.onerror = () => reject(new Error('Could not load image.'));
     source.src = imageUrl(image);
   });
 }
+
+// Handing the clipboard a promise inside the click keeps the user gesture valid while the PNG is prepared.
+const copyImage = (image) => navigator.clipboard.write([new window.ClipboardItem({ 'image/png': imageAsPng(image) })]);
 
 function withExtension(name, original) {
   const clean = name.trim();
@@ -100,6 +127,8 @@ function ImageRow({ image, result, thumbAspect, onRename, onDownload }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(image.name);
   const [copyLabel, setCopyLabel] = useState('Copy');
+  const [downloadLabel, setDownloadLabel] = useState('Download');
+  useEffect(() => { window.setTimeout(() => prepareOriginal(image), 0); }, [image]);
   const shrunk = result?.blob;
   const dims = shrunk ? [result.width, result.height] : [image.width, image.height];
   const meta = [
@@ -114,11 +143,19 @@ function ImageRow({ image, result, thumbAspect, onRename, onDownload }) {
     if (draft.trim()) onRename(image.id, withExtension(draft, image.name));
   };
 
+  // Labels change on the click itself; the heavy work starts on the next frame so the press registers at once.
   const copy = () => {
+    setCopyLabel('Copying…');
     copyImage(image).then(
       () => setCopyLabel('Copied'),
       () => setCopyLabel('Copy failed'),
     ).finally(() => window.setTimeout(() => setCopyLabel('Copy'), 1500));
+  };
+
+  const download = () => {
+    setDownloadLabel('Starting…');
+    onDownload(image, result);
+    window.setTimeout(() => setDownloadLabel('Download'), 1500);
   };
 
   return (
@@ -160,7 +197,7 @@ function ImageRow({ image, result, thumbAspect, onRename, onDownload }) {
         </div>
         <div className="actions">
           <button className="action-button" type="button" onClick={copy}><span className="trim">{copyLabel}</span></button>
-          <button className="action-button" type="button" onClick={() => onDownload(image, result)}><span className="trim">Download</span></button>
+          <button className="action-button" type="button" onClick={download}><span className="trim">{downloadLabel}</span></button>
         </div>
       </div>
     </article>
@@ -253,6 +290,10 @@ function useImageExtractor() {
       // Every image is requested at once; Apps Script serves them in parallel.
       const found = await Promise.all(Array.from({ length: info.count }, (_, index) => call('getDocumentImage', index, entitlement)));
       setImages(found);
+      // Not awaited: the list shows at once and the sizes correct themselves a moment later.
+      Promise.all(found.map(naturalSize)).then((sizes) => {
+        setImages((current) => current.map((image, index) => ({ ...image, ...(sizes[index]?.width ? sizes[index] : {}) })));
+      });
     } catch (failure) {
       handleServerFailure(failure, 'Could not read images from this document. Try again.');
     }
@@ -652,7 +693,10 @@ function App() {
 
   useEffect(() => { detectSupportedFormats().then(setSupported); }, []);
 
-  const updateSettings = (patch) => setSettings((current) => ({ ...current, ...patch }));
+  const updateSettings = (patch) => {
+    if (patch.format === 'avif') prefetchAvifCodec();
+    setSettings((current) => ({ ...current, ...patch }));
+  };
 
   const processedName = (image, result) => exportName(image.name, result.ext);
 

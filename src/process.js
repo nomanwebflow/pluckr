@@ -38,16 +38,33 @@ const AVIF_OPTIONS = {
   chromaDeltaQ: false, sharpness: 0, tune: 0, enableSharpYUV: false, bitDepth: 8, lossless: false,
 };
 
-/** In Docs the codec is embedded (deflated, base64) in the page; in dev it is served from /assets. */
+/** In Docs the codec (deflated, base64) is fetched from the add-on's server the first time AVIF is needed; in dev it is served from /assets. */
 async function loadWasmBytes() {
-  if (window.PLUCKR_AVIF_WASM) {
-    const binary = window.atob(window.PLUCKR_AVIF_WASM);
+  const run = window.google?.script?.run;
+  if (run) {
+    const encoded = await new Promise((resolve, reject) => run.withSuccessHandler(resolve).withFailureHandler(reject).getAvifCodec());
+    const binary = window.atob(encoded);
     const packed = new Uint8Array(binary.length);
     for (let index = 0; index < binary.length; index += 1) packed[index] = binary.charCodeAt(index);
     return unzlibSync(packed);
   }
   const response = await fetch('/assets/avif_enc.wasm');
   return new Uint8Array(await response.arrayBuffer());
+}
+
+function codecBytes() {
+  if (!wasmBytes) {
+    wasmBytes = loadWasmBytes().catch((failure) => {
+      wasmBytes = null; // let the next attempt try again
+      throw failure;
+    });
+  }
+  return wasmBytes;
+}
+
+/** Start downloading the AVIF codec early, e.g. when the user picks AVIF, so converting does not wait for it. */
+export function prefetchAvifCodec() {
+  codecBytes().catch(() => {});
 }
 
 /** Above this many pixels the encoder risks running out of memory, so AVIF input is scaled down to fit. */
@@ -94,7 +111,7 @@ async function getWorker(needsAvif = false) {
   if (needsAvif && !wasmInitialized) {
     if (!wasmInitPromise) {
       wasmInitPromise = (async () => {
-        const bytes = await (wasmBytes || (wasmBytes = loadWasmBytes()));
+        const bytes = await codecBytes();
         if (worker !== current) return;
         const wasm = bytes.slice(); // the worker gets its own copy; ours is reused on respawn
         current.postMessage({ type: 'init', wasm }, [wasm.buffer]);

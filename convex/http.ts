@@ -128,12 +128,10 @@ http.route({
     if (!order || (product && order.product_id !== product)) return new Response("ignored", { status: 200 });
 
     if (event.type === "order.paid" && order.paid === true) {
-      const sub: string | undefined = order.customer?.external_id ?? undefined;
-      if (!sub) {
-        // Bought outside our checkout, so there is no Google account to attach it to. Handle by hand via support.
-        console.error("order.paid without external_id", order.id);
-        return new Response("no_external_id", { status: 200 });
-      }
+      // Polar can attach an order to a customer it already knew, with no external_id. Never drop a paid order:
+      // record it under a placeholder id and let /licence match the buyer by their Google-verified email.
+      const sub: string = order.customer?.external_id ?? `unmatched:${order.id}`;
+      if (!order.customer?.external_id) console.error("order.paid without external_id, recorded by email", order.id);
       await ctx.runMutation(internal.licences.recordOrder, {
         sub,
         email: order.customer?.email ?? undefined,

@@ -53,6 +53,11 @@ function forgetEntitlement() {
   PropertiesService.getUserProperties().deleteProperty('entitlement');
 }
 
+/** The AVIF encoder (deflated, base64), loaded by the sidebar only when AVIF is used. */
+function getAvifCodec() {
+  return HtmlService.createHtmlOutputFromFile('AvifCodec').getContent();
+}
+
 /** Google identity token for the licence service. Needs the openid and userinfo.email scopes in the manifest. */
 function getIdentityToken() {
   return ScriptApp.getIdentityToken();
@@ -71,12 +76,12 @@ function logIdentityTokenClaims() {
 
 /**
  * The paywall. The sidebar gets an entitlement from the licence service and passes it with every call that
- * reads images; it is checked here offline with a secret shared with the licence service. Enforcement turns on
- * only once ENTITLEMENT_SECRET exists in Script Properties, so the add-on keeps working while that is unset.
+ * reads images; it is checked here offline with a secret shared with the licence service. Without the secret the
+ * gate fails closed: a deleted or missing Script Property must never switch the paywall off.
  */
 function requireEntitlement_(entitlement) {
   var secret = PropertiesService.getScriptProperties().getProperty('ENTITLEMENT_SECRET');
-  if (!secret) return;
+  if (!secret) throw new Error('GATE_UNCONFIGURED');
 
   var parts = String(entitlement || '').split('.');
   var exp = Number(parts[0]);

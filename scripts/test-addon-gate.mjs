@@ -32,8 +32,8 @@ const sub = '109876543210987654321';
 const token = jwtFor({ sub, aud: 'client-id', iss: 'https://accounts.google.com' });
 const allowed = (gate, entitlement) => { try { gate.requireEntitlement_(entitlement); return true; } catch (e) { assert.match(e.message, /LICENCE_REQUIRED/); return false; } };
 
-// Paywall off: nothing is enforced until the secret exists.
-assert.equal(allowed(loadGate({ secret: undefined, token }), ''), true, 'no secret => open');
+// No secret configured: the gate fails closed.
+assert.throws(() => loadGate({ secret: undefined, token }).requireEntitlement_(''), /GATE_UNCONFIGURED/, 'no secret => closed');
 
 const gate = loadGate({ secret: 'shared-secret', token });
 const good = await signEntitlement('shared-secret', sub, now + 3600);

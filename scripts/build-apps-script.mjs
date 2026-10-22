@@ -34,7 +34,8 @@ const assetEntries = await Promise.all(assetFiles.filter((fileName) => usedAsset
   return [key, `data:${mimeType};base64,${bytes.toString('base64')}`];
 }));
 
-// The AVIF codec is ~3.5 MB; deflated it is ~1.1 MB. Decoded with fflate at runtime.
+// The AVIF codec is ~3.5 MB; deflated it is ~1.1 MB. It is NOT part of the sidebar page: it ships as its own file and the
+// sidebar asks for it (getAvifCodec) the first time AVIF is needed, which keeps the sidebar quick to open.
 const avifWasm = deflateSync(await readFile(join(projectRoot, 'public', 'assets', 'avif_enc.wasm')), { level: 9 }).toString('base64');
 
 const inlineAssets = JSON.stringify(Object.fromEntries(assetEntries)).replace(/</g, '\\u003c');
@@ -51,10 +52,11 @@ const sidebarHtml = `<!DOCTYPE html>
   <body>
     <div id="root"></div>
     <!--PLUCKR_BOOT-->
-    <script>window.PLUCKR_ASSETS = ${inlineAssets};window.PLUCKR_AVIF_WASM = '${avifWasm}';</script>
+    <script>window.PLUCKR_ASSETS = ${inlineAssets};</script>
     <script>(function(){var b=atob('${encodedScript}'),u=new Uint8Array(b.length),i;for(i=0;i<b.length;i++)u[i]=b.charCodeAt(i);var s=document.createElement('script');s.text=new TextDecoder('utf-8').decode(u);document.body.appendChild(s);})();</script>
   </body>
 </html>`;
 
 await writeFile(join(outputRoot, 'Sidebar.html'), sidebarHtml);
+await writeFile(join(outputRoot, 'AvifCodec.html'), avifWasm);
 console.log('Built apps-script/Sidebar.html from the React app.');
