@@ -6,12 +6,6 @@ export const ASPECTS = [
   ...['1:1', '4:3', '3:4', '3:2', '2:3', '16:9', '9:16'].map((ratio) => ({ id: ratio, label: ratio })),
 ];
 
-function aspectRatio(id) {
-  if (!id || id === 'original') return null;
-  const [w, h] = id.split(':').map(Number);
-  return w / h;
-}
-
 export const FORMATS = [
   { id: 'avif', label: 'AVIF', mime: 'image/avif', ext: 'avif', lossy: true },
   { id: 'webp', label: 'WebP', mime: 'image/webp', ext: 'webp', lossy: true },
@@ -33,10 +27,19 @@ export function detectSupportedFormats() {
 }
 
 // Same defaults as @jsquash/avif, except speed 8: much faster for a small quality cost.
-const AVIF_OPTIONS = {
+export const AVIF_OPTIONS = {
   qualityAlpha: -1, denoiseLevel: 0, tileColsLog2: 0, tileRowsLog2: 0, speed: 8, subsample: 1,
   chromaDeltaQ: false, sharpness: 0, tune: 0, enableSharpYUV: false, bitDepth: 8, lossless: false,
 };
+
+export const AVIF_MAX_PIXELS = 24_000_000;
+
+export function decodeBase64(base64) {
+  const binary = window.atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+  return bytes;
+}
 
 /** In Docs the codec (deflated, base64) is fetched from the add-on's server the first time AVIF is needed; in dev it is served from /assets. */
 async function loadWasmBytes() {
@@ -52,6 +55,9 @@ async function loadWasmBytes() {
   return new Uint8Array(await response.arrayBuffer());
 }
 
+let wasmBytes = null;
+let wasmModulePromise = null;
+
 function codecBytes() {
   if (!wasmBytes) {
     wasmBytes = loadWasmBytes().catch((failure) => {
@@ -62,87 +68,150 @@ function codecBytes() {
   return wasmBytes;
 }
 
-/** Start downloading the AVIF codec early, e.g. when the user picks AVIF, so converting does not wait for it. */
+/** Pre-compile the WebAssembly module once so all worker instances can instantiate it instantly. */
+export function getWasmModule() {
+  if (!wasmModulePromise) {
+    wasmModulePromise = (async () => {
+      const bytes = await codecBytes();
+      return WebAssembly.compile(bytes);
+    })().catch((err) => {
+      wasmModulePromise = null;
+      throw err;
+    });
+  }
+  return wasmModulePromise;
+}
+
+/** Start downloading and compiling the AVIF codec early so converting does not wait for it. */
 export function prefetchAvifCodec() {
-  codecBytes().catch(() => {});
+  getWasmModule().catch(() => {});
 }
 
-/** Above this many pixels the encoder risks running out of memory, so AVIF input is scaled down to fit. */
-export const AVIF_MAX_PIXELS = 24_000_000;
+// Concurrency pool for parallel image encoding across available CPU cores.
+const POOL_SIZE = Math.min(
+  Math.max((typeof navigator !== 'undefined' && navigator.hardwareConcurrency ? navigator.hardwareConcurrency - 1 : 3), 2),
+  4
+);
 
-let worker = null;
-let wasmBytes = null;
-let wasmInitialized = false;
-let wasmInitPromise = null;
+const pool = [];
+const queue = [];
 let nextJobId = 0;
-const pending = new Map();
 
-function failAll(message) {
-  pending.forEach(({ reject }) => reject(new Error(message)));
-  pending.clear();
-}
+function createWorkerSlot() {
+  const worker = new AvifWorker();
+  const slot = {
+    worker,
+    busy: false,
+    wasmInitialized: false,
+    wasmInitPromise: null,
+    currentJob: null,
+  };
 
-function dropWorker(message) {
-  if (worker) worker.terminate();
-  worker = null;
-  wasmInitialized = false;
-  wasmInitPromise = null;
-  failAll(message);
-}
-
-async function getWorker(needsAvif = false) {
-  if (!worker) {
-    worker = new AvifWorker();
-    worker.onmessage = ({ data }) => {
-      const job = pending.get(data.id);
-      if (!job) return;
-      pending.delete(data.id);
-      if (data.error) {
-        // An aborted wasm instance cannot be trusted again; the next job gets a fresh worker.
-        dropWorker('AVIF encoder restarted.');
-        job.reject(new Error(data.error));
-      } else {
-        job.resolve(data.bytes ?? data.blob);
-      }
-    };
-    worker.onerror = () => dropWorker('Image processing worker crashed.');
-  }
-  const current = worker;
-  if (needsAvif && !wasmInitialized) {
-    if (!wasmInitPromise) {
-      wasmInitPromise = (async () => {
-        const bytes = await codecBytes();
-        if (worker !== current) return;
-        const wasm = bytes.slice(); // the worker gets its own copy; ours is reused on respawn
-        current.postMessage({ type: 'init', wasm }, [wasm.buffer]);
-        wasmInitialized = true;
-      })().catch((error) => {
-        wasmInitPromise = null;
-        throw error;
-      });
+  worker.onmessage = ({ data }) => {
+    if (data.type === 'ready') {
+      slot.wasmInitialized = true;
+      return;
     }
-    await wasmInitPromise;
-    if (worker !== current) return getWorker(needsAvif);
+    const job = slot.currentJob;
+    if (!job || job.id !== data.id) return;
+    slot.currentJob = null;
+    slot.busy = false;
+
+    if (data.error) {
+      terminateSlot(slot);
+      job.reject(new Error(data.error));
+    } else {
+      job.resolve(data);
+    }
+    drainQueue();
+  };
+
+  worker.onerror = () => {
+    const job = slot.currentJob;
+    slot.currentJob = null;
+    slot.busy = false;
+    terminateSlot(slot);
+    if (job) job.reject(new Error('Image processing worker crashed.'));
+    drainQueue();
+  };
+
+  return slot;
+}
+
+function terminateSlot(slot) {
+  try { slot.worker.terminate(); } catch (_) {}
+  const index = pool.indexOf(slot);
+  if (index !== -1) pool.splice(index, 1);
+}
+
+async function ensureWasm(slot) {
+  if (slot.wasmInitialized) return;
+  if (!slot.wasmInitPromise) {
+    slot.wasmInitPromise = (async () => {
+      const module = await getWasmModule();
+      slot.worker.postMessage({ type: 'init', module });
+      slot.wasmInitialized = true;
+    })().catch((err) => {
+      slot.wasmInitPromise = null;
+      throw err;
+    });
   }
-  return current;
+  await slot.wasmInitPromise;
 }
 
-/** Stop any in-flight AVIF encode immediately (settings changed, so its result is not wanted). */
+function drainQueue() {
+  if (queue.length === 0) return;
+
+  let slot = pool.find((s) => !s.busy);
+  if (!slot && pool.length < POOL_SIZE) {
+    slot = createWorkerSlot();
+    pool.push(slot);
+  }
+  if (!slot) return;
+
+  const job = queue.shift();
+  if (!job) return;
+
+  slot.busy = true;
+  slot.currentJob = job;
+
+  (async () => {
+    try {
+      if (job.format === 'avif') {
+        await ensureWasm(slot);
+      }
+      if (slot.currentJob !== job) return;
+
+      const transfer = [];
+      if (job.bitmap) transfer.push(job.bitmap);
+      slot.worker.postMessage(job.message, transfer);
+    } catch (err) {
+      if (slot.currentJob === job) {
+        slot.currentJob = null;
+        slot.busy = false;
+        job.reject(err);
+        drainQueue();
+      }
+    }
+  })();
+}
+
+/** Stop any in-flight encode immediately (settings changed or cancelled). */
 export function cancelEncoding() {
-  if (pending.size) dropWorker('cancelled');
-}
-
-async function encodeInWorker(bitmap, { width, height, format, quality }) {
-  const target = await getWorker(format === 'avif');
-  const id = nextJobId++;
-  const bytes = await new Promise((resolve, reject) => {
-    pending.set(id, { resolve, reject });
-    target.postMessage({
-      id, bitmap, width, height, format, mime: FORMATS.find((item) => item.id === format).mime,
-      quality, options: { ...AVIF_OPTIONS, quality },
-    }, [bitmap]);
-  });
-  return format === 'avif' ? new Blob([bytes], { type: 'image/avif' }) : bytes;
+  while (queue.length > 0) {
+    const job = queue.shift();
+    job.reject(new Error('cancelled'));
+  }
+  for (let i = pool.length - 1; i >= 0; i--) {
+    const slot = pool[i];
+    if (slot.busy) {
+      const job = slot.currentJob;
+      slot.currentJob = null;
+      slot.busy = false;
+      terminateSlot(slot);
+      if (job) job.reject(new Error('cancelled'));
+    }
+  }
 }
 
 function loadImage(url) {
@@ -154,43 +223,85 @@ function loadImage(url) {
   });
 }
 
-/** Re-encode one image. Only ever shrinks: maxWidth never upscales. */
-export async function processImage(url, fallbackSize, { format, quality, maxWidth, aspect }) {
+function isSvg(source, mimeType) {
+  if (mimeType === 'image/svg+xml') return true;
+  const src = typeof source === 'string' ? source : source?.src;
+  return typeof src === 'string' && (src.startsWith('data:image/svg+xml') || src.split('?')[0].endsWith('.svg'));
+}
+
+async function toBlobOrBitmap(source) {
+  if (source instanceof Blob) return { blob: source };
+  if (typeof ImageBitmap !== 'undefined' && source instanceof ImageBitmap) return { bitmap: source };
+
+  if (typeof source === 'object' && source !== null) {
+    if (source.blob instanceof Blob) return { blob: source.blob };
+    if (source.data) {
+      const blob = new Blob([decodeBase64(source.data)], { type: source.mimeType || 'image/png' });
+      source.blob = blob;
+      return { blob };
+    }
+    if (source.src) {
+      if (isSvg(source.src, source.mimeType)) {
+        const img = await loadImage(source.src);
+        return { bitmap: await createImageBitmap(img) };
+      }
+      const res = await fetch(source.src);
+      const blob = await res.blob();
+      source.blob = blob;
+      return { blob };
+    }
+  }
+
+  if (typeof source === 'string') {
+    if (isSvg(source)) {
+      const img = await loadImage(source);
+      return { bitmap: await createImageBitmap(img) };
+    }
+    const res = await fetch(source);
+    return { blob: await res.blob() };
+  }
+
+  throw new Error('Unsupported image source');
+}
+
+/** Re-encode one image. Scaled/cropped in the background worker pool. */
+export async function processImage(source, fallbackSize, options) {
+  let targetOptions = options;
+  if (!targetOptions && fallbackSize && fallbackSize.format) {
+    targetOptions = fallbackSize;
+  }
+  const { format, quality, maxWidth, aspect } = targetOptions || {};
   const target = FORMATS.find((item) => item.id === format);
-  const source = await loadImage(url);
-  const sourceWidth = source.naturalWidth || fallbackSize.width || 1;
-  const sourceHeight = source.naturalHeight || fallbackSize.height || 1;
+  if (!target) throw new Error(`Unknown format: ${format}`);
 
-  // A fixed aspect ratio crops from the centre; "original" keeps the whole image.
-  const ratio = aspectRatio(aspect);
-  let cropWidth = sourceWidth;
-  let cropHeight = sourceHeight;
-  if (ratio) {
-    if (sourceWidth / sourceHeight > ratio) cropWidth = Math.max(1, Math.round(sourceHeight * ratio));
-    else cropHeight = Math.max(1, Math.round(sourceWidth / ratio));
-  }
-  const cropX = Math.floor((sourceWidth - cropWidth) / 2);
-  const cropY = Math.floor((sourceHeight - cropHeight) / 2);
+  const input = await toBlobOrBitmap(source);
+  const id = nextJobId++;
+  const message = {
+    id,
+    format: target.id,
+    mime: target.mime,
+    quality,
+    maxWidth,
+    aspect,
+    options: target.id === 'avif' ? { ...AVIF_OPTIONS, quality } : undefined,
+    ...(input.bitmap ? { bitmap: input.bitmap } : { blob: input.blob }),
+  };
 
-  const limit = Number(maxWidth) > 0 ? Number(maxWidth) : cropWidth;
-  const scale = Math.min(1, limit / cropWidth);
-  let width = Math.max(1, Math.round(cropWidth * scale));
-  let height = ratio ? Math.max(1, Math.round(width / ratio)) : Math.max(1, Math.round(cropHeight * scale));
-  let note = '';
-  if (target.id === 'avif' && width * height > AVIF_MAX_PIXELS) {
-    const fit = Math.sqrt(AVIF_MAX_PIXELS / (width * height));
-    width = Math.max(1, Math.floor(width * fit));
-    height = Math.max(1, Math.floor(height * fit));
-    note = `Scaled to ${width} × ${height} to fit AVIF memory limits`;
-  }
+  const result = await new Promise((resolve, reject) => {
+    queue.push({
+      id,
+      format: target.id,
+      bitmap: input.bitmap,
+      message,
+      resolve,
+      reject,
+    });
+    drainQueue();
+  });
 
-  // Cropping here (not in the worker) also keeps the transferred bitmap small.
-  const bitmap = ratio
-    ? await createImageBitmap(source, cropX, cropY, cropWidth, cropHeight)
-    : await createImageBitmap(source);
-  const blob = await encodeInWorker(bitmap, { width, height, format: target.id, quality });
+  const blob = target.id === 'avif' ? new Blob([result.bytes], { type: 'image/avif' }) : result.blob;
   if (!blob || blob.type !== target.mime) throw new Error(`${target.label} is not supported in this browser.`);
-  return { blob, width, height, ext: target.ext, note };
+  return { blob, width: result.width, height: result.height, ext: target.ext, note: result.note || '' };
 }
 
 export function baseName(name) {
@@ -204,14 +315,15 @@ export function exportName(name, ext) {
 }
 
 export async function zipBlobs(entries) {
+  const buffers = await Promise.all(entries.map((entry) => entry.blob.arrayBuffer()));
   const files = {};
   const used = {};
-  for (const { name, blob } of entries) {
-    let unique = name;
-    while (used[unique]) unique = `(${used[name]++}) ${name}`;
+  entries.forEach((entry, index) => {
+    let unique = entry.name;
+    while (used[unique]) unique = `(${used[entry.name]++}) ${entry.name}`;
     used[unique] = 1;
-    files[unique] = new Uint8Array(await blob.arrayBuffer());
-  }
+    files[unique] = new Uint8Array(buffers[index]);
+  });
   // Images are already compressed, so store without deflating.
   return new Blob([zipSync(files, { level: 0 })], { type: 'application/zip' });
 }

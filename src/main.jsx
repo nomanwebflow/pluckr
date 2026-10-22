@@ -53,8 +53,23 @@ function naturalSize(image) {
   });
 }
 
+function prepareOriginal(image) {
+  if (image._blobUrl) return image._blobUrl;
+  if (image.src) return image.src;
+  if (image.blob) {
+    image._blobUrl = URL.createObjectURL(image.blob);
+    return image._blobUrl;
+  }
+  if (image.data) {
+    image.blob = new Blob([decodeBase64(image.data)], { type: image.mimeType || 'image/png' });
+    image._blobUrl = URL.createObjectURL(image.blob);
+    return image._blobUrl;
+  }
+  return '';
+}
+
 function imageUrl(image) {
-  return image.data ? `data:${image.mimeType || 'image/png'};base64,${image.data}` : image.src;
+  return prepareOriginal(image);
 }
 
 function saveBlob(blob, fileName) {
@@ -69,36 +84,25 @@ function saveBlob(blob, fileName) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-// Original-image blob URLs are built ahead of the click, so pressing Download only has to start the download.
-const originalUrls = new Map();
-function prepareOriginal(image) {
-  if (!image.data || originalUrls.has(image.id + image.size)) return;
-  originalUrls.set(image.id + image.size, URL.createObjectURL(new Blob([decodeBase64(image.data)], { type: image.mimeType })));
-}
-
 function downloadImage(image) {
-  if (image.data) {
-    prepareOriginal(image);
-    const anchor = document.createElement('a');
-    anchor.href = originalUrls.get(image.id + image.size);
-    anchor.download = image.name;
-    anchor.style.display = 'none';
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    return;
-  }
-
+  const url = imageUrl(image);
   const anchor = document.createElement('a');
-  anchor.href = image.src;
+  anchor.href = url;
   anchor.download = image.name;
+  anchor.style.display = 'none';
+  document.body.appendChild(anchor);
   anchor.click();
+  anchor.remove();
 }
 
 /** The async clipboard only reliably takes PNG, so anything else is redrawn. PNGs are copied as they are. */
 function imageAsPng(image) {
-  if (image.data && image.mimeType === 'image/png') {
-    return Promise.resolve(new Blob([decodeBase64(image.data)], { type: 'image/png' }));
+  if (image.mimeType === 'image/png') {
+    if (image.blob) return Promise.resolve(image.blob);
+    if (image.data) {
+      image.blob = new Blob([decodeBase64(image.data)], { type: 'image/png' });
+      return Promise.resolve(image.blob);
+    }
   }
   return new Promise((resolve, reject) => {
     const source = new Image();
@@ -128,7 +132,6 @@ function ImageRow({ image, result, thumbAspect, onRename, onDownload }) {
   const [draft, setDraft] = useState(image.name);
   const [copyLabel, setCopyLabel] = useState('Copy');
   const [downloadLabel, setDownloadLabel] = useState('Download');
-  useEffect(() => { window.setTimeout(() => prepareOriginal(image), 0); }, [image]);
   const shrunk = result?.blob;
   const dims = shrunk ? [result.width, result.height] : [image.width, image.height];
   const meta = [
@@ -197,7 +200,7 @@ function ImageRow({ image, result, thumbAspect, onRename, onDownload }) {
         </div>
         <div className="actions">
           <button className="action-button" type="button" onClick={copy}><span className="trim">{copyLabel}</span></button>
-          <button className="action-button" type="button" onClick={download}><span className="trim">{downloadLabel}</span></button>
+          <button className="action-button" type="button" onPointerEnter={() => prepareOriginal(image)} onFocus={() => prepareOriginal(image)} onClick={download}><span className="trim">{downloadLabel}</span></button>
         </div>
       </div>
     </article>
@@ -262,6 +265,10 @@ function useImageExtractor() {
       setLicence('unpaid');
       return;
     }
+    if (String(failure?.message || '').includes('GATE_UNCONFIGURED')) {
+      setError('Pluckr is temporarily unavailable. Please try again later or contact support@docpluckr.com.');
+      return;
+    }
     setError(failure?.message || fallback);
   }, [scriptRun]);
 
@@ -289,6 +296,8 @@ function useImageExtractor() {
       const info = await call('getDocumentInfo', entitlement);
       // Every image is requested at once; Apps Script serves them in parallel.
       const found = await Promise.all(Array.from({ length: info.count }, (_, index) => call('getDocumentImage', index, entitlement)));
+      found.forEach(prepareOriginal);
+      releaseOriginals();
       setImages(found);
       // Not awaited: the list shows at once and the sizes correct themselves a moment later.
       Promise.all(found.map(naturalSize)).then((sizes) => {
@@ -484,21 +493,27 @@ function useConverter(images, settings) {
     const run = runRef.current + 1;
     runRef.current = run;
     setBusy(true);
-    const results = {};
-    for (const image of imagesRef.current) {
-      try {
-        results[image.id] = await processImage(imageUrl(image), image, { format, quality, maxWidth, aspect });
-      } catch (failure) {
-        results[image.id] = { error: failure.message };
-      }
-      if (runRef.current !== run) return;
+    setDone({ key, results: {} });
+    const currentImages = imagesRef.current;
+    await Promise.all(
+      currentImages.map(async (image) => {
+        try {
+          const res = await processImage(image, image, { format, quality, maxWidth, aspect });
+          if (runRef.current !== run) return;
+          setDone((prev) => (prev.key === key ? { key, results: { ...prev.results, [image.id]: res } } : prev));
+        } catch (failure) {
+          if (runRef.current !== run) return;
+          setDone((prev) => (prev.key === key ? { key, results: { ...prev.results, [image.id]: { error: failure.message } } } : prev));
+        }
+      })
+    );
+    if (runRef.current === run) {
+      setBusy(false);
     }
-    setDone({ key, results });
-    setBusy(false);
   }, [key, format, quality, maxWidth, aspect]);
 
-  const converted = key !== null && done.key === key;
-  return { results: converted ? done.results : {}, converted, busy, convert };
+  const converted = key !== null && done.key === key && !busy && Object.keys(done.results).length > 0;
+  return { results: done.key === key ? done.results : {}, converted, busy, convert };
 }
 
 function Select({ value, options, onChange, label, disabled = false, isAvailable = () => true }) {

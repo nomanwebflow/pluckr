@@ -5,3 +5,4 @@ site-dist/
 
 .env.local
 .secrets/
+.playwright-mcp/

@@ -8,7 +8,8 @@ export const getActiveBySub = internalQuery({
     const bySub = await ctx.db.query("licences").withIndex("by_sub", (q) => q.eq("sub", sub)).collect();
     const found = bySub.find((row) => row.status === "active");
     if (found || !email) return found ?? null;
-    const byEmail = await ctx.db.query("licences").withIndex("by_email", (q) => q.eq("email", email)).collect();
+    // Emails are stored lowercased (see recordOrder), so a differently cased address still matches.
+    const byEmail = await ctx.db.query("licences").withIndex("by_email", (q) => q.eq("email", email.toLowerCase())).collect();
     return byEmail.find((row) => row.status === "active") ?? null;
   },
 });
@@ -39,7 +40,7 @@ export const recordOrder = internalMutation({
     }
     await ctx.db.insert("licences", {
       sub: args.sub,
-      email: args.email,
+      email: args.email?.toLowerCase(),
       polarOrderId: args.orderId,
       polarCustomerId: args.customerId,
       status: args.status,
