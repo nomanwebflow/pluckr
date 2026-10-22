@@ -1062,11 +1062,23 @@ html.wf-design-mode .guide_wrap {
       button.setAttribute("aria-controls", content.id);
       content.setAttribute("aria-labelledby", button.id);
       content.style.display = "none";
-      // No animation: the answer shows and hides instantly.
+      // Height animation on the answer panel (Web Animations API, no library). Interrupting mid-way continues from the current height.
+      let running = null;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const slide = (to, done, startAt) => {
+        const from = startAt === undefined ? content.offsetHeight : startAt;
+        if (running) running.cancel();
+        content.style.overflow = "hidden";
+        if (reduceMotion.matches || from === to) { content.style.height = ""; content.style.overflow = ""; done(); return; }
+        running = content.animate([{ height: from + "px" }, { height: to + "px" }], { duration: 320, easing: "cubic-bezier(.4, 0, .2, 1)" });
+        const finish = () => { running = null; content.style.height = ""; content.style.overflow = ""; done(); };
+        running.onfinish = finish;
+        running.oncancel = () => {};
+      };
       const tl = {
-        play: () => { content.style.display = "block"; },
-        reverse: () => { content.style.display = "none"; },
-        progress: () => { content.style.display = "block"; },
+        play: () => { const closed = content.style.display === "none"; content.style.display = "block"; slide(content.scrollHeight, () => {}, closed ? 0 : undefined); },
+        reverse: () => { slide(0, () => { content.style.display = "none"; }); },
+        progress: () => { if (running) running.cancel(); content.style.display = "block"; content.style.height = ""; content.style.overflow = ""; },
       };
       const closeAccordion = () => card.classList.contains("is-active") && (card.classList.remove("is-active"), tl.reverse(), button.setAttribute("aria-expanded", "false"));
       closeFunctions[cardIndex] = closeAccordion;
