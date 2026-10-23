@@ -16,9 +16,12 @@ function onInstall() {
 function openPluckrSidebar() {
   // Rendered here, before the page loads: a still-valid entitlement lets the sidebar open straight onto the images
   // instead of flashing a "checking your licence" screen first.
-  var boot = JSON.stringify(cachedEntitlement_()).replace(/</g, '\\u003c');
+  var bootData = { theme: getTheme_() };  // null until the user picks one; the page then follows the system setting
+  var cached = cachedEntitlement_();
+  if (cached) { bootData.entitlement = cached.entitlement; bootData.expiresAt = cached.expiresAt; }
+  var boot = JSON.stringify(bootData).replace(/</g, '\\u003c');
   var page = HtmlService.createHtmlOutputFromFile('Sidebar').getContent()
-    .replace('<!--PLUCKR_BOOT-->', function () { return '<script>window.PLUCKR_BOOT = ' + boot + ';</script>'; });
+    .replace('<!--PLUCKR_BOOT-->', function () { return '<script>window.PLUCKR_BOOT = ' + boot + ';document.documentElement.setAttribute("data-theme", window.PLUCKR_BOOT.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"));</script>'; });
   DocumentApp.getUi().showSidebar(HtmlService.createHtmlOutput(page).setTitle('Pluckr'));
 }
 
@@ -51,6 +54,16 @@ function rememberEntitlement(entitlement) {
 
 function forgetEntitlement() {
   PropertiesService.getUserProperties().deleteProperty('entitlement');
+}
+
+/** Light or dark. Remembered per user once chosen; until then the sidebar follows the system theme. Applied before the page paints. */
+function getTheme_() {
+  var saved = PropertiesService.getUserProperties().getProperty('theme');
+  return saved === 'light' || saved === 'dark' ? saved : null;
+}
+
+function setTheme(theme) {
+  PropertiesService.getUserProperties().setProperty('theme', theme === 'light' ? 'light' : 'dark');
 }
 
 /** The AVIF encoder (deflated, base64), loaded by the sidebar only when AVIF is used. */

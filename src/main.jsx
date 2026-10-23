@@ -53,16 +53,26 @@ function naturalSize(image) {
   });
 }
 
+// Blob URLs created for the current scan; a rescan releases the previous scan's so a long session does not keep them all.
+const blobUrls = new Set();
+function takeBlobUrls() {
+  const taken = [...blobUrls];
+  blobUrls.clear();
+  return taken;
+}
+
 function prepareOriginal(image) {
   if (image._blobUrl) return image._blobUrl;
   if (image.src) return image.src;
   if (image.blob) {
     image._blobUrl = URL.createObjectURL(image.blob);
+    blobUrls.add(image._blobUrl);
     return image._blobUrl;
   }
   if (image.data) {
     image.blob = new Blob([decodeBase64(image.data)], { type: image.mimeType || 'image/png' });
     image._blobUrl = URL.createObjectURL(image.blob);
+    blobUrls.add(image._blobUrl);
     return image._blobUrl;
   }
   return '';
@@ -296,9 +306,10 @@ function useImageExtractor() {
       const info = await call('getDocumentInfo', entitlement);
       // Every image is requested at once; Apps Script serves them in parallel.
       const found = await Promise.all(Array.from({ length: info.count }, (_, index) => call('getDocumentImage', index, entitlement)));
+      const stale = takeBlobUrls();
       found.forEach(prepareOriginal);
-      releaseOriginals();
       setImages(found);
+      window.setTimeout(() => stale.forEach((url) => URL.revokeObjectURL(url)), 1000);
       // Not awaited: the list shows at once and the sizes correct themselves a moment later.
       Promise.all(found.map(naturalSize)).then((sizes) => {
         setImages((current) => current.map((image, index) => ({ ...image, ...(sizes[index]?.width ? sizes[index] : {}) })));
@@ -413,7 +424,7 @@ function useImageExtractor() {
   };
 }
 
-function TopBar({ loading, canScan, extractImages, closeSidebar, logout }) {
+function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, toggleTheme }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -440,6 +451,7 @@ function TopBar({ loading, canScan, extractImages, closeSidebar, logout }) {
       </button>
       {menuOpen && (
         <div className="menu" role="menu">
+          <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); toggleTheme(); }}>{theme === 'light' ? 'Dark mode' : 'Light mode'}</button>
           <button className="menu-item" type="button" role="menuitem" onClick={closeSidebar}>Close sidebar</button>
           <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); logout(); }}>Log out</button>
           <a className="menu-item" role="menuitem" href="https://docpluckr.com/privacy" target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>Privacy policy</a>
@@ -693,6 +705,24 @@ function PaywallNotice({ state, error, price, checkoutUrl, onBuy, onCheck }) {
 
 function App() {
   const extractor = useImageExtractor();
+  // The add-on's server code picks the saved theme before the page loads; dark is the default.
+  const systemLight = useMemo(() => window.matchMedia('(prefers-color-scheme: light)'), []);
+  const [theme, setTheme] = useState(() => document.documentElement.getAttribute('data-theme') || (systemLight.matches ? 'light' : 'dark'));
+  const chosen = useRef(Boolean(window.PLUCKR_BOOT?.theme));
+  useEffect(() => { document.documentElement.setAttribute('data-theme', theme); }, [theme]);
+  // With no saved choice, follow the system setting, including when it changes while the sidebar is open.
+  useEffect(() => {
+    const follow = () => { if (!chosen.current) setTheme(systemLight.matches ? 'light' : 'dark'); };
+    systemLight.addEventListener('change', follow);
+    return () => systemLight.removeEventListener('change', follow);
+  }, [systemLight]);
+  const toggleTheme = () => {
+    chosen.current = true;
+    const next = theme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    setTheme(next);
+    window.google?.script?.run?.withFailureHandler(() => {}).setTheme(next);
+  };
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [exportOpen, setExportOpen] = useState(false);
   const [supported, setSupported] = useState({});
@@ -754,7 +784,7 @@ function App() {
   return (
     <main className="app-shell">
       <div className="sidebar">
-<TopBar loading={extractor.loading} canScan={extractor.ready} extractImages={extractor.extractImages} closeSidebar={extractor.closeSidebar} logout={extractor.logout} />
+<TopBar theme={theme} toggleTheme={toggleTheme} loading={extractor.loading} canScan={extractor.ready} extractImages={extractor.extractImages} closeSidebar={extractor.closeSidebar} logout={extractor.logout} />
         {extractor.ready ? (
           <Panel
             images={extractor.images}
