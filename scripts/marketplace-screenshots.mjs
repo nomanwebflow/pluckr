@@ -5,6 +5,7 @@
 import { chromium } from 'playwright-core';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 const DOC = process.argv[2] || 'https://docs.google.com/document/d/1hVJjoBh2O_wLD5wSjhVIaJNdC7ERmdxTRBsYBbdks68/edit';
 const OUT = resolve('brand/marketplace/screenshots');
@@ -90,3 +91,6 @@ try {
 } finally {
   await context.close();
 }
+
+// Blur the Google account photo before the screenshots go public.
+execFileSync('python3', ['scripts/blur-avatar.py'], { stdio: 'inherit' });
