@@ -22,7 +22,7 @@ OAuth verification:
 - The older project `pluckr-add-on` (its submission was not approved) has been deleted.
 
 Notes:
-- Reviewer licence: `pluckr.tester@gmail.com` has a free licence (row with order `reviewer-grant-1`, matched by Google-verified email). Revoke with `npx convex run --prod licences:markRefunded '{"orderId":"reviewer-grant-1"}'`.
+- Reviewer licence: `pluckr.tester@gmail.com` has a free licence for the Marketplace review (row with order `reviewer-grant-2`; the first grant, `reviewer-grant-1`, was refunded and a refund is final). Revoke with `npx convex run --prod licences:markRefunded '{"orderId":"reviewer-grant-2"}'`. (older note: order `reviewer-grant-1`, matched by Google-verified email). Revoke with `npx convex run --prod licences:markRefunded '{"orderId":"reviewer-grant-1"}'`.
 - Polar may attach an order to a customer it already knows by email, so `external_id` is not always the Google
   account ID. `/licence` therefore also matches the Google-verified email.
 - The privacy/terms checkbox on the unlock screen is recorded in the Convex `consents` table before checkout.
