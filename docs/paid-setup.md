@@ -1,6 +1,6 @@
 # Paid flow: what is built and what you still configure
 
-Status: LIVE since Oct 21, 2026. The paywall, the server-side gate (`ENTITLEMENT_SECRET` in Apps Script Script
+Status: LIVE since Oct 21, 2026. Google OAuth verification for project `pkuckr` was approved on Oct 23, 2026 (scope `script.container.ui`). The paywall, the server-side gate (`ENTITLEMENT_SECRET` in Apps Script Script
 Properties), the updated privacy policy and the updated terms are all deployed.
 
 ## Current state
@@ -14,6 +14,12 @@ Properties), the updated privacy policy and the updated terms are all deployed.
 | Polar webhook | `pluckr-licences` -> `/polar-webhook`, events `order.paid` and `order.refunded`, raw format. |
 | Manifest | `openid` and `userinfo.email` in `apps-script/appsscript.json`. |
 | Sidebar | `.env.production` holds the production URL and the `$5` label. Keep it equal to the Polar price. |
+
+OAuth verification:
+- Approved for the sensitive scope `script.container.ui`. `documents.currentonly`, `openid` and `userinfo.email` are non-sensitive.
+- A new scope, or a change to the consent screen (name, logo, links, domain), needs a new verification request. Do not edit the scopes in `apps-script/appsscript.json` without one.
+- Keep the project Owner and Editor emails current so Google's messages arrive.
+- The older project `pluckr-add-on` (its submission was not approved) has been deleted.
 
 Notes:
 - Reviewer licence: `pluckr.tester@gmail.com` has a free licence (row with order `reviewer-grant-1`, matched by Google-verified email). Revoke with `npx convex run --prod licences:markRefunded '{"orderId":"reviewer-grant-1"}'`.

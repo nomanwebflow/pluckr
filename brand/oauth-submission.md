@@ -1,3 +1,5 @@
+> STATUS: APPROVED on Oct 23, 2026 for project pkuckr (script.container.ui). The text below is kept as a record of what was submitted.
+
 # Pluckr OAuth verification: text to paste
 
 Console path: Google Auth Platform > Data Access (verification mode) for the justification and video,
