@@ -86,7 +86,7 @@ const sandbox = {
     base64DecodeWebSafe: (t) => [...Buffer.from(t, 'base64')], newBlob: (b, mime, name) => ({ b, mime, name, getDataAsString: () => Buffer.from(b).toString() }),
     base64Decode: (t) => [...Buffer.from(t, 'base64')],
   },
-  DocumentApp: { ElementType: { ...T, LIST_ITEM: T.LIST_ITEM }, ParagraphHeading: H, TabType: { DOCUMENT_TAB: 'DOC' }, getActiveDocument: () => doc },
+  DocumentApp: { ElementType: { ...T, LIST_ITEM: T.LIST_ITEM }, ParagraphHeading: H, TabType: { DOCUMENT_TAB: 'DOC' }, getActiveDocument: () => doc, getUi: () => ({}) },
 };
 vm.createContext(sandbox);
 vm.runInContext(readFileSync('apps-script/Code.gs', 'utf8'), sandbox);
@@ -165,6 +165,7 @@ const deck = {
   getSlides: () => [{ getPageElements: () => [first.element, shape, group] }, { getPageElements: () => [] }, { getPageElements: () => [third.element] }],
 };
 const menu = [];
+const slidesLimited = { on: true };
 const slidesSandbox = {
   Date, Logger: { log() {} },
   PropertiesService: { getScriptProperties: () => ({ getProperty: () => 'secret' }) },
@@ -175,18 +176,21 @@ const slidesSandbox = {
     base64DecodeWebSafe: (text) => [...Buffer.from(text, 'base64')],
     newBlob: (b, mime, name) => ({ b, mime, name, getDataAsString: () => Buffer.from(b).toString() }),
   },
-  DocumentApp: { getActiveDocument: () => null },
+  // Outside Docs, DocumentApp refuses getUi() like the real one does.
+  DocumentApp: { getActiveDocument: () => null, getUi: () => { throw new Error('Cannot call DocumentApp.getUi() from this context.'); } },
   SlidesApp: {
     PageElementType: { IMAGE: 'IMAGE', GROUP: 'GROUP' }, LinkType: { URL: 'URL' },
-    getActivePresentation: () => deck,
-    getUi: () => ({ createMenu: (name) => ({ addItem(label, fn) { menu.push([name, label, fn]); return this; }, addToUi() {} }) }),
+    // Before authorization (onOpen), the real getActivePresentation() throws. Detection must not need it.
+    getActivePresentation: () => { if (slidesLimited.on) throw new Error('Authorization is required.'); return deck; },
+    getUi: () => ({ createAddonMenu: () => ({ addItem(label, fn) { menu.push(['addon', label, fn]); return this; }, addToUi() {} }) }),
   },
 };
 vm.createContext(slidesSandbox);
 vm.runInContext(readFileSync('apps-script/Code.gs', 'utf8'), slidesSandbox);
 
 slidesSandbox.onOpen();
-assert.deepEqual(menu, [['Pluckr', 'Extract images (Google reads this deck’s images)', 'openPluckrSidebar']]);
+assert.deepEqual(menu, [['addon', 'Extract images (Google reads this deck’s images)', 'openPluckrSidebar']], 'the menu appears even before the add-on is authorized');
+slidesLimited.on = false;
 assert.throws(() => slidesSandbox.getDocumentInfo('bad'), /LICENCE_REQUIRED/);
 slidesSandbox.requireEntitlement_ = () => {};
 assert.deepEqual({ ...slidesSandbox.getDocumentInfo('ok') }, { documentName: 'My Deck', host: 'slides', count: 3 });
@@ -212,7 +216,7 @@ assert.deepEqual(third.image.calls.splice(0), [['replace', 'image/png', false]],
 assert.throws(() => slidesSandbox.getDocumentMarkdown('ok'), /only available in Google Docs/);
 
 // Neither editor: a clear message instead of a crash.
-const nowhere = { ...slidesSandbox, SlidesApp: { getActivePresentation: () => null } };
+const nowhere = { ...slidesSandbox, SlidesApp: { getUi: () => { throw new Error('no'); } } };
 const lost = vm.createContext({ ...nowhere });
 vm.runInContext(readFileSync('apps-script/Code.gs', 'utf8'), lost);
 assert.throws(() => lost.host_(), /Google Doc or a Google Slides deck/);

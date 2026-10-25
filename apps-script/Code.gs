@@ -4,18 +4,24 @@
  */
 function onOpen() {
   var slides = host_() === 'slides';
-  ui_()
-    .createMenu('Pluckr')
+  var ui = ui_();
+  // Slides gets the standard add-on menu (Extensions > Pluckr); Docs keeps the menu it already had.
+  var menu = slides ? ui.createAddonMenu() : ui.createMenu('Pluckr');
+  menu
     .addItem(slides ? 'Extract images (Google reads this deck’s images)' : 'Extract images (Google reads this Doc’s images)', 'openPluckrSidebar')
     .addToUi();
 }
 
-/** Which editor this run is in: 'docs' or 'slides'. Each App throws or returns null when it is not the active one. */
+/**
+ * Which editor this run is in: 'docs' or 'slides'. Asked through getUi(), which each App refuses outside its own editor.
+ * getActiveDocument() / getActivePresentation() are not used here: before the user has authorized the add-on they
+ * throw in onOpen, and the menu would never appear.
+ */
 var hostCache_ = null;
 function host_() {
   if (hostCache_) return hostCache_;
-  try { if (DocumentApp.getActiveDocument()) return (hostCache_ = 'docs'); } catch (error) { /* not Docs */ }
-  try { if (SlidesApp.getActivePresentation()) return (hostCache_ = 'slides'); } catch (error) { /* not Slides */ }
+  try { DocumentApp.getUi(); return (hostCache_ = 'docs'); } catch (error) { /* not Docs */ }
+  try { SlidesApp.getUi(); return (hostCache_ = 'slides'); } catch (error) { /* not Slides */ }
   throw new Error('Open Pluckr from a Google Doc or a Google Slides deck.');
 }
 
