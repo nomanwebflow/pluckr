@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { unzipSync, strFromU8 } from 'fflate';
+import { bulkNames } from '../src/rename.js';
 import { linkMarkdownImages, metadataCsv, uniqueNames, zipBundle } from '../src/bundle.js';
 
 // ---- bundle.js ----
@@ -25,7 +26,15 @@ assert.match(strFromU8(zip['content.md']), /\(\.\/images\/a\.png\)[\s\S]*\(\.\/i
 assert.equal(JSON.parse(strFromU8(zip['images-metadata.json']))[1].filename, '(1) a.png');
 const flat = unzipSync(new Uint8Array(await (await zipBundle([entry('a.png', 0, '')])).arrayBuffer()));
 assert.deepEqual(Object.keys(flat), ['a.png'], 'no extras: a flat ZIP like before');
-console.log('bundle.js: all checks passed');
+
+// ---- rename.js ----
+const pics = [{ name: 'image-01.PNG', altDescription: 'A Chart: Q3!' }, { name: 'photo.jpg' }, { name: 'photo2.jpg' }];
+assert.deepEqual(bulkNames(pics, { pattern: '{doc}-{n}', docName: 'My Doc', clean: true }), ['my-doc-01.PNG', 'my-doc-02.jpg', 'my-doc-03.jpg']);
+assert.deepEqual(bulkNames(pics, { pattern: '{alt}', clean: true }), ['a-chart-q3.PNG', 'photo.jpg', 'photo2.jpg'], 'no alt text falls back to the name');
+assert.deepEqual(bulkNames(pics, { pattern: 'same', clean: false }), ['same.PNG', 'same.jpg', 'same-2.jpg'], 'clashes get a number');
+assert.deepEqual(bulkNames(pics, { pattern: 'x/{n}.png', start: 9 }).slice(0, 2), ['x-09.PNG', 'x-10.jpg'], 'path characters go, a typed extension is not doubled');
+assert.deepEqual(bulkNames([{ name: 'a.png' }], { pattern: '   ', clean: true }), ['a.png'], 'an empty pattern keeps the name');
+console.log('bundle.js and rename.js: all checks passed');
 
 // ---- Code.gs against a mock Doc ----
 const T = { PARAGRAPH: 'P', LIST_ITEM: 'L', TABLE: 'TABLE', HORIZONTAL_RULE: 'HR', TEXT: 'TEXT', INLINE_IMAGE: 'IMG' };

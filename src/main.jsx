@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 
 import { createRoot } from 'react-dom/client';
 import { ASPECTS, FORMATS, cancelEncoding, compressForDoc, detectSupportedFormats, exportName, prefetchAvifCodec, processImage } from './process.js';
 import { zipBundle } from './bundle.js';
+import { bulkNames } from './rename.js';
 import { PAYWALL_ENABLED, PRICE_LABEL, createCheckout, fetchLicence } from './licence.js';
 import './styles.css';
 
@@ -391,6 +392,10 @@ function useImageExtractor() {
     setImages((current) => current.map((image) => (image.id === id ? { ...image, name } : image)));
   }, []);
 
+  const renameMany = useCallback((names) => {
+    setImages((current) => current.map((image, index) => (names[index] ? { ...image, name: names[index] } : image)));
+  }, []);
+
   const downloadAll = useCallback(async () => {
     if (images.length === 0) return;
     setError('');
@@ -471,11 +476,11 @@ function useImageExtractor() {
 
   return {
     images, loading, downloading, error, ready, licence, licenceError, checkoutUrl, documentName, isAppsScript, serverCall, fetchMarkdown,
-    checkLicence, startCheckout, extractImages, renameImage, downloadAll, closeSidebar, logout,
+    checkLicence, startCheckout, extractImages, renameImage, renameMany, downloadAll, closeSidebar, logout,
   };
 }
 
-function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, toggleTheme, onOptimize }) {
+function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, toggleTheme, onOptimize, onRename }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -503,6 +508,7 @@ function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, 
       {menuOpen && (
         <div className="menu" role="menu">
           <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); toggleTheme(); }}>{theme === 'light' ? 'Dark mode' : 'Light mode'}</button>
+          {onRename && <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); onRename(); }}>Bulk rename</button>}
           {onOptimize && <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); onOptimize(); }}>Optimize Doc images</button>}
           <button className="menu-item" type="button" role="menuitem" onClick={closeSidebar}>Close sidebar</button>
           <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); logout(); }}>Log out</button>
@@ -757,6 +763,51 @@ function ExportPanel({ settings, onChange, supported, open, onToggle, extras, on
   );
 }
 
+/** One pattern for every file name, with a live preview. */
+function BulkRenamePanel({ images, docName, onApply, onBack }) {
+  const [pattern, setPattern] = useState('{doc}-{n}');
+  const [start, setStart] = useState(1);
+  const [clean, setClean] = useState(true);
+  const names = useMemo(
+    () => bulkNames(images, { pattern, start: Number.isFinite(start) ? start : 1, clean, docName: docName || 'image' }),
+    [images, pattern, start, clean, docName],
+  );
+  const shown = names.slice(0, 4);
+
+  return (
+    <section className="privacy-notice" aria-labelledby="rename-title">
+      <div className="panel-texture" aria-hidden="true" />
+      <Asset name="mark" className="notice-mark" />
+      <h1 id="rename-title">Bulk rename</h1>
+      <div className="field">
+        <div className="field-label-row">
+          <label className="field-label" htmlFor="rename-pattern">Name pattern</label>
+          <InfoTip label="About name patterns">{'{n}'} is the number, {'{name}'} the current name, {'{doc}'} the document name and {'{alt}'} the alt text. The file type stays as it is.</InfoTip>
+        </div>
+        <input id="rename-pattern" className="field-input" value={pattern} spellCheck="false" onChange={(event) => setPattern(event.target.value)} />
+      </div>
+      <div className="field">
+        <label className="field-label" htmlFor="rename-start">Start numbering at</label>
+        <input id="rename-start" className="field-input" type="number" min="0" inputMode="numeric" value={start} onChange={(event) => setStart(event.target.value === '' ? NaN : Number(event.target.value))} />
+      </div>
+      <label className="notice-agree">
+        <input type="checkbox" checked={clean} onChange={(event) => setClean(event.target.checked)} />
+        <span>Lowercase with hyphens</span>
+      </label>
+      <ul className="rename-preview" aria-label="Preview">
+        {shown.map((name, index) => (
+          <li key={images[index].id}><span className="rename-old">{images[index].name}</span><span className="rename-new">{name}</span></li>
+        ))}
+        {names.length > shown.length && <li className="rename-more">and {names.length - shown.length} more</li>}
+      </ul>
+      <div className="notice-actions">
+        <button className="secondary-button" type="button" onClick={onBack}>Back</button>
+        <button className="primary-button" type="button" disabled={!pattern.trim()} onClick={() => onApply(names)}>Rename {images.length} images</button>
+      </div>
+    </section>
+  );
+}
+
 const PRESETS = [
   { id: 'web', label: 'Web friendly (1600 px, 82%)', maxWidth: 1600, quality: 82 },
   { id: 'light', label: 'Ultra light (1200 px, 75%)', maxWidth: 1200, quality: 75 },
@@ -916,7 +967,7 @@ function App() {
   const [exportError, setExportError] = useState('');
   const [extras, setExtras] = useState({ metadata: false, markdown: false });
   // The hash lets the optimize screen be opened directly in the dev preview, where the menu item is hidden.
-  const [view, setView] = useState(() => (window.location.hash === '#optimize' ? 'optimize' : 'images'));
+  const [view, setView] = useState(() => (['#optimize', '#rename'].includes(window.location.hash) ? window.location.hash.slice(1) : 'images'));
   // A collapsed export section means "no conversion"; the choices are kept for when it reopens.
   const activeSettings = exportOpen ? settings : { ...settings, format: null };
   const bundle = exportOpen ? extras : { metadata: false, markdown: false };
@@ -993,8 +1044,10 @@ function App() {
   return (
     <main className="app-shell">
       <div className="sidebar">
-<TopBar theme={theme} toggleTheme={toggleTheme} loading={extractor.loading} canScan={extractor.ready} extractImages={extractor.extractImages} closeSidebar={extractor.closeSidebar} logout={extractor.logout} onOptimize={extractor.ready && extractor.isAppsScript && view === 'images' ? () => setView('optimize') : undefined} />
-        {extractor.ready && view === 'optimize' ? (
+<TopBar theme={theme} toggleTheme={toggleTheme} loading={extractor.loading} canScan={extractor.ready} extractImages={extractor.extractImages} closeSidebar={extractor.closeSidebar} logout={extractor.logout} onOptimize={extractor.ready && extractor.isAppsScript && view === 'images' ? () => setView('optimize') : undefined} onRename={extractor.ready && view === 'images' && extractor.images.length > 0 ? () => setView('rename') : undefined} />
+        {extractor.ready && view === 'rename' ? (
+          <BulkRenamePanel images={extractor.images} docName={extractor.documentName} onApply={(names) => { extractor.renameMany(names); setView('images'); }} onBack={() => setView('images')} />
+        ) : extractor.ready && view === 'optimize' ? (
           <OptimizePanel images={extractor.images} serverCall={extractor.serverCall} rescan={extractor.extractImages} onBack={() => setView('images')} />
         ) : extractor.ready ? (
           <Panel
