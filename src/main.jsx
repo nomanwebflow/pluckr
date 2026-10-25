@@ -760,6 +760,7 @@ function OptimizePanel({ images, serverCall, rescan, onBack }) {
   return (
     <section className="privacy-notice" aria-labelledby="optimize-title" aria-live="polite">
       <div className="panel-texture" aria-hidden="true" />
+      <Asset name="mark" className="notice-mark" />
       <h1 id="optimize-title">Optimize Doc images</h1>
       <p>Shrinks the images inside this Doc so it opens and scrolls faster. Each image is redrawn at the size it already has on the page.</p>
       <p>{candidates} of {images.length} images can be optimized (JPEG, PNG and BMP). Others are left alone, and so is any image that would save less than a tenth.</p>
@@ -869,7 +870,8 @@ function App() {
   const [zipping, setZipping] = useState(false);
   const [exportError, setExportError] = useState('');
   const [extras, setExtras] = useState({ metadata: false, markdown: false });
-  const [view, setView] = useState('images');
+  // The hash lets the optimize screen be opened directly in the dev preview, where the menu item is hidden.
+  const [view, setView] = useState(() => (window.location.hash === '#optimize' ? 'optimize' : 'images'));
   // A collapsed export section means "no conversion"; the choices are kept for when it reopens.
   const activeSettings = exportOpen ? settings : { ...settings, format: null };
   const bundle = exportOpen ? extras : { metadata: false, markdown: false };
