@@ -155,8 +155,8 @@ function getDocumentImage(index, entitlement) {
     size: bytes.length,
     width: image.getWidth(),
     height: image.getHeight(),
-    altTitle: image.getAltTextTitle() || '',
-    altDescription: image.getAltTextDescription() || '',
+    altTitle: image.getAltTitle() || '',
+    altDescription: image.getAltDescription() || '',
     linkUrl: image.getLinkUrl() || '',
     data: Utilities.base64Encode(bytes)
   };
@@ -177,8 +177,8 @@ function replaceDocumentImage(index, data, mimeType, entitlement) {
   var position = parent.getChildIndex(target);
   var width = target.getWidth();
   var height = target.getHeight();
-  var altTitle = target.getAltTextTitle();
-  var altDescription = target.getAltTextDescription();
+  var altTitle = target.getAltTitle();
+  var altDescription = target.getAltDescription();
   var linkUrl = target.getLinkUrl();
 
   var blob = Utilities.newBlob(Utilities.base64Decode(data), mimeType, 'image');
@@ -186,8 +186,8 @@ function replaceDocumentImage(index, data, mimeType, entitlement) {
     ? parent.asListItem().insertInlineImage(position, blob)
     : parent.asParagraph().insertInlineImage(position, blob);
   made.setWidth(width).setHeight(height);
-  if (altTitle) made.setAltTextTitle(altTitle);
-  if (altDescription) made.setAltTextDescription(altDescription);
+  if (altTitle) made.setAltTitle(altTitle);
+  if (altDescription) made.setAltDescription(altDescription);
   if (linkUrl) made.setLinkUrl(linkUrl);
   target.removeFromParent();
   return true;
@@ -289,7 +289,7 @@ function inlineMarkdown_(element, state, plainBold) {
 }
 
 function imageMarkdown_(image, state) {
-  var alt = String(image.getAltTextDescription() || image.getAltTextTitle() || '').replace(/\s+/g, ' ').replace(/([\[\]\\])/g, '\\$1');
+  var alt = String(image.getAltDescription() || image.getAltTitle() || '').replace(/\s+/g, ' ').replace(/([\[\]\\])/g, '\\$1');
   var markdown = '![' + alt + '](pluckr-image:' + state.image + ')';
   state.image += 1;
   var link = image.getLinkUrl();

@@ -48,7 +48,7 @@ const text = (runs) => {
     isStrikethrough: () => false, getLinkUrl: (o) => at_(o).link || null,
   });
 };
-const image = (alt, link) => node(T.INLINE_IMAGE, { getAltTextDescription: () => alt, getAltTextTitle: () => '', getLinkUrl: () => link || null });
+const image = (alt, link) => node(T.INLINE_IMAGE, { getAltDescription: () => alt, getAltTitle: () => null, getLinkUrl: () => link || null });
 const para = (heading, kids) => node(T.PARAGRAPH, { getHeading: () => heading }, kids);
 const item = (level, glyph, kids) => node(T.LIST_ITEM, { getNestingLevel: () => level, getGlyphType: () => glyph }, kids);
 const cell = (kids) => node('CELL', {}, kids);
@@ -58,6 +58,7 @@ const body = node('BODY', {}, [
   para(H.HEADING1, [text([run('Title', { bold: true })])]),
   para(H.NORMAL, [text([run('Hello '), run('world', { bold: true }), run(' and '), run('site', { link: 'https://x.test' }), run(' a_b', {})])]),
   para(H.NORMAL, [image('A chart', null)]),
+  para(H.NORMAL, [image(null, null)]),
   item(0, 'BULLET', [text([run('one')])]),
   item(1, 'NUMBER', [text([run('nested')])]),
   node(T.HORIZONTAL_RULE),
@@ -88,13 +89,15 @@ for (const call of [() => sandbox.getDocumentMarkdown('bad'), () => sandbox.repl
 // With the gate open, read the mock Doc.
 sandbox.requireEntitlement_ = () => {};
 const { markdown, imageCount } = sandbox.getDocumentMarkdown('ok');
-assert.equal(imageCount, 2);
+assert.equal(imageCount, 3);
 assert.equal(markdown, [
   '# Title',
   '',
   'Hello **world** and [site](https://x.test) a\\_b',
   '',
   '![A chart](pluckr-image:0)',
+  '',
+  '![](pluckr-image:1)',
   '',
   '- one',
   '    1. nested',
@@ -103,15 +106,15 @@ assert.equal(markdown, [
   '',
   '| H1 | H2 |',
   '| --- | --- |',
-  '| [![In cell](pluckr-image:1)](https://l.test) | x\\|y |',
+  '| [![In cell](pluckr-image:2)](https://l.test) | x\\|y |',
   '',
 ].join('\n'));
 
 // Replacing an image keeps its displayed size, alt text and link, and removes the old one.
 const log = [];
-const made = { setWidth(w) { log.push(['w', w]); return this; }, setHeight(h) { log.push(['h', h]); return this; }, setAltTextTitle: (v) => log.push(['title', v]), setAltTextDescription: (v) => log.push(['alt', v]), setLinkUrl: (v) => log.push(['link', v]) };
+const made = { setWidth(w) { log.push(['w', w]); return this; }, setHeight(h) { log.push(['h', h]); return this; }, setAltTitle: (v) => log.push(['title', v]), setAltDescription: (v) => log.push(['alt', v]), setLinkUrl: (v) => log.push(['link', v]) };
 const parent = { getType: () => T.PARAGRAPH, getChildIndex: () => 2, asParagraph: () => ({ insertInlineImage: (at, blob) => { log.push(['insert', at, blob.mime]); return made; } }) };
-const old = { getParent: () => parent, getWidth: () => 300, getHeight: () => 200, getAltTextTitle: () => 'T', getAltTextDescription: () => 'D', getLinkUrl: () => 'https://l.test', removeFromParent: () => log.push(['removed']) };
+const old = { getParent: () => parent, getWidth: () => 300, getHeight: () => 200, getAltTitle: () => 'T', getAltDescription: () => 'D', getLinkUrl: () => 'https://l.test', removeFromParent: () => log.push(['removed']) };
 sandbox.collectDocumentImages_ = () => [old];
 sandbox.replaceDocumentImage(0, Buffer.from('x').toString('base64'), 'image/jpeg', 'ok');
 assert.deepEqual(log, [['insert', 2, 'image/jpeg'], ['w', 300], ['h', 200], ['title', 'T'], ['alt', 'D'], ['link', 'https://l.test'], ['removed']]);
