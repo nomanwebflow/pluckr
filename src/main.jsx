@@ -804,12 +804,21 @@ function RenamePanel({ images, docName, open, onToggle, onApply }) {
         <input type="checkbox" checked={clean} onChange={(event) => setClean(event.target.checked)} />
         <span>Lowercase with hyphens</span>
       </label>
-      <ul className="rename-preview" aria-label="Preview">
-        {shown.map((name, index) => (
-          <li key={images[index].id}><span className="rename-old">{images[index].name}</span><span className="rename-new">{name}</span></li>
-        ))}
-        {names.length > shown.length && <li className="rename-more">and {names.length - shown.length} more</li>}
-      </ul>
+      <div className="field">
+        <span className="field-label">Preview</span>
+        <ul className="rename-preview" aria-label="Preview">
+          {shown.map((name, index) => (
+            <li key={images[index].id}>
+              <span className="rename-old" title={images[index].name}>{images[index].name}</span>
+              <span className="rename-new" title={name}>
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 5v6a3 3 0 0 0 3 3h11" /><path d="m15 10 4 4-4 4" /></svg>
+                <span>{name}</span>
+              </span>
+            </li>
+          ))}
+          {names.length > shown.length && <li className="rename-more">and {names.length - shown.length} more</li>}
+        </ul>
+      </div>
       <button className="secondary-button" type="button" disabled={!pattern.trim() || images.length === 0} onClick={apply}>
         {applied ? 'Renamed' : `Rename ${images.length} images`}
       </button>
