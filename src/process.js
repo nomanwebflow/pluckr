@@ -1,4 +1,4 @@
-import { unzlibSync, zipSync } from 'fflate';
+import { unzlibSync } from 'fflate';
 import AvifWorker from './avif.worker.js?worker&inline';
 
 export const ASPECTS = [
@@ -314,16 +314,30 @@ export function exportName(name, ext) {
   return `${baseName(name).replace(/[\\/:*?"<>|]+/g, '-').trim() || 'image'}.${ext}`;
 }
 
-export async function zipBlobs(entries) {
-  const buffers = await Promise.all(entries.map((entry) => entry.blob.arrayBuffer()));
-  const files = {};
-  const used = {};
-  entries.forEach((entry, index) => {
-    let unique = entry.name;
-    while (used[unique]) unique = `(${used[entry.name]++}) ${entry.name}`;
-    used[unique] = 1;
-    files[unique] = new Uint8Array(buffers[index]);
-  });
-  // Images are already compressed, so store without deflating.
-  return new Blob([zipSync(files, { level: 0 })], { type: 'application/zip' });
+/** True when the image has any see-through pixel. Checked on a small copy, which keeps the edges that matter. */
+async function hasTransparency(source) {
+  const { blob, bitmap } = await toBlobOrBitmap(source);
+  const image = bitmap || await createImageBitmap(blob);
+  const scale = Math.min(1, 512 / Math.max(image.width, image.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(image.width * scale));
+  canvas.height = Math.max(1, Math.round(image.height * scale));
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  if (!bitmap) image.close();
+  const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+  for (let index = 3; index < pixels.length; index += 4) if (pixels[index] < 250) return true;
+  return false;
+}
+
+/**
+ * A smaller copy of an image for putting back into the Doc, or null when it is not worth replacing.
+ * Docs takes only JPEG and PNG from Apps Script, so opaque images become JPEG and see-through ones stay PNG.
+ */
+export async function compressForDoc(image, { maxWidth, quality }) {
+  if (!['image/jpeg', 'image/png', 'image/bmp'].includes(image.mimeType)) return null;
+  const png = image.mimeType === 'image/png' && await hasTransparency(image);
+  const result = await processImage(image, image, { format: png ? 'png' : 'jpeg', quality, maxWidth, aspect: 'original' });
+  // Under a tenth saved is not worth touching the Doc for.
+  return result.blob.size < image.size * 0.9 ? { blob: result.blob, mimeType: result.blob.type } : null;
 }

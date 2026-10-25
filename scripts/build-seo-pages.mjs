@@ -249,8 +249,8 @@ for (const page of pages) {
 const urls = [
   ['/', TODAY],
   ...pages.map((page) => [page.path, TODAY]),
-  ['/privacy', '2026-10-21'],
-  ['/terms', '2026-10-21'],
+  ['/privacy', '2026-10-25'],
+  ['/terms', '2026-10-25'],
 ];
 writeFileSync(`${SITE}/sitemap.xml`, `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

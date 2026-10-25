@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ASPECTS, FORMATS, cancelEncoding, detectSupportedFormats, exportName, prefetchAvifCodec, processImage, zipBlobs } from './process.js';
+import { ASPECTS, FORMATS, cancelEncoding, compressForDoc, detectSupportedFormats, exportName, prefetchAvifCodec, processImage } from './process.js';
+import { zipBundle } from './bundle.js';
 import { PAYWALL_ENABLED, PRICE_LABEL, createCheckout, fetchLicence } from './licence.js';
 import './styles.css';
 
@@ -13,6 +14,7 @@ const DEMO_IMAGES = [
     width: 688,
     height: 1031,
     src: '/assets/demo-photo.png',
+    altDescription: 'A portrait photo used as the demo image',
   },
   {
     id: 'demo-2',
@@ -94,6 +96,24 @@ function saveBlob(blob, fileName) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+async function originalBlob(image) {
+  prepareOriginal(image);
+  return image.blob || (await fetch(image.src)).blob();
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1]);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+function slug(name) {
+  return String(name || 'document').replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'document';
+}
+
 function downloadImage(image) {
   const url = imageUrl(image);
   const anchor = document.createElement('a');
@@ -142,6 +162,8 @@ function ImageRow({ image, result, thumbAspect, onRename, onDownload }) {
   const [draft, setDraft] = useState(image.name);
   const [copyLabel, setCopyLabel] = useState('Copy');
   const [downloadLabel, setDownloadLabel] = useState('Download');
+  const [altLabel, setAltLabel] = useState('Copy alt');
+  const alt = image.altDescription || image.altTitle || '';
   const shrunk = result?.blob;
   const dims = shrunk ? [result.width, result.height] : [image.width, image.height];
   const meta = [
@@ -163,6 +185,11 @@ function ImageRow({ image, result, thumbAspect, onRename, onDownload }) {
       () => setCopyLabel('Copied'),
       () => setCopyLabel('Copy failed'),
     ).finally(() => window.setTimeout(() => setCopyLabel('Copy'), 1500));
+  };
+
+  const copyAlt = () => {
+    navigator.clipboard.writeText(alt).then(() => setAltLabel('Copied'), () => setAltLabel('Copy failed'))
+      .finally(() => window.setTimeout(() => setAltLabel('Copy alt'), 1500));
   };
 
   const download = () => {
@@ -207,6 +234,12 @@ function ImageRow({ image, result, thumbAspect, onRename, onDownload }) {
             {meta.map((item) => <p className="trim" key={item}>{item}</p>)}
           </div>
           {result?.note && <p className="meta-note">{result.note}</p>}
+          {alt && (
+            <div className="alt-row">
+              <p className="meta-note alt-text" title={alt}>Alt: {alt}</p>
+              <button className="alt-copy" type="button" onClick={copyAlt}>{altLabel}</button>
+            </div>
+          )}
         </div>
         <div className="actions">
           <button className="action-button" type="button" onClick={copy}><span className="trim">{copyLabel}</span></button>
@@ -233,6 +266,7 @@ function useImageExtractor() {
   const [loading, setLoading] = useState(isAppsScript);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState('');
+  const [documentName, setDocumentName] = useState('');
 
   /** Ask the licence service. `silent` keeps the current screen unless the licence turns out to be missing. */
   const checkLicence = useCallback(async ({ silent = false } = {}) => {
@@ -304,6 +338,7 @@ function useImageExtractor() {
 
     try {
       const info = await call('getDocumentInfo', entitlement);
+      setDocumentName(info.documentName || '');
       // Every image is requested at once; Apps Script serves them in parallel.
       const found = await Promise.all(Array.from({ length: info.count }, (_, index) => call('getDocumentImage', index, entitlement)));
       const stale = takeBlobUrls();
@@ -319,6 +354,22 @@ function useImageExtractor() {
     }
     setLoading(false);
   }, [isAppsScript, scriptRun, ensureEntitlement, handleServerFailure]);
+
+  /** One server call that needs a licence: the entitlement is appended as the last argument. */
+  const serverCall = useCallback(async (method, ...args) => {
+    const entitlement = await ensureEntitlement();
+    if (entitlement === null) throw new Error('Unlock Pluckr to use this.');
+    return new Promise((resolve, reject) => {
+      scriptRun.withSuccessHandler(resolve).withFailureHandler((failure) => {
+        if (String(failure?.message || '').includes('LICENCE_REQUIRED')) handleServerFailure(failure);
+        reject(failure);
+      })[method](...args, entitlement);
+    });
+  }, [scriptRun, ensureEntitlement, handleServerFailure]);
+
+  const fetchMarkdown = useCallback(() => (isAppsScript
+    ? serverCall('getDocumentMarkdown')
+    : Promise.resolve({ markdown: '# Demo\n\n![Demo](pluckr-image:0)\n\n![Demo](pluckr-image:1)\n', imageCount: DEMO_IMAGES.length })), [isAppsScript, serverCall]);
 
   const startCheckout = useCallback(async () => {
     setLicenceError('');
@@ -419,12 +470,12 @@ function useImageExtractor() {
   const ready = licence === 'ready';
 
   return {
-    images, loading, downloading, error, ready, licence, licenceError, checkoutUrl,
+    images, loading, downloading, error, ready, licence, licenceError, checkoutUrl, documentName, isAppsScript, serverCall, fetchMarkdown,
     checkLicence, startCheckout, extractImages, renameImage, downloadAll, closeSidebar, logout,
   };
 }
 
-function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, toggleTheme }) {
+function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, toggleTheme, onOptimize }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -452,6 +503,7 @@ function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, 
       {menuOpen && (
         <div className="menu" role="menu">
           <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); toggleTheme(); }}>{theme === 'light' ? 'Dark mode' : 'Light mode'}</button>
+          {onOptimize && <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); onOptimize(); }}>Optimize Doc images</button>}
           <button className="menu-item" type="button" role="menuitem" onClick={closeSidebar}>Close sidebar</button>
           <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); logout(); }}>Log out</button>
           <a className="menu-item" role="menuitem" href="https://docpluckr.com/privacy" target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>Privacy policy</a>
@@ -581,7 +633,7 @@ function Select({ value, options, onChange, label, disabled = false, isAvailable
   );
 }
 
-function ExportPanel({ settings, onChange, supported, open, onToggle }) {
+function ExportPanel({ settings, onChange, supported, open, onToggle, extras, onExtras }) {
   const lossy = FORMATS.find((item) => item.id === settings.format)?.lossy;
 
   return (
@@ -646,8 +698,96 @@ function ExportPanel({ settings, onChange, supported, open, onToggle }) {
             />
           </div>
           <p className="export-hint">A fixed aspect ratio crops from the centre. Leave the width empty to keep the original size; images are never enlarged.</p>
+          <label className="notice-agree">
+            <input type="checkbox" checked={extras.metadata} onChange={(event) => onExtras({ metadata: event.target.checked })} />
+            <span>Add alt text files (CSV and JSON)</span>
+          </label>
+          <label className="notice-agree">
+            <input type="checkbox" checked={extras.markdown} onChange={(event) => onExtras({ markdown: event.target.checked })} />
+            <span>Add the Doc as Markdown (content.md)</span>
+          </label>
         </>
       )}
+    </section>
+  );
+}
+
+const PRESETS = [
+  { id: 'web', label: 'Web friendly (1600 px, 82%)', maxWidth: 1600, quality: 82 },
+  { id: 'light', label: 'Ultra light (1200 px, 75%)', maxWidth: 1200, quality: 75 },
+];
+const OPTIMIZABLE = ['image/jpeg', 'image/png', 'image/bmp'];
+
+/** Shrinks the Doc's own images in place. Docs gets JPEG or PNG back; the size each image is drawn at does not change. */
+function OptimizePanel({ images, serverCall, rescan, onBack }) {
+  const [presetId, setPresetId] = useState('web');
+  const [agreed, setAgreed] = useState(false);
+  const [running, setRunning] = useState(false);
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
+  const [summary, setSummary] = useState(null);
+  const [error, setError] = useState('');
+  const preset = PRESETS.find((item) => item.id === presetId);
+  const candidates = images.filter((image) => OPTIMIZABLE.includes(image.mimeType)).length;
+
+  const run = async () => {
+    setRunning(true);
+    setError('');
+    setSummary(null);
+    let before = 0;
+    let after = 0;
+    let replaced = 0;
+    // One at a time and in order: each replacement keeps the image where it was, so the scan indexes stay valid.
+    for (const [position, image] of images.entries()) {
+      setProgress({ done: position, total: images.length });
+      try {
+        const smaller = await compressForDoc(image, preset);
+        if (!smaller) continue;
+        await serverCall('replaceDocumentImage', image.sourceIndex, await blobToBase64(smaller.blob), smaller.mimeType);
+        before += image.size;
+        after += smaller.blob.size;
+        replaced += 1;
+      } catch (failure) {
+        setError(`Stopped at image ${position + 1}: ${failure.message}`);
+        break;
+      }
+    }
+    setProgress({ done: images.length, total: images.length });
+    setSummary({ replaced, before, after });
+    setRunning(false);
+    await rescan();
+  };
+
+  return (
+    <section className="privacy-notice" aria-labelledby="optimize-title" aria-live="polite">
+      <div className="panel-texture" aria-hidden="true" />
+      <h1 id="optimize-title">Optimize Doc images</h1>
+      <p>Shrinks the images inside this Doc so it opens and scrolls faster. Each image is redrawn at the size it already has on the page.</p>
+      <p>{candidates} of {images.length} images can be optimized (JPEG, PNG and BMP). Others are left alone, and so is any image that would save less than a tenth.</p>
+      <div className="field">
+        <span className="field-label">Preset</span>
+        <Select label="Preset" value={presetId} options={PRESETS} onChange={setPresetId} disabled={running} />
+      </div>
+      <p className="export-hint">This replaces images in your open Doc. Make a copy first (File &gt; Make a copy). You can also go back with File &gt; Version history. Cropping or rotation set inside Docs may be lost.</p>
+      <label className="notice-agree">
+        <input type="checkbox" checked={agreed} disabled={running} onChange={(event) => setAgreed(event.target.checked)} />
+        <span>I have a copy, or I am happy to replace the images in this Doc.</span>
+      </label>
+      {running && (
+        <>
+          <p>Optimizing image {Math.min(progress.done + 1, progress.total)} of {progress.total}…</p>
+          <div className="progress"><span style={{ width: `${(progress.done / Math.max(progress.total, 1)) * 100}%` }} /></div>
+        </>
+      )}
+      {summary && !running && (
+        <p>{summary.replaced ? `Replaced ${summary.replaced} images. ${formatSize(summary.before)} became ${formatSize(summary.after)} (${Math.round((1 - summary.after / summary.before) * 100)}% smaller).` : 'Nothing needed replacing.'}</p>
+      )}
+      {error && <p className="notice-error" role="alert">{error}</p>}
+      <div className="notice-actions">
+        <button className="secondary-button" type="button" disabled={running} onClick={onBack}>Back</button>
+        <button className="primary-button" type="button" disabled={!agreed || running || candidates === 0} onClick={run}>
+          {running ? 'Optimizing…' : `Optimize ${candidates} images`}
+        </button>
+      </div>
     </section>
   );
 }
@@ -728,8 +868,12 @@ function App() {
   const [supported, setSupported] = useState({});
   const [zipping, setZipping] = useState(false);
   const [exportError, setExportError] = useState('');
+  const [extras, setExtras] = useState({ metadata: false, markdown: false });
+  const [view, setView] = useState('images');
   // A collapsed export section means "no conversion"; the choices are kept for when it reopens.
   const activeSettings = exportOpen ? settings : { ...settings, format: null };
+  const bundle = exportOpen ? extras : { metadata: false, markdown: false };
+  const wantsBundle = bundle.metadata || bundle.markdown;
   const { results, converted, busy, convert } = useConverter(extractor.images, activeSettings);
   const { format } = activeSettings;
   // The thumbnail previews the centred crop a fixed aspect ratio will make; otherwise the design's square.
@@ -751,22 +895,40 @@ function App() {
   };
 
   const downloadAll = async () => {
-    if (!format) {
+    if (!format && !wantsBundle) {
       extractor.downloadAll();
       return;
     }
-    if (!converted) {
+    if (format && !converted) {
       convert();
       return;
     }
     setExportError('');
     setZipping(true);
     try {
-      const entries = extractor.images
-        .filter((image) => results[image.id]?.blob)
-        .map((image) => ({ name: processedName(image, results[image.id]), blob: results[image.id].blob }));
+      const entries = [];
+      for (const [position, image] of extractor.images.entries()) {
+        const result = results[image.id];
+        if (format && !result?.blob) continue;
+        entries.push({
+          blob: format ? result.blob : await originalBlob(image),
+          name: format ? processedName(image, result) : image.name,
+          width: format ? result.width : image.width,
+          height: format ? result.height : image.height,
+          format: format ? target.ext : String(image.mimeType || '').replace('image/', ''),
+          original: { ...image, sourceIndex: image.sourceIndex ?? position },
+        });
+      }
       if (!entries.length) throw new Error('Nothing could be exported in this format.');
-      saveBlob(await zipBlobs(entries), `images-${target.ext}.zip`);
+      let markdown = null;
+      if (bundle.markdown) {
+        const doc = await extractor.fetchMarkdown();
+        if (doc.imageCount !== extractor.images.length) throw new Error('The Markdown and the scanned images do not line up. Scan again and retry.');
+        markdown = doc.markdown;
+      }
+      const base = slug(extractor.documentName);
+      const zipName = markdown ? `${base}-export.zip` : format ? `images-${target.ext}.zip` : `${base}-images.zip`;
+      saveBlob(await zipBundle(entries, { metadata: bundle.metadata, markdown }), zipName);
     } catch (failure) {
       setExportError(failure.message);
     }
@@ -775,7 +937,7 @@ function App() {
 
   const label = (() => {
     if (extractor.downloading || zipping) return 'Preparing download…';
-    if (!format) return 'Download originals';
+    if (!format) return wantsBundle ? 'Download bundle' : 'Download originals';
     if (busy) return 'Converting…';
     if (!converted) return 'Convert';
     return `Download ${extractor.images.length} as ${target.label}`;
@@ -784,8 +946,10 @@ function App() {
   return (
     <main className="app-shell">
       <div className="sidebar">
-<TopBar theme={theme} toggleTheme={toggleTheme} loading={extractor.loading} canScan={extractor.ready} extractImages={extractor.extractImages} closeSidebar={extractor.closeSidebar} logout={extractor.logout} />
-        {extractor.ready ? (
+<TopBar theme={theme} toggleTheme={toggleTheme} loading={extractor.loading} canScan={extractor.ready} extractImages={extractor.extractImages} closeSidebar={extractor.closeSidebar} logout={extractor.logout} onOptimize={extractor.ready && extractor.isAppsScript && view === 'images' ? () => setView('optimize') : undefined} />
+        {extractor.ready && view === 'optimize' ? (
+          <OptimizePanel images={extractor.images} serverCall={extractor.serverCall} rescan={extractor.extractImages} onBack={() => setView('images')} />
+        ) : extractor.ready ? (
           <Panel
             images={extractor.images}
             results={results}
@@ -805,9 +969,9 @@ function App() {
             onCheck={() => extractor.checkLicence()}
           />
         )}
-        {extractor.ready && (
+        {extractor.ready && view === 'images' && (
           <>
-          <ExportPanel settings={settings} onChange={updateSettings} supported={supported} open={exportOpen} onToggle={() => setExportOpen((value) => !value)} />
+          <ExportPanel settings={settings} onChange={updateSettings} supported={supported} open={exportOpen} onToggle={() => setExportOpen((value) => !value)} extras={extras} onExtras={(patch) => setExtras((current) => ({ ...current, ...patch }))} />
           <button
             className="primary-button"
             type="button"

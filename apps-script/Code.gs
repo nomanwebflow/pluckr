@@ -155,8 +155,182 @@ function getDocumentImage(index, entitlement) {
     size: bytes.length,
     width: image.getWidth(),
     height: image.getHeight(),
+    altTitle: image.getAltTextTitle() || '',
+    altDescription: image.getAltTextDescription() || '',
+    linkUrl: image.getLinkUrl() || '',
     data: Utilities.base64Encode(bytes)
   };
+}
+
+/**
+ * Swap one image for a smaller copy, in place. The new image takes the old one's displayed size, alt text and link,
+ * so the page looks the same. The sidebar calls this one image at a time, in order, so indexes stay valid.
+ */
+function replaceDocumentImage(index, data, mimeType, entitlement) {
+  requireEntitlement_(entitlement);
+  // Docs only inserts these through Apps Script (no WebP or AVIF).
+  if (mimeType !== 'image/jpeg' && mimeType !== 'image/png') throw new Error('Unsupported image type.');
+  var target = collectDocumentImages_(DocumentApp.getActiveDocument())[index];
+  if (!target) throw new Error('This image is no longer in the document. Scan again.');
+
+  var parent = target.getParent();
+  var position = parent.getChildIndex(target);
+  var width = target.getWidth();
+  var height = target.getHeight();
+  var altTitle = target.getAltTextTitle();
+  var altDescription = target.getAltTextDescription();
+  var linkUrl = target.getLinkUrl();
+
+  var blob = Utilities.newBlob(Utilities.base64Decode(data), mimeType, 'image');
+  var made = parent.getType() === DocumentApp.ElementType.LIST_ITEM
+    ? parent.asListItem().insertInlineImage(position, blob)
+    : parent.asParagraph().insertInlineImage(position, blob);
+  made.setWidth(width).setHeight(height);
+  if (altTitle) made.setAltTextTitle(altTitle);
+  if (altDescription) made.setAltTextDescription(altDescription);
+  if (linkUrl) made.setLinkUrl(linkUrl);
+  target.removeFromParent();
+  return true;
+}
+
+/**
+ * The document as Markdown. Images come out as ![alt](pluckr-image:N), where N is the image's scan index; the sidebar
+ * swaps that for the exported file's path. Also returns how many images it met so the sidebar can check the two agree.
+ */
+function getDocumentMarkdown(entitlement) {
+  requireEntitlement_(entitlement);
+  var state = { image: 0 };
+  var parts = [];
+
+  function visitTabs(tabs) {
+    tabs.forEach(function (tab) {
+      if (tab.getType() === DocumentApp.TabType.DOCUMENT_TAB) parts.push(containerMarkdown_(tab.asDocumentTab().getBody(), state));
+      visitTabs(tab.getChildTabs());
+    });
+  }
+
+  visitTabs(DocumentApp.getActiveDocument().getTabs());
+  return { markdown: parts.filter(Boolean).join('\n\n') + '\n', imageCount: state.image };
+}
+
+function containerMarkdown_(container, state) {
+  var blocks = [];
+  for (var i = 0; i < container.getNumChildren(); i += 1) {
+    var child = container.getChild(i);
+    var type = child.getType();
+    var block = null;
+    if (type === DocumentApp.ElementType.PARAGRAPH) block = { text: paragraphMarkdown_(child.asParagraph(), state) };
+    else if (type === DocumentApp.ElementType.LIST_ITEM) block = { text: listItemMarkdown_(child.asListItem(), state), list: true };
+    else if (type === DocumentApp.ElementType.TABLE) block = { text: tableMarkdown_(child.asTable(), state) };
+    else if (type === DocumentApp.ElementType.HORIZONTAL_RULE) block = { text: '---' };
+    if (block && block.text) blocks.push(block);
+  }
+  return blocks.map(function (block, i) {
+    if (!i) return block.text;
+    return (block.list && blocks[i - 1].list ? '\n' : '\n\n') + block.text;
+  }).join('');
+}
+
+function paragraphMarkdown_(paragraph, state) {
+  var heading = paragraph.getHeading();
+  var H = DocumentApp.ParagraphHeading;
+  var levels = {};
+  levels[H.TITLE] = '# '; levels[H.HEADING1] = '# '; levels[H.HEADING2] = '## '; levels[H.HEADING3] = '### ';
+  levels[H.HEADING4] = '#### '; levels[H.HEADING5] = '##### '; levels[H.HEADING6] = '###### ';
+  var prefix = levels[heading] || '';
+  var text = inlineMarkdown_(paragraph, state, Boolean(prefix)).trim();
+  return text ? prefix + text : '';
+}
+
+function listItemMarkdown_(item, state) {
+  var glyph = String(item.getGlyphType());
+  var marker = /NUMBER|LATIN|ROMAN/.test(glyph) ? '1. ' : '- ';
+  return '    '.repeat(item.getNestingLevel()) + marker + inlineMarkdown_(item, state, false).trim();
+}
+
+function tableMarkdown_(table, state) {
+  var rows = [];
+  var width = 0;
+  for (var r = 0; r < table.getNumRows(); r += 1) {
+    var row = table.getRow(r);
+    var cells = [];
+    for (var c = 0; c < row.getNumCells(); c += 1) {
+      var cell = row.getCell(c);
+      var lines = [];
+      for (var k = 0; k < cell.getNumChildren(); k += 1) {
+        var child = cell.getChild(k);
+        var type = child.getType();
+        if (type === DocumentApp.ElementType.PARAGRAPH || type === DocumentApp.ElementType.LIST_ITEM) {
+          var line = inlineMarkdown_(child, state, false).trim();
+          if (line) lines.push(line);
+        }
+      }
+      cells.push(lines.join('<br>'));
+    }
+    width = Math.max(width, cells.length);
+    rows.push(cells);
+  }
+  if (!rows.length || !width) return '';
+  var pad = function (cells) { while (cells.length < width) cells.push(''); return '| ' + cells.join(' | ') + ' |'; };
+  var separator = '|' + Array(width + 1).join(' --- |');
+  return [pad(rows[0]), separator].concat(rows.slice(1).map(pad)).join('\n');
+}
+
+/** Text and images of one paragraph or list item. Headings skip bold, which is already how a heading looks. */
+function inlineMarkdown_(element, state, plainBold) {
+  var out = '';
+  for (var i = 0; i < element.getNumChildren(); i += 1) {
+    var child = element.getChild(i);
+    var type = child.getType();
+    if (type === DocumentApp.ElementType.TEXT) out += textMarkdown_(child.asText(), plainBold);
+    else if (type === DocumentApp.ElementType.INLINE_IMAGE) out += imageMarkdown_(child.asInlineImage(), state);
+  }
+  return out;
+}
+
+function imageMarkdown_(image, state) {
+  var alt = String(image.getAltTextDescription() || image.getAltTextTitle() || '').replace(/\s+/g, ' ').replace(/([\[\]\\])/g, '\\$1');
+  var markdown = '![' + alt + '](pluckr-image:' + state.image + ')';
+  state.image += 1;
+  var link = image.getLinkUrl();
+  return link ? '[' + markdown + '](' + link + ')' : markdown;
+}
+
+function textMarkdown_(text, plainBold) {
+  var content = text.getText();
+  if (!content) return '';
+  var starts = text.getTextAttributeIndices();
+  var segments = [];
+  starts.forEach(function (start, i) {
+    var piece = content.substring(start, i + 1 < starts.length ? starts[i + 1] : content.length);
+    if (!piece) return;
+    var font = String(text.getFontFamily(start) || '');
+    var style = {
+      code: /mono|courier|consolas/i.test(font),
+      bold: !plainBold && Boolean(text.isBold(start)),
+      italic: Boolean(text.isItalic(start)),
+      strike: Boolean(text.isStrikethrough(start)),
+      link: text.getLinkUrl(start) || ''
+    };
+    var key = JSON.stringify(style);
+    var last = segments[segments.length - 1];
+    if (last && last.key === key) last.text += piece; else segments.push({ key: key, style: style, text: piece });
+  });
+
+  return segments.map(function (segment) {
+    var body = segment.text.replace(/\r|\u000b/g, '  \n');
+    var core = body.trim();
+    if (!core) return body;
+    var lead = body.substring(0, body.indexOf(core));
+    var trail = body.substring(lead.length + core.length);
+    var s = segment.style;
+    core = s.code ? '`' + core.replace(/\|/g, '\\|') + '`' : core.replace(/([\\`*_\[\]<>|])/g, '\\$1');
+    if (s.strike) core = '~~' + core + '~~';
+    if (s.italic) core = '*' + core + '*';
+    if (s.bold) core = '**' + core + '**';
+    if (s.link) core = '[' + core + '](' + s.link + ')';
+    return lead + core + trail;
+  }).join('');
 }
 
 /** Package selected document images into a ZIP. `names` maps sourceIndex to a custom file name. */
