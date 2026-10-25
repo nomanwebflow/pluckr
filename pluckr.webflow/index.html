@@ -45,34 +45,26 @@
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
     }
-.hero3 .bar { grid-column: 1; grid-row: 1; display: flex; align-items: center; justify-content: space-between; padding: 28px clamp(24px, 5vw, 72px); }
-.hero3 .wordmark { display: flex; align-items: center; gap: 10px; font-size: 18px; letter-spacing: 0.02em; text-transform: uppercase; text-decoration: none; }
-.hero3 .wordmark img { display: block; width: 22px; height: 22px; }
-.hero3 .site-menu { position: relative; }
-.hero3 .menu-button { display: grid; place-items: center; width: 34px; height: 34px; margin: -8px; border-radius: 8px; cursor: pointer; }
-.hero3 .menu-button img { display: block; width: 18px; height: 18px; }
-.hero3 .menu-button:hover { background: rgba(255, 255, 255, 0.06); }
-.hero3 .menu-button:focus-visible, .hero3 .menu-item:focus-visible { outline: 2px solid var(--white); outline-offset: 2px; }
-.hero3 .menu { position: absolute; top: calc(100% + 10px); right: -8px; z-index: 20; display: flex; flex-direction: column; min-width: 168px; padding: 4px; border: 1px solid var(--edge); border-radius: 12px; background: var(--panel); }
-.hero3 .menu[hidden] { display: none; }
-.hero3 .menu-item { display: block; padding: 12px; border-radius: 8px; color: inherit; font-size: 12px; line-height: normal; text-decoration: none; text-transform: uppercase; }
-.hero3 .menu-item:hover { background: rgba(255, 255, 255, 0.06); }
-.hero3 .copy { grid-column: 1; grid-row: 2; align-self: end; padding: 0 clamp(24px, 5vw, 72px) clamp(32px, 6vh, 72px); }
-.hero3 h1 {
-      font-size: clamp(30px, 3.2vw, 56px);
-      font-weight: 500;
-      line-height: 0.98;
-      letter-spacing: -0.015em;
-      text-transform: uppercase;
-      max-width: 12.5em;
-      text-wrap: balance;
-    }
-.hero3 .copy p { margin-top: 28px; max-width: 30em; font-size: clamp(15px, 1.12vw, 18px); line-height: 1.32; color: rgba(255, 255, 255, 0.86); }
-.hero3 .cta { display: inline-flex; align-items: center; justify-content: center; margin-top: 36px; padding: 16px 28px; border-radius: 16px; background: var(--blue); color: var(--white); font-size: 12px; line-height: normal; text-decoration: none; text-transform: uppercase; white-space: nowrap; transition: background 0.12s ease; }
-.hero3 .cta:hover { background: var(--blue-hover); }
-.hero3 .cta:focus-visible { outline: 2px solid var(--white); outline-offset: 3px; }
-.hero3 .foot { grid-column: 1; grid-row: 3; padding: 0 clamp(24px, 5vw, 72px) 24px; font-size: 12px; color: rgba(255, 255, 255, 0.58); }
-.hero3 .foot a { color: inherit; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 .hero3 .stage { background: #0a0a0a; grid-column: 2; grid-row: 1 / 4; position: relative; align-self: stretch; min-height: 0; overflow: hidden; --s: 0.9; }
 .hero3 .sidebar-wrap { position: absolute; left: 50%; top: 50%; width: 300px; height: 740px; transform: translate(-50%, -50%) scale(var(--s)); transform-origin: center center; }
 .hero3 .sidebar { display: flex; flex-direction: column; gap: 8px; width: 100%; height: 100%; padding: 8px; overflow: hidden; background: var(--black); border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.08); user-select: none; }
@@ -129,22 +121,30 @@
 .hero3 .cursor { position: absolute; left: 0; top: 0; z-index: 10; width: 26px; height: 26px; pointer-events: none; opacity: 0; will-change: transform; }
 .hero3 .cursor.is-on { opacity: 1; }
 .hero3 .cursor svg { display: block; width: 100%; height: 100%; transform-origin: 20% 12%; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45)); }
-@media (max-width: 960px) {
-.hero3 { grid-template-columns: 1fr; grid-template-rows: auto auto 760px auto; height: auto; min-height: 100svh; overflow: visible; }
-.hero3 .bar, .hero3 .copy, .hero3 .stage, .hero3 .foot { grid-column: 1; grid-row: auto; }
-.hero3 .copy { align-self: start; }
-.hero3 .copy { padding-bottom: 24px; }
-.hero3 .stage { min-height: 760px; }
-}
 @media (max-width: 520px) {
-.hero3 h1 { font-size: 28px; }
+
 }
     .hero3 *, .hero3 *::before, .hero3 *::after { box-sizing: border-box; }
-    .hero3 :is(h1, p)::before, .hero3 :is(h1, p)::after { content: none !important; display: none !important; }
+    .hero3 .sidebar-wrap :is(h1, p)::before, .hero3 .sidebar-wrap :is(h1, p)::after { content: none !important; display: none !important; }
     .hero3 img { max-width: none; vertical-align: baseline; }
     .hero3 a { text-decoration: none; }
-    .hero3 .foot a { text-decoration: underline; }
-    .hero3 .cta, .hero3 .menu-item, .hero3 .wordmark { color: var(--white); }
+    
+    .hero3 .cta, 
+  
+    /* Two columns: the live sidebar on the left, the logo, headline and button on the right. */
+    /* Same container as the sections below: max width and side margin come from the site's own variables. */
+    .hero3 { width: min(var(--max-width--main), 100% - var(--site--margin) * 2); margin-inline: auto; column-gap: var(--site--gutter); grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); grid-template-rows: 1fr; min-height: max(640px, 100svh); background: transparent; }
+    .hero3 .stage { grid-column: 1; grid-row: 1; background: none; }
+    .hero3 .hero_text { grid-column: 2; grid-row: 1; align-self: center; display: flex; flex-direction: column; gap: 32px; padding: 64px 0; }
+    .hero3 .hero_text .logo_wrap { flex: none; }
+    .hero3 .foot { grid-column: 2; grid-row: 1; align-self: end; padding: 0 0 24px; font-size: 12px; color: rgba(255, 255, 255, 0.58); }
+    .hero3 .foot a { text-decoration: underline; color: inherit; }
+    @media (max-width: 960px) {
+      .hero3 { grid-template-columns: 1fr; grid-template-rows: auto auto auto; height: auto; min-height: 0; overflow: visible; }
+      .hero3 .hero_text { grid-column: 1; grid-row: 1; padding: 48px 0 8px; }
+      .hero3 .stage { grid-column: 1; grid-row: 2; min-height: 760px; }
+      .hero3 .foot { grid-column: 1; grid-row: 3; padding: 0 0 24px; }
+    }
   </style>
   <link rel="canonical" href="https://docpluckr.com/">
   <meta property="og:url" content="https://docpluckr.com/">
@@ -549,21 +549,6 @@ html.wf-design-mode .guide_wrap {
     </div>
     <main id="main" class="page_main">
       <section class="hero3" aria-label="Pluckr">
-        <header class="bar">
-      <a class="wordmark" href="index.html" aria-label="Pluckr home"><img src="images/v2/mark.svg" alt="">Pluckr</a>
-      <div class="site-menu" id="siteMenu">
-        <button class="menu-button" type="button" id="menuButton" aria-label="More options" aria-haspopup="menu" aria-expanded="false" aria-controls="menuList"><img src="images/v2/more.svg" alt=""></button>
-        <div class="menu" id="menuList" role="menu" hidden>
-          <a class="menu-item" role="menuitem" href="privacy.html">Privacy policy</a>
-          <a class="menu-item" role="menuitem" href="terms.html">Terms of use</a>
-        </div>
-      </div>
-    </header>
-        <div class="copy">
-      <h1>Get every inline image out of your Google Doc</h1>
-      <p>Preview, rename, copy, and download images from your document. Convert them to AVIF, WebP, JPEG, or PNG, or resize them before export.</p>
-      <a class="cta" href="#how-it-works">See how it works</a>
-    </div>
         <div class="stage" id="stage" role="group" aria-label="Pluckr sidebar, shown working on a Google Doc">
 
       <div class="sidebar-wrap" id="wrap">
@@ -677,6 +662,33 @@ html.wf-design-mode .guide_wrap {
         <svg viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg"><path d="M5 3.2 21.4 13.6 13.7 14.9 10.2 22.2Z" fill="#fff" stroke="#0b0b0b" stroke-width="1.6" stroke-linejoin="round"/></svg>
       </div>
     </div>
+        <div class="hero_text">
+          <div style="width: 5rem;" class="logo_wrap"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewbox="0 0 164 164" fill="none" class="logo_icon">
+              <rect x="13" y="13" width="138" height="138" rx="7" fill="currentcolor" stroke="currentcolor" stroke-width="2" class="logo_bg"></rect>
+              <rect x="36.5" y="88.5" width="39" height="39" rx="3.5" fill="white" stroke="white"></rect>
+              <rect x="88.5" y="88.5" width="39" height="39" rx="3.5" fill="white" stroke="white"></rect>
+              <rect x="36.5" y="36.5" width="39" height="39" rx="3.5" fill="white" stroke="white"></rect>
+              <rect x="89" y="37" width="38" height="38" rx="3" stroke="white" stroke-width="2" stroke-dasharray="6 6"></rect>
+              <rect x="125.555" y="-0.317688" width="40" height="40" rx="4" transform="rotate(14.2896 125.555 -0.317688)" fill="white"></rect>
+            </svg></div>
+          <div data-wf--content-wrapper--variant="left" style="" class="u-content-wrapper w-variant-e85a4315-14bc-e5ef-0d3e-2c8c9ed7d2f1">
+            <div class="u-display-contents">
+              <h1 data-wf--typography-plain--variant="h1" data-number="-1" class="u-text w-variant-83c598b0-8cc2-f955-1996-fcb8fb10bf70"><span>Pluck Every Image Out Of A Google Doc</span></h1>
+              <p data-wf--typography-plain--variant="inherit" data-number="50" class="u-text"><span>Grab every image from a Google Doc, then compress and convert to AVIF or WebP. It all happens instantly, right in your browser.</span></p>
+              <div class="u-button-wrapper">
+                <div class="u-display-contents">
+                  <div data-wf--button-main--variant="primary" data-trigger="hover focus" class="button_main_wrap">
+                    <div data-wf--clickable--variant="focus-ring-outside" class="clickable_wrap u-cover-absolute"><a href="#how-it-works" aria-label="Add Pluckr to Google Docs" class="clickable_btn"></a></div>
+                    <div data-button="" class="button_main_element">
+                      <div aria-hidden="true" class="button_main_text u-text-style-main u-text-transform-uppercase">Add to Google Docs</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        
+        </div>
         <p class="foot">Photos by Ben Jessop, Gavin Allanwood and Elina Ayupova on <a href="https://unsplash.com">Unsplash</a>.</p>
       </section>
       <section class="u-section">
@@ -1176,13 +1188,6 @@ document.addEventListener("DOMContentLoaded", function () {
     var root = document.querySelector('.hero3');
     var $ = function (s, r) { return (r || root).querySelector(s); };
     var $$ = function (s, r) { return Array.prototype.slice.call((r || root).querySelectorAll(s)); };
-    /* Three-dot menu. */
-    var menu = $('#menuList'), menuButton = $('#menuButton');
-    function setMenu(open) { menu.hidden = !open; menuButton.setAttribute('aria-expanded', String(open)); }
-    menuButton.addEventListener('click', function () { setMenu(menu.hidden); });
-    document.addEventListener('mousedown', function (e) { if (!menu.hidden && !$('#siteMenu').contains(e.target)) setMenu(false); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !menu.hidden) { setMenu(false); menuButton.focus(); } });
-
     var stage = $('#stage'), wrap = $('#wrap'), cursor = $('#cursor');
 
     /* Keep the whole sidebar in view at any window size. */

@@ -5,7 +5,7 @@
 function onOpen() {
   DocumentApp.getUi()
     .createMenu('Pluckr')
-    .addItem('Extract images — Google reads this Doc’s images', 'openPluckrSidebar')
+    .addItem('Extract images (Google reads this Doc’s images)', 'openPluckrSidebar')
     .addToUi();
 }
 

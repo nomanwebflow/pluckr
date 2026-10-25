@@ -86,6 +86,8 @@ Each page: one H1 with the target phrase, a 400 to 900 word answer with a real s
 Content rules: write for the question, not for the keyword; use the real product behaviour (inline images only, no floating images yet);
 no invented stats; no em dashes.
 
+**Status (Oct 25, 2026): the three P1 pages are written** by `scripts/build-seo-pages.mjs` (copy lives in that file; rerun it to regenerate the pages and the sitemap). They go live with the next `scripts/deploy-site.sh`. Still to do: request indexing in Search Console and link them from the homepage footer.
+
 ## 4. Technical SEO (do first, about half a day)
 
 **Status (Oct 25, 2026): done and live** for items 1 to 3 (title, description, canonical, OG/Twitter image, JSON-LD, sitemap, robots sitemap line).
