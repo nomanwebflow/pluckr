@@ -219,11 +219,13 @@ function ImageRow({ image, result, thumbAspect, selected, onSelect, onRename, on
 
   return (
     <article className={`image-row${selected ? '' : ' is-off'}`} aria-label={`Extracted image ${image.name}`}>
-      <img className="thumb" src={imageUrl(image)} alt="" style={{ aspectRatio: thumbAspect }} />
+      <div className="thumb-wrap">
+        <img className="thumb" src={imageUrl(image)} alt="" style={{ aspectRatio: thumbAspect }} />
+        <input className="row-check" type="checkbox" checked={selected} aria-label={`Include ${image.name}`} onChange={(event) => onSelect(image.id, event.target.checked)} />
+      </div>
       <div className="image-body">
         <div className="image-info">
           <div className="name-row">
-            <input className="row-check" type="checkbox" checked={selected} aria-label={`Include ${image.name}`} onChange={(event) => onSelect(image.id, event.target.checked)} />
             {editing ? (
               <input
                 className="name-input"

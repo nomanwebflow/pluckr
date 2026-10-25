@@ -236,7 +236,13 @@ button, .secondary-button, .menu-item, .notice-agree, .select-option { -webkit-u
 .rename-new span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rename-preview .rename-more { color: var(--muted); font-size: 11px; }
 
-.name-row .row-check { margin: 0 8px 0 0; }
+/* The tick sits on the photo, so it keeps its own colours in both themes: a dark disc behind a white ring, then a white fill. */
+.thumb-wrap { position: relative; }
+.thumb-wrap .row-check { position: absolute; top: 10px; left: 10px; z-index: 1; width: 20px; height: 20px; margin: 0; border: 1.5px solid rgba(255, 255, 255, 0.9); background: rgba(0, 0, 0, 0.5); }
+.thumb-wrap .row-check::before { width: 14px; height: 14px; background: #000; }
+.thumb-wrap .row-check:checked { border-color: #fff; background: #fff; }
+.thumb-wrap .row-check:hover:not(:checked) { background: rgba(0, 0, 0, 0.7); border-color: #fff; }
+.thumb-wrap .row-check:focus-visible { outline-color: #fff; }
 .image-row.is-off .thumb, .image-row.is-off .image-info { opacity: 0.45; transition: opacity 0.15s; }
 .alt-text.is-missing { font-style: normal; opacity: 0.7; }
 .alt-edit { display: flex; flex-direction: column; gap: 6px; }
