@@ -1,0 +1,253 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Pluckr story</title><style>
+
+    @font-face {
+      font-family: "PP Neue Montreal";
+      src: url("../../pluckr.webflow/fonts/PPNeueMontreal-Medium.ttf") format("truetype");
+      font-weight: 500; font-style: normal; font-display: swap;
+    }
+.hero3 {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows: auto 1fr auto;
+      min-height: max(640px, 100svh);
+      overflow: hidden;
+      background: #000;
+      --black: #000; --page: #0b0b0b; --panel: #0d0d0d; --edge: rgba(255, 255, 255, 0.05); --edge-card: rgba(255, 255, 255, 0.1);
+      --edge-card-strong: rgba(255, 255, 255, 0.12); --white: #fff; --muted: rgba(255, 255, 255, 0.6);
+      --blue: #0062fb; --blue-hover: #1a73ff;
+      color: var(--white);
+      font-family: "PP Neue Montreal", "Helvetica Neue", Arial, sans-serif;
+      font-weight: 500;
+      font-synthesis: none;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+.hero3 .bar { grid-column: 1; grid-row: 1; display: flex; align-items: center; justify-content: space-between; padding: 28px clamp(24px, 5vw, 72px); }
+.hero3 .wordmark { display: flex; align-items: center; gap: 10px; font-size: 18px; letter-spacing: 0.02em; text-transform: uppercase; text-decoration: none; }
+.hero3 .wordmark img { display: block; width: 22px; height: 22px; }
+.hero3 .site-menu { position: relative; }
+.hero3 .menu-button { display: grid; place-items: center; width: 34px; height: 34px; margin: -8px; border-radius: 8px; cursor: pointer; }
+.hero3 .menu-button img { display: block; width: 18px; height: 18px; }
+.hero3 .menu-button:hover { background: rgba(255, 255, 255, 0.06); }
+.hero3 .menu-button:focus-visible, .hero3 .menu-item:focus-visible { outline: 2px solid var(--white); outline-offset: 2px; }
+.hero3 .menu { position: absolute; top: calc(100% + 10px); right: -8px; z-index: 20; display: flex; flex-direction: column; min-width: 168px; padding: 4px; border: 1px solid var(--edge); border-radius: 12px; background: var(--panel); }
+.hero3 .menu[hidden] { display: none; }
+.hero3 .menu-item { display: block; padding: 12px; border-radius: 8px; color: inherit; font-size: 12px; line-height: normal; text-decoration: none; text-transform: uppercase; }
+.hero3 .menu-item:hover { background: rgba(255, 255, 255, 0.06); }
+.hero3 .copy { grid-column: 1; grid-row: 2; align-self: end; padding: 0 clamp(24px, 5vw, 72px) clamp(32px, 6vh, 72px); }
+.hero3 h1 {
+      font-size: clamp(30px, 3.2vw, 56px);
+      font-weight: 500;
+      line-height: 0.98;
+      letter-spacing: -0.015em;
+      text-transform: uppercase;
+      max-width: 12.5em;
+      text-wrap: balance;
+    }
+.hero3 .copy p { margin-top: 28px; max-width: 30em; font-size: clamp(15px, 1.12vw, 18px); line-height: 1.32; color: rgba(255, 255, 255, 0.86); }
+.hero3 .cta { display: inline-flex; align-items: center; justify-content: center; margin-top: 36px; padding: 16px 28px; border-radius: 16px; background: var(--blue); color: var(--white); font-size: 12px; line-height: normal; text-decoration: none; text-transform: uppercase; white-space: nowrap; transition: background 0.12s ease; }
+.hero3 .cta:hover { background: var(--blue-hover); }
+.hero3 .cta:focus-visible { outline: 2px solid var(--white); outline-offset: 3px; }
+.hero3 .foot { grid-column: 1; grid-row: 3; padding: 0 clamp(24px, 5vw, 72px) 24px; font-size: 12px; color: rgba(255, 255, 255, 0.58); }
+.hero3 .foot a { color: inherit; }
+.hero3 .stage { background: #0a0a0a; grid-column: 2; grid-row: 1 / 4; position: relative; align-self: stretch; min-height: 0; overflow: hidden; --s: 0.9; }
+.hero3 .sidebar-wrap { position: absolute; left: 50%; top: 50%; width: 300px; height: 740px; transform: translate(-50%, -50%) scale(var(--s)); transform-origin: center center; }
+.hero3 .sidebar { display: flex; flex-direction: column; gap: 8px; width: 100%; height: 100%; padding: 8px; overflow: hidden; background: var(--black); border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.08); user-select: none; }
+.hero3 .top-bar { display: flex; flex: none; align-items: center; gap: 8px; padding: 8px; }
+.hero3 .top-bar .brand-mark, .hero3 .top-bar .icon-button img { display: block; width: 18px; height: 18px; flex: none; }
+.hero3 .brand { flex: 1 0 0; min-width: 1px; font-size: 18px; line-height: normal; text-transform: uppercase; }
+.hero3 .icon-button { display: grid; flex: none; place-items: center; width: 18px; height: 18px; border-radius: 4px; }
+.hero3 .panel { position: relative; display: flex; flex: 1 0 0; min-height: 1px; flex-direction: column; gap: 12px; padding: 4px; overflow: hidden; border: 1px solid var(--edge); border-radius: 16px; background: var(--panel); }
+.hero3 .panel > * { position: relative; z-index: 1; }
+.hero3 .image-row { display: flex; flex: none; flex-direction: column; gap: 4px; padding: 12px; border: 1px solid var(--edge-card); border-radius: 12px; background: var(--black); }
+.hero3 .thumb { display: block; width: 100%; aspect-ratio: 1 / 1; border-radius: 12px; object-fit: cover; background: var(--panel); }
+.hero3 .image-info { display: flex; flex-direction: column; gap: 8px; padding: 18px 12px; }
+.hero3 .name-row { display: flex; align-items: center; gap: 4px; }
+.hero3 .image-name { flex: 1 0 0; min-width: 1px; overflow: hidden; font-size: 16px; line-height: normal; text-overflow: ellipsis; white-space: nowrap; }
+.hero3 .image-name .caret { display: none; width: 1px; height: 1em; margin-left: 1px; vertical-align: -2px; background: var(--white); animation: blink 1s steps(1) infinite; }
+.hero3 .image-name.is-editing .caret { display: inline-block; }
+@keyframes blink { 50% { opacity: 0; } }
+.hero3 .edit-button { display: grid; flex: none; place-items: center; width: 18px; height: 18px; border-radius: 4px; }
+.hero3 .edit-button img { display: block; width: 18px; height: 18px; }
+.hero3 .meta-row { display: flex; gap: 8px; font-size: 12px; line-height: normal; white-space: nowrap; }
+.hero3 .actions { display: flex; align-items: flex-end; justify-content: center; gap: 4px; }
+.hero3 .action-button { display: flex; flex: 1 0 0; min-width: 1px; align-items: center; justify-content: center; padding: 12px; border: 1px solid var(--edge-card); border-radius: 12px; background: var(--panel); font-size: 12px; line-height: normal; text-transform: uppercase; white-space: nowrap; }
+.hero3 .action-button + .action-button { border-color: var(--edge-card-strong); }
+.hero3 .is-pressed.action-button, .hero3 .is-pressed.select-button, .hero3 .is-pressed.export-toggle { background: #171717; }
+.hero3 .primary-button { display: flex; flex: none; align-items: center; justify-content: center; width: 100%; padding: 16px; border-radius: 16px; background: var(--blue); color: var(--white); font-size: 12px; line-height: normal; text-transform: uppercase; white-space: nowrap; transition: background 0.12s ease; }
+.hero3 .primary-button.is-pressed { background: var(--blue-hover); }
+.hero3 .primary-button.is-busy { opacity: 0.55; }
+.hero3 .export { position: relative; display: flex; flex: none; flex-direction: column; gap: 16px; padding: 12px; border: 1px solid var(--edge); border-radius: 16px; background: var(--panel); }
+.hero3 .export-toggle { display: flex; align-items: center; justify-content: space-between; width: calc(100% + 24px); padding: 12px; margin: -12px; border-radius: 16px; font-size: 12px; line-height: normal; text-transform: uppercase; }
+.hero3 .chevron { display: block; flex: none; width: 15px; height: 15px; transition: transform 0.15s ease; }
+.hero3 .chevron.is-closed { transform: rotate(-90deg); }
+.hero3 .export-body { display: none; flex-direction: column; gap: 16px; }
+.hero3 .export.is-open .export-body { display: flex; }
+.hero3 .field { display: flex; flex-direction: column; gap: 8px; }
+.hero3 .field.is-off > :not(.field-label):not(.field-head) { opacity: 0.4; }
+.hero3 .field.is-off .field-value { opacity: 0.4; }
+.hero3 .field-label { color: var(--muted); font-size: 12px; line-height: normal; }
+.hero3 .field-head { display: flex; align-items: baseline; justify-content: space-between; }
+.hero3 .field-value { font-size: 12px; line-height: normal; }
+.hero3 .select { position: relative; }
+.hero3 .select-button { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 14px 16px; border: 1px solid var(--edge-card); border-radius: 12px; background: var(--panel); font-size: 12px; line-height: normal; }
+.hero3 .select-button.is-open { background: #171717; }
+.hero3 .select-list { position: absolute; left: 0; right: 0; bottom: calc(100% + 4px); z-index: 4; display: none; flex-direction: column; gap: 2px; max-height: 240px; overflow: hidden; padding: 4px; border: 1px solid var(--edge-card); border-radius: 8px; background: var(--panel); }
+.hero3 .select.is-open .select-list { display: flex; }
+.hero3 .select-option { display: block; width: 100%; padding: 12px; border-radius: 6px; font-size: 12px; line-height: normal; text-align: left; }
+.hero3 .select-option.is-selected { background: rgba(255, 255, 255, 0.12); }
+.hero3 .select-option.is-pressed { background: rgba(255, 255, 255, 0.2); }
+.hero3 .field-input { width: 100%; padding: 14px 16px; border: 1px solid var(--edge-card); border-radius: 12px; background: var(--panel); font-size: 12px; line-height: normal; color: var(--muted); }
+.hero3 .slider { position: relative; height: 6px; margin: 5px 0; border-radius: 6px; background: linear-gradient(to right, var(--blue) 80%, rgba(255, 255, 255, 0.12) 80%); }
+.hero3 .slider::after { content: ""; position: absolute; left: 80%; top: 50%; box-sizing: border-box; width: 16px; height: 16px; margin: -8px 0 0 -8px; border: 3px solid var(--panel); border-radius: 50%; background: var(--blue); }
+.hero3 .export-hint { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.hero3 .spin { display: inline-block; width: 12px; height: 12px; margin-right: 8px; vertical-align: -1px; border: 2px solid rgba(255, 255, 255, 0.25); border-top-color: var(--white); border-radius: 50%; animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.hero3 .cursor { position: absolute; left: 0; top: 0; z-index: 10; width: 26px; height: 26px; pointer-events: none; opacity: 0; will-change: transform; }
+.hero3 .cursor.is-on { opacity: 1; }
+.hero3 .cursor svg { display: block; width: 100%; height: 100%; transform-origin: 20% 12%; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45)); }
+@media (max-width: 960px) {
+.hero3 { grid-template-columns: 1fr; grid-template-rows: auto auto 760px auto; height: auto; min-height: 100svh; overflow: visible; }
+.hero3 .bar, .hero3 .copy, .hero3 .stage, .hero3 .foot { grid-column: 1; grid-row: auto; }
+.hero3 .copy { align-self: start; }
+.hero3 .copy { padding-bottom: 24px; }
+.hero3 .stage { min-height: 760px; }
+}
+@media (max-width: 520px) {
+.hero3 h1 { font-size: 28px; }
+}
+    .hero3 *, .hero3 *::before, .hero3 *::after { box-sizing: border-box; }
+    .hero3 :is(h1, p)::before, .hero3 :is(h1, p)::after { content: none !important; display: none !important; }
+    .hero3 img { max-width: none; vertical-align: baseline; }
+    .hero3 a { text-decoration: none; }
+    .hero3 .foot a { text-decoration: underline; }
+    .hero3 .cta, .hero3 .menu-item, .hero3 .wordmark { color: var(--white); }
+  
+html,body{margin:0;background:#000;}
+.story{position:relative;width:1080px;height:1920px;overflow:hidden;background:#000;color:#fff;font-family:"PP Neue Montreal","Helvetica Neue",Arial,sans-serif;font-weight:500;-webkit-font-smoothing:antialiased}
+.story .brand-row{position:absolute;left:84px;top:250px;right:84px;display:flex;align-items:center;justify-content:space-between;font-size:30px;letter-spacing:.02em;text-transform:uppercase}
+.story .brand-row .w{display:flex;align-items:center;gap:16px}
+.story .brand-row img{width:40px;height:40px;display:block}
+.story .brand-row .u{color:rgba(255,255,255,.62);text-transform:none;letter-spacing:0;font-size:30px}
+.story h1{position:absolute;left:84px;right:84px;top:360px;margin:0;font-size:90px;line-height:.98;text-wrap:balance;letter-spacing:-.015em;font-weight:500;text-transform:uppercase}
+.story .sub{position:absolute;left:84px;right:150px;top:662px;margin:0;font-size:36px;line-height:1.3;color:rgba(255,255,255,.82)}
+.story .stage{position:absolute;left:0;right:0;top:800px;bottom:0;background:none}
+.story button{background:none;color:inherit;font:inherit;border:0;padding:0}
+.story .cursor2{position:absolute;left:656px;top:842px;width:46px;height:46px;z-index:5}
+.story .cursor2 svg{width:100%;height:100%;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
+.story .sidebar-wrap{position:absolute;left:50%;top:0;width:300px;height:740px;transform:translateX(-50%) scale(1.62);transform-origin:top center}
+.story .cursor{position:absolute;left:0;top:0;width:26px;height:26px;transform:translate(230px,640px) scale(1.62)}
+.story .cursor svg{width:100%;height:100%}
+.story .panel-texture{display:none}
+.hero3.story{display:block;min-height:0;background:#000}
+</style></head><body><div class="story hero3-scope hero3">
+<div class="brand-row"><div class="w"><img src="../../pluckr.webflow/images/v2/mark.svg" alt="">Pluckr</div><div class="u">docpluckr.com</div></div>
+<h1>Get every inline image out of your Google Doc</h1>
+<p class="sub">Preview, rename, convert and download. AVIF, WebP, JPEG or PNG. One-time $5.</p>
+<div class="stage"><div class="sidebar-wrap" id="wrap">
+        <div class="sidebar" id="sidebar">
+          <header class="top-bar">
+            <img class="brand-mark" src="../../pluckr.webflow/images/v2/mark.svg" alt="">
+            <p class="brand">Pluckr</p>
+            <span class="icon-button"><img src="../../pluckr.webflow/images/v2/more.svg" alt=""></span>
+          </header>
+
+          <section class="panel" id="panel" aria-label="Extracted images">
+
+            <article class="image-row" data-row="0">
+              <img class="thumb" src="../../pluckr.webflow/images/v2/lake.jpg" alt="Loch shore with snow-capped mountain">
+              <div class="image-info">
+                <div class="name-row">
+                  <p class="image-name" data-name><span data-text>image-01.jpg</span><span class="caret"></span></p>
+                  <span class="edit-button" data-edit><img src="../../pluckr.webflow/images/v2/edit.svg" alt=""></span>
+                </div>
+                <div class="meta-row"><p>3000 × 3000</p><p>2.1 MB</p><p data-after></p></div>
+              </div>
+              <div class="actions">
+                <button class="action-button" type="button" data-copy tabindex="-1">Copy</button>
+                <button class="action-button" type="button" tabindex="-1">Download</button>
+              </div>
+            </article>
+
+            <article class="image-row" data-row="1">
+              <img class="thumb" src="../../pluckr.webflow/images/v2/library.jpg" alt="Library atrium with crossing staircases">
+              <div class="image-info">
+                <div class="name-row">
+                  <p class="image-name"><span data-text>image-02.jpg</span></p>
+                  <span class="edit-button"><img src="../../pluckr.webflow/images/v2/edit.svg" alt=""></span>
+                </div>
+                <div class="meta-row"><p>3000 × 3000</p><p>2.4 MB</p><p data-after></p></div>
+              </div>
+              <div class="actions">
+                <button class="action-button" type="button" tabindex="-1">Copy</button>
+                <button class="action-button" type="button" tabindex="-1">Download</button>
+              </div>
+            </article>
+
+            <article class="image-row" data-row="2">
+              <img class="thumb" src="../../pluckr.webflow/images/v2/building.jpg" alt="White building with round windows">
+              <div class="image-info">
+                <div class="name-row">
+                  <p class="image-name"><span data-text>image-03.jpg</span></p>
+                  <span class="edit-button"><img src="../../pluckr.webflow/images/v2/edit.svg" alt=""></span>
+                </div>
+                <div class="meta-row"><p>3000 × 3000</p><p>1.2 MB</p><p data-after></p></div>
+              </div>
+              <div class="actions">
+                <button class="action-button" type="button" tabindex="-1">Copy</button>
+                <button class="action-button" type="button" tabindex="-1">Download</button>
+              </div>
+            </article>
+          </section>
+
+          <section class="export" id="export">
+            <button class="export-toggle" type="button" id="toggle" tabindex="-1">
+              <span>Output settings</span>
+              <img class="chevron is-closed" id="chevron" src="../../pluckr.webflow/images/v2/chevron-down.svg" alt="">
+            </button>
+            <div class="export-body">
+              <div class="field">
+                <span class="field-label">Format</span>
+                <div class="select" id="select">
+                  <button class="select-button" type="button" id="selectButton" tabindex="-1"><span id="selectValue">Original</span><img class="chevron" src="../../pluckr.webflow/images/v2/chevron-down.svg" alt=""></button>
+                  <div class="select-list" role="listbox">
+                    <button class="select-option is-selected" type="button" data-format="Original" tabindex="-1">Original</button>
+                    <button class="select-option" type="button" data-format="AVIF" tabindex="-1">AVIF</button>
+                    <button class="select-option" type="button" data-format="WebP" tabindex="-1">WebP</button>
+                    <button class="select-option" type="button" data-format="PNG" tabindex="-1">PNG</button>
+                    <button class="select-option" type="button" data-format="JPEG" tabindex="-1">JPEG</button>
+                  </div>
+                </div>
+              </div>
+              <div class="field is-off" data-needs-format>
+                <div class="field-head"><span class="field-label">Quality</span><span class="field-value">80%</span></div>
+                <div class="slider"></div>
+              </div>
+              <div class="field is-off" data-needs-format>
+                <span class="field-label">Aspect ratio</span>
+                <div class="select" id="aspectSelect">
+                  <button class="select-button" type="button" id="aspectButton" tabindex="-1"><span id="aspectValue">Original</span><img class="chevron" src="../../pluckr.webflow/images/v2/chevron-down.svg" alt=""></button>
+                  <div class="select-list" id="aspectList" role="listbox">
+                    <button class="select-option is-selected" type="button" data-aspect="Original" tabindex="-1">Original</button>
+                    <button class="select-option" type="button" data-aspect="1:1" tabindex="-1">1:1</button>
+                    <button class="select-option" type="button" data-aspect="4:3" tabindex="-1">4:3</button>
+                    <button class="select-option" type="button" data-aspect="3:4" tabindex="-1">3:4</button>
+                    <button class="select-option" type="button" data-aspect="3:2" tabindex="-1">3:2</button>
+                    <button class="select-option" type="button" data-aspect="2:3" tabindex="-1">2:3</button>
+                    <button class="select-option" type="button" data-aspect="16:9" tabindex="-1">16:9</button>
+                    <button class="select-option" type="button" data-aspect="9:16" tabindex="-1">9:16</button>
+                  </div>
+                </div>
+              </div>
+              <div class="field is-off" data-needs-format>
+                <span class="field-label">Max width (px)</span>
+                <div class="field-input">Auto</div>
+              </div>
+              <p class="export-hint">A fixed aspect ratio crops from the centre. Leave the width empty to keep the original size; images are never enlarged.</p>
+            </div>
+          </section>
+
+          <button class="primary-button" type="button" id="cta" tabindex="-1"><span id="ctaText">Download originals</span></button>
+        </div>
+      </div>
+<div class="cursor2"><svg viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg"><path d="M5 3.2 21.4 13.6 13.7 14.9 10.2 22.2Z" fill="#fff" stroke="#0b0b0b" stroke-width="1.6" stroke-linejoin="round"/></svg></div></div></body></html>
