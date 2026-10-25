@@ -118,7 +118,7 @@ p { margin: 0; }
 button:focus-visible, .name-input:focus-visible { outline: 2px solid var(--white); outline-offset: 2px; }
 
 /* Export section */
-.export { position: relative; display: flex; flex: none; flex-direction: column; gap: 16px; padding: 12px; border: 1px solid var(--edge); border-radius: 16px; background: var(--panel); }
+.export { position: relative; display: flex; flex: none; flex-direction: column; gap: 0; padding: 12px; border: 1px solid var(--edge); border-radius: 16px; background: var(--panel); }
 .export > :not(.panel-texture) { position: relative; z-index: 1; }
 .export-toggle { display: flex; align-items: center; justify-content: space-between; width: calc(100% + 24px); padding: 12px; margin: -12px -12px -12px; border-radius: 16px; font-size: 12px; line-height: normal; text-transform: uppercase; }
 .chevron { display: block; flex: none; width: 15px; height: 15px; aspect-ratio: 1 / 1; object-fit: contain; transition: transform 0.15s ease; }
@@ -205,3 +205,15 @@ button:focus-visible, .name-input:focus-visible { outline: 2px solid var(--white
 .alt-copy:hover { color: var(--white); }
 .progress { height: 4px; overflow: hidden; border-radius: 2px; background: var(--track); }
 .progress > span { display: block; height: 100%; background: var(--blue); transition: width 0.2s; }
+
+/* Output settings slide open and shut: the row height animates between 0fr and 1fr, so the content needs no fixed height. */
+.export-body { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 0.3s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.2s ease; }
+.export-body.is-open { grid-template-rows: 1fr; opacity: 1; }
+.export-clip { min-height: 0; overflow: hidden; }
+.export-body.is-settled .export-clip { overflow: visible; }
+.export-fields { display: flex; flex-direction: column; gap: 16px; padding-top: 16px; }
+@media (prefers-reduced-motion: reduce) { .export-body { transition: none; } }
+
+/* Controls are not text to select. */
+button, .secondary-button, .menu-item, .notice-agree, .select-option { -webkit-user-select: none; user-select: none; }
+.notice-agree a { -webkit-user-select: text; user-select: text; }

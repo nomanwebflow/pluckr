@@ -635,6 +635,12 @@ function Select({ value, options, onChange, label, disabled = false, isAvailable
 
 function ExportPanel({ settings, onChange, supported, open, onToggle, extras, onExtras }) {
   const lossy = FORMATS.find((item) => item.id === settings.format)?.lossy;
+  // The dropdown lists need to overflow the panel, so clipping applies only while it is sliding. Closing clips at once.
+  const [settled, setSettled] = useState(open);
+  useEffect(() => {
+    if (!open) setSettled(false);
+    else if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) setSettled(true);
+  }, [open]);
 
   return (
     <section className="export" aria-label="Output settings">
@@ -643,8 +649,13 @@ function ExportPanel({ settings, onChange, supported, open, onToggle, extras, on
         <span className="trim">Output settings</span>
         <Asset name="chevron-down" className={`chevron${open ? '' : ' is-closed'}`} />
       </button>
-      {open && (
-        <>
+      <div
+        className={`export-body${open ? ' is-open' : ''}${settled ? ' is-settled' : ''}`}
+        inert={!open}
+        onTransitionEnd={(event) => { if (open && event.target === event.currentTarget && event.propertyName === 'grid-template-rows') setSettled(true); }}
+      >
+        <div className="export-clip">
+          <div className="export-fields">
           <div className="field">
             <span className="field-label" id="format-label">Format</span>
             <Select
@@ -706,8 +717,9 @@ function ExportPanel({ settings, onChange, supported, open, onToggle, extras, on
             <input type="checkbox" checked={extras.markdown} onChange={(event) => onExtras({ markdown: event.target.checked })} />
             <span>Add the Doc as Markdown (content.md)</span>
           </label>
-        </>
-      )}
+          </div>
+        </div>
+      </div>
     </section>
   );
 }
