@@ -46,6 +46,10 @@ ${shot('pluckr-image-list', 'The Pluckr sidebar open next to a Google Doc, showi
   <li>Unlock Pluckr if you have not already. It is a one-time $5 purchase, and the unlock screen explains the terms before you pay.</li>
   <li>Scroll through the list. Rename, copy or download single images, or press <strong>Download originals</strong> to get all of them in one ZIP named after the Doc.</li>
 </ol>
+<h2>Google Slides too</h2>
+<p>Open the same sidebar in a Slides deck and Pluckr lists the pictures on every slide, including ones inside groups, named by slide: slide-01-image-01, slide-01-image-02 and so on. Select, rename, convert and download work the same way, and one purchase covers Docs and Slides. Images used as shape fills or slide backgrounds are not listed.</p>
+<h2>Alt text</h2>
+<p>Pluckr shows each image’s alt text and tells you how many images have none. Filter to the ones with no alt text, write a description in the sidebar and save it back to the file, or add alt text files (CSV and JSON) to your download so it travels with the images.</p>
 <h2>Images in tables and other tabs</h2>
 <p>Images placed inside table cells are listed with the rest, and so are images on other document tabs. You do not have to open each tab and scan it separately.</p>
 <h2>After you edit the Doc</h2>
@@ -65,6 +69,7 @@ ${shot('pluckr-light-theme', 'The Pluckr sidebar in its light theme next to a Go
       ['Do I have to publish the Doc?', 'No. Pluckr works on the Doc you have open. There is nothing to publish or share.'],
       ['Are the downloaded images the same quality as in the Doc?', 'Yes. Download originals gives you the stored images without recompressing them. Quality only changes if you choose to convert.'],
       ['Can I extract images from a Doc someone shared with me?', 'You need to be able to open the Doc and use add-ons in it. Pluckr reads the Doc you have open, so access follows your permissions in Google Docs.'],
+      ['Does it work in Google Slides?', 'Yes. Open Pluckr from a Slides deck to list, rename, convert and download its pictures. Markdown export is only for Docs.'],
       ['What file names do I get?', 'image-01, image-02 and so on, in document order. You can rename any of them before you download.'],
     ],
   },
