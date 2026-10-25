@@ -33,6 +33,11 @@ function Asset({ name, className = '', alt = '' }) {
   return <img className={className} src={sources[name] || `/assets/${name}.svg`} alt={alt} />;
 }
 
+// Dev preview only: the URL hash can force a screen, e.g. #licence=unpaid or #host=slides&view=optimize.
+// It is ignored inside Docs and Slides, and scripts/sidebar-states.mjs uses it to photograph every state.
+const devFlags = window.google?.script?.run ? new URLSearchParams() : new URLSearchParams(window.location.hash.slice(1));
+const devState = devFlags.get('state');
+
 const lacksAlt = (image) => !(image.altDescription || image.altTitle);
 // Pluckr runs in Docs and in Slides. The wording follows the editor it was opened in.
 const HostContext = createContext('docs');
@@ -310,18 +315,18 @@ function useImageExtractor() {
   // 'ready' also covers "paywall off". Otherwise: checking | unpaid | waiting (payment in progress) | error.
   // PLUCKR_BOOT is filled in by the add-on's server code when it still holds a valid entitlement.
   const boot = window.PLUCKR_BOOT;
-  const [licence, setLicence] = useState(paywall && !boot?.entitlement ? 'checking' : 'ready');
-  const [licenceError, setLicenceError] = useState('');
-  const [checkoutUrl, setCheckoutUrl] = useState('');
+  const [licence, setLicence] = useState(devFlags.get('licence') || (paywall && !boot?.entitlement ? 'checking' : 'ready'));
+  const [licenceError, setLicenceError] = useState(devFlags.get('licenceError') || '');
+  const [checkoutUrl, setCheckoutUrl] = useState(devFlags.has('licence') ? '#' : '');
   const entitlementRef = useRef({ token: boot?.entitlement || '', expiresAt: boot?.expiresAt || 0 });
-  const [images, setImages] = useState(isAppsScript ? [] : DEMO_IMAGES);
+  const [images, setImages] = useState(isAppsScript || devState ? [] : DEMO_IMAGES);
   // Starts true in the add-on so the panel never paints an empty "no images" frame before the first scan begins.
-  const [loading, setLoading] = useState(isAppsScript);
+  const [loading, setLoading] = useState(isAppsScript || devState === 'loading');
   const [downloading, setDownloading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(devState === 'error' ? 'Could not read images from this file. Try again.' : '');
   const [documentName, setDocumentName] = useState('');
   // The server code says which editor this is. In the dev preview, #slides shows the Slides wording.
-  const [host, setHost] = useState(boot?.host || (!isAppsScript && window.location.hash === '#slides' ? 'slides' : 'docs'));
+  const [host, setHost] = useState(boot?.host || (!isAppsScript && (devFlags.get('host') === 'slides' || devFlags.has('slides')) ? 'slides' : 'docs'));
 
   /** Ask the licence service. `silent` keeps the current screen unless the licence turns out to be missing. */
   const checkLicence = useCallback(async ({ silent = false } = {}) => {
@@ -419,6 +424,8 @@ function useImageExtractor() {
 
   /** One server call that needs a licence: the entitlement is appended as the last argument. */
   const serverCall = useCallback(async (method, ...args) => {
+    // The dev preview has no Doc to write to: pretend the call took a moment.
+    if (!isAppsScript) { await new Promise((resolve) => window.setTimeout(resolve, 600)); return true; }
     const entitlement = await ensureEntitlement();
     if (entitlement === null) throw new Error('Unlock Pluckr to use this.');
     return new Promise((resolve, reject) => {
@@ -427,7 +434,7 @@ function useImageExtractor() {
         reject(failure);
       })[method](...args, entitlement);
     });
-  }, [scriptRun, ensureEntitlement, handleServerFailure]);
+  }, [isAppsScript, scriptRun, ensureEntitlement, handleServerFailure]);
 
   const fetchMarkdown = useCallback(() => (isAppsScript
     ? serverCall('getDocumentMarkdown')
@@ -999,7 +1006,7 @@ function OptimizePanel({ images, serverCall, rescan, onBack }) {
         </>
       )}
       {summary && !running && (
-        <p>{summary.replaced ? `Replaced ${summary.replaced} images. ${formatSize(summary.before)} became ${formatSize(summary.after)} (${Math.round((1 - summary.after / summary.before) * 100)}% smaller).` : 'Nothing needed replacing.'}</p>
+        <p>{summary.replaced ? `Replaced ${count(summary.replaced, 'image')}. ${formatSize(summary.before)} became ${formatSize(summary.after)} (${Math.round((1 - summary.after / summary.before) * 100)}% smaller).` : 'Nothing needed replacing.'}</p>
       )}
       {error && <p className="notice-error" role="alert">{error}</p>}
       <div className="notice-actions">
@@ -1095,7 +1102,7 @@ function App() {
   const [exportError, setExportError] = useState('');
   const [extras, setExtras] = useState({ metadata: false, markdown: false });
   // The hash lets the optimize screen be opened directly in the dev preview, where the menu item is hidden.
-  const [view, setView] = useState(() => (window.location.hash === '#optimize' ? 'optimize' : 'images'));
+  const [view, setView] = useState(() => devFlags.get('view') || (devFlags.has('optimize') ? 'optimize' : 'images'));
   // A collapsed export section means "no conversion"; the choices are kept for when it reopens.
   const activeSettings = exportOpen ? settings : { ...settings, format: null };
   const bundle = exportOpen ? { ...extras, markdown: extras.markdown && extractor.host === 'docs' } : { metadata: false, markdown: false };
@@ -1177,7 +1184,7 @@ function App() {
     <HostContext.Provider value={extractor.host}>
     <main className="app-shell">
       <div className="sidebar">
-<TopBar theme={theme} toggleTheme={toggleTheme} loading={extractor.loading} canScan={extractor.ready} extractImages={extractor.extractImages} closeSidebar={extractor.closeSidebar} logout={extractor.logout} onOptimize={extractor.ready && extractor.isAppsScript && view === 'images' ? () => setView('optimize') : undefined} />
+<TopBar theme={theme} toggleTheme={toggleTheme} loading={extractor.loading} canScan={extractor.ready} extractImages={extractor.extractImages} closeSidebar={extractor.closeSidebar} logout={extractor.logout} onOptimize={extractor.ready && view === 'images' ? () => setView('optimize') : undefined} />
         {extractor.ready && view === 'images' && extractor.images.length > 0 && !extractor.loading && (
           <SelectionBar
             images={extractor.images}

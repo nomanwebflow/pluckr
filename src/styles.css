@@ -58,7 +58,7 @@
 * { box-sizing: border-box; }
 html, body, #root { width: 100%; min-width: 0; min-height: 100%; margin: 0; }
 body { min-height: 100vh; background: var(--black); color: var(--white); font-family: inherit; font-weight: 500; }
-button, input { font: inherit; color: inherit; }
+button, input, textarea { font: inherit; color: inherit; }
 button { min-width: 0; min-height: 0; margin: 0; border: 0; background: none; padding: 0; box-shadow: none; color: inherit; cursor: pointer; }
 p { margin: 0; }
 ::selection { background: var(--blue); color: var(--on-blue); }
@@ -256,7 +256,7 @@ button, .secondary-button, .menu-item, .notice-agree, .select-option { -webkit-u
 
 /* Same 12px inset on every side as the bars below. The buttons are trimmed so the row fits the 300px Docs sidebar on one line. */
 .selection-bar { flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 8px; padding: 12px; }
-.selection-bar .selection-actions { flex: none; gap: 6px; }
-.selection-bar .mini-button { padding: 6px 8px; }
-.selection-count { font-size: 12px; line-height: normal; }
+.selection-bar .selection-actions { flex: none; gap: 4px; }
+.selection-bar .mini-button { padding: 6px 7px; }
+.selection-count { flex: 0 1 auto; min-width: 0; overflow: hidden; font-size: 12px; line-height: normal; text-overflow: ellipsis; white-space: nowrap; }
 .selection-actions { display: flex; flex-wrap: wrap; gap: 6px; }
