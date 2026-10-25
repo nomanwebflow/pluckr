@@ -1,12 +1,26 @@
 /**
  * @OnlyCurrentDoc
- * Add an image extraction command to each Google Docs editor session.
+ * Add an image extraction command to each Google Docs and Google Slides editor session.
  */
 function onOpen() {
-  DocumentApp.getUi()
+  var slides = host_() === 'slides';
+  ui_()
     .createMenu('Pluckr')
-    .addItem('Extract images (Google reads this Doc’s images)', 'openPluckrSidebar')
+    .addItem(slides ? 'Extract images (Google reads this deck’s images)' : 'Extract images (Google reads this Doc’s images)', 'openPluckrSidebar')
     .addToUi();
+}
+
+/** Which editor this run is in: 'docs' or 'slides'. Each App throws or returns null when it is not the active one. */
+var hostCache_ = null;
+function host_() {
+  if (hostCache_) return hostCache_;
+  try { if (DocumentApp.getActiveDocument()) return (hostCache_ = 'docs'); } catch (error) { /* not Docs */ }
+  try { if (SlidesApp.getActivePresentation()) return (hostCache_ = 'slides'); } catch (error) { /* not Slides */ }
+  throw new Error('Open Pluckr from a Google Doc or a Google Slides deck.');
+}
+
+function ui_() {
+  return host_() === 'slides' ? SlidesApp.getUi() : DocumentApp.getUi();
 }
 
 function onInstall() {
@@ -16,13 +30,13 @@ function onInstall() {
 function openPluckrSidebar() {
   // Rendered here, before the page loads: a still-valid entitlement lets the sidebar open straight onto the images
   // instead of flashing a "checking your licence" screen first.
-  var bootData = { theme: getTheme_() };  // null until the user picks one; the page then follows the system setting
+  var bootData = { theme: getTheme_(), host: host_() };  // null until the user picks one; the page then follows the system setting
   var cached = cachedEntitlement_();
   if (cached) { bootData.entitlement = cached.entitlement; bootData.expiresAt = cached.expiresAt; }
   var boot = JSON.stringify(bootData).replace(/</g, '\\u003c');
   var page = HtmlService.createHtmlOutputFromFile('Sidebar').getContent()
     .replace('<!--PLUCKR_BOOT-->', function () { return '<script>window.PLUCKR_BOOT = ' + boot + ';document.documentElement.setAttribute("data-theme", window.PLUCKR_BOOT.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"));</script>'; });
-  DocumentApp.getUi().showSidebar(HtmlService.createHtmlOutput(page).setTitle('Pluckr'));
+  ui_().showSidebar(HtmlService.createHtmlOutput(page).setTitle('Pluckr'));
 }
 
 /**
@@ -128,11 +142,12 @@ function logout() {
   ScriptApp.invalidateAuth();
 }
 
-/** Return image previews and metadata for every document tab. */
+/** The name of the open file, how many images it holds, and which editor it is. */
 function getDocumentInfo(entitlement) {
   requireEntitlement_(entitlement);
-  var document = DocumentApp.getActiveDocument();
-  return { documentName: document.getName(), count: collectDocumentImages_(document).length };
+  var host = host_();
+  var name = host === 'slides' ? SlidesApp.getActivePresentation().getName() : DocumentApp.getActiveDocument().getName();
+  return { documentName: name, host: host, count: collectImages_().length };
 }
 
 /**
@@ -141,8 +156,9 @@ function getDocumentInfo(entitlement) {
  */
 function getDocumentImage(index, entitlement) {
   requireEntitlement_(entitlement);
-  var image = collectDocumentImages_(DocumentApp.getActiveDocument())[index];
-  if (!image) throw new Error('This image is no longer in the document. Scan again.');
+  var entry = collectImages_()[index];
+  if (!entry) throw new Error('This image is no longer in the file. Scan again.');
+  var image = entry.image;
   var blob = image.getBlob();
   var bytes = blob.getBytes();
   var mimeType = blob.getContentType() || 'image/png';
@@ -150,25 +166,24 @@ function getDocumentImage(index, entitlement) {
   return {
     id: 'image-' + index,
     sourceIndex: index,
-    name: 'image-' + String(index + 1).padStart(2, '0') + '.' + extensionForMime_(mimeType),
+    name: entry.name + '.' + extensionForMime_(mimeType),
     mimeType: mimeType,
     size: bytes.length,
     width: image.getWidth(),
     height: image.getHeight(),
-    altTitle: image.getAltTitle() || '',
-    altDescription: image.getAltDescription() || '',
-    linkUrl: image.getLinkUrl() || '',
+    altTitle: altTitle_(image),
+    altDescription: altDescription_(image),
+    linkUrl: linkUrl_(image),
     data: Utilities.base64Encode(bytes)
   };
 }
 
-/** Save an image's alt text into the Doc. The sidebar calls this only when the user presses Save. */
+/** Save an image's alt text into the file. The sidebar calls this only when the user presses Save. */
 function setImageAlt(index, altTitle, altDescription, entitlement) {
   requireEntitlement_(entitlement);
-  var image = collectDocumentImages_(DocumentApp.getActiveDocument())[index];
-  if (!image) throw new Error('This image is no longer in the document. Scan again.');
-  image.setAltTitle(String(altTitle || ''));
-  image.setAltDescription(String(altDescription || ''));
+  var entry = collectImages_()[index];
+  if (!entry) throw new Error('This image is no longer in the file. Scan again.');
+  setAlt_(entry.image, String(altTitle || ''), String(altDescription || ''));
   return true;
 }
 
@@ -178,27 +193,35 @@ function setImageAlt(index, altTitle, altDescription, entitlement) {
  */
 function replaceDocumentImage(index, data, mimeType, entitlement) {
   requireEntitlement_(entitlement);
-  // Docs only inserts these through Apps Script (no WebP or AVIF).
+  // Apps Script only inserts these (no WebP or AVIF).
   if (mimeType !== 'image/jpeg' && mimeType !== 'image/png') throw new Error('Unsupported image type.');
-  var target = collectDocumentImages_(DocumentApp.getActiveDocument())[index];
-  if (!target) throw new Error('This image is no longer in the document. Scan again.');
+  var entry = collectImages_()[index];
+  if (!entry) throw new Error('This image is no longer in the file. Scan again.');
+  var target = entry.image;
+  var blob = Utilities.newBlob(Utilities.base64Decode(data), mimeType, 'image');
+
+  var title = altTitle_(target);
+  var description = altDescription_(target);
+  var link = linkUrl_(target);
+
+  if (host_() === 'slides') {
+    // Slides swaps the picture inside the same box: same place, same size, scaled to fit.
+    var swapped = target.replace(blob, false);
+    if (title || description) setAlt_(swapped, title, description);
+    if (link) swapped.setLinkUrl(link);
+    return true;
+  }
 
   var parent = target.getParent();
   var position = parent.getChildIndex(target);
   var width = target.getWidth();
   var height = target.getHeight();
-  var altTitle = target.getAltTitle();
-  var altDescription = target.getAltDescription();
-  var linkUrl = target.getLinkUrl();
-
-  var blob = Utilities.newBlob(Utilities.base64Decode(data), mimeType, 'image');
   var made = parent.getType() === DocumentApp.ElementType.LIST_ITEM
     ? parent.asListItem().insertInlineImage(position, blob)
     : parent.asParagraph().insertInlineImage(position, blob);
   made.setWidth(width).setHeight(height);
-  if (altTitle) made.setAltTitle(altTitle);
-  if (altDescription) made.setAltDescription(altDescription);
-  if (linkUrl) made.setLinkUrl(linkUrl);
+  if (title || description) setAlt_(made, title, description);
+  if (link) made.setLinkUrl(link);
   target.removeFromParent();
   return true;
 }
@@ -209,6 +232,7 @@ function replaceDocumentImage(index, data, mimeType, entitlement) {
  */
 function getDocumentMarkdown(entitlement) {
   requireEntitlement_(entitlement);
+  if (host_() !== 'docs') throw new Error('Markdown export is only available in Google Docs.');
   var state = { image: 0 };
   var parts = [];
 
@@ -346,8 +370,7 @@ function textMarkdown_(text, plainBold) {
 /** Package selected document images into a ZIP. `names` maps sourceIndex to a custom file name. */
 function getImagesArchive(sourceIndexes, names, entitlement) {
   requireEntitlement_(entitlement);
-  var document = DocumentApp.getActiveDocument();
-  var images = collectDocumentImages_(document);
+  var entries = collectImages_();
   var selected = {};
   (sourceIndexes || []).forEach(function (index) {
     selected[String(index)] = true;
@@ -355,14 +378,14 @@ function getImagesArchive(sourceIndexes, names, entitlement) {
   names = names || {};
   var used = {};
 
-  var blobs = images
-    .map(function (image, index) { return { image: image, index: index }; })
-    .filter(function (entry) { return selected[String(entry.index)]; })
-    .map(function (entry, position) {
-      var blob = entry.image.getBlob();
+  var blobs = entries
+    .map(function (entry, index) { return { entry: entry, index: index }; })
+    .filter(function (item) { return selected[String(item.index)]; })
+    .map(function (item) {
+      var blob = item.entry.image.getBlob();
       var mimeType = blob.getContentType() || 'image/png';
-      var name = String(names[String(entry.index)] || '').replace(/[\\/:*?"<>|]+/g, '-').trim() ||
-        'image-' + String(position + 1).padStart(2, '0') + '.' + extensionForMime_(mimeType);
+      var name = String(names[String(item.index)] || '').replace(/[\\/:*?"<>|]+/g, '-').trim() ||
+        item.entry.name + '.' + extensionForMime_(mimeType);
       while (used[name]) name = '(' + (used[name]++) + ') ' + name;
       used[name] = 1;
       return blob.setName(name);
@@ -370,11 +393,54 @@ function getImagesArchive(sourceIndexes, names, entitlement) {
 
   if (!blobs.length) throw new Error('No images are available to download.');
 
-  var archive = Utilities.zip(blobs, safeFileName_(document.getName()) + '-images.zip');
+  var name = host_() === 'slides' ? SlidesApp.getActivePresentation().getName() : DocumentApp.getActiveDocument().getName();
+  var archive = Utilities.zip(blobs, safeFileName_(name) + '-images.zip');
   return {
     name: archive.getName(),
     data: Utilities.base64Encode(archive.getBytes())
   };
+}
+
+/** Every image in the open file, in reading order, with the default name its download gets (without extension). */
+function collectImages_() {
+  if (host_() === 'slides') return collectSlideImages_(SlidesApp.getActivePresentation());
+  return collectDocumentImages_(DocumentApp.getActiveDocument()).map(function (image, index) {
+    return { image: image, name: 'image-' + String(index + 1).padStart(2, '0') };
+  });
+}
+
+/** Pictures on every slide, including ones inside groups. Named slide-03-image-01 so they sort the way the deck reads. */
+function collectSlideImages_(presentation) {
+  var found = [];
+  var pad = function (n) { return String(n).padStart(2, '0'); };
+  presentation.getSlides().forEach(function (slide, slideIndex) {
+    var inSlide = 0;
+    (function visit(elements) {
+      elements.forEach(function (element) {
+        var type = element.getPageElementType();
+        if (type === SlidesApp.PageElementType.IMAGE) {
+          inSlide += 1;
+          found.push({ image: element.asImage(), name: 'slide-' + pad(slideIndex + 1) + '-image-' + pad(inSlide) });
+        } else if (type === SlidesApp.PageElementType.GROUP) {
+          visit(element.asGroup().getChildren());
+        }
+      });
+    })(slide.getPageElements());
+  });
+  return found;
+}
+
+// Docs and Slides name the same things differently: InlineImage has getAltTitle, Slides' Image has getTitle.
+function altTitle_(image) { return (image.getAltTitle ? image.getAltTitle() : image.getTitle()) || ''; }
+function altDescription_(image) { return (image.getAltDescription ? image.getAltDescription() : image.getDescription()) || ''; }
+function linkUrl_(image) {
+  if (image.getLinkUrl) return image.getLinkUrl() || '';
+  var link = image.getLink();
+  return link && link.getLinkType() === SlidesApp.LinkType.URL ? link.getUrl() : '';
+}
+function setAlt_(image, title, description) {
+  if (image.setAltTitle) { image.setAltTitle(title); image.setAltDescription(description); }
+  else { image.setTitle(title); image.setDescription(description); }
 }
 
 function collectDocumentImages_(document) {

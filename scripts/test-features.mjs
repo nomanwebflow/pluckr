@@ -140,3 +140,80 @@ sandbox.setImageAlt(0, null, null, 'ok');
 assert.deepEqual(alts, [['title', 'T'], ['alt', 'A chart'], ['title', ''], ['alt', '']]);
 assert.throws(() => sandbox.setImageAlt(3, '', '', 'ok'), /no longer/);
 console.log('Code.gs markdown, replace and alt text: all checks passed');
+
+// ---- Code.gs in Google Slides ----
+const slideImage = (name, { title = '', description = '', link = null, bytes = [1, 2, 3] } = {}) => {
+  const calls = [];
+  const image = {
+    calls,
+    getBlob: () => ({ getBytes: () => bytes, getContentType: () => 'image/png' }),
+    getWidth: () => 300, getHeight: () => 200,
+    getTitle: () => title, getDescription: () => description,
+    getLink: () => (link ? { getLinkType: () => 'URL', getUrl: () => link } : null),
+    setTitle: (v) => calls.push(['title', v]), setDescription: (v) => calls.push(['alt', v]), setLinkUrl: (v) => calls.push(['link', v]),
+    replace(blob, crop) { calls.push(['replace', blob.mime, crop]); return image; },
+  };
+  return { image, element: { getPageElementType: () => 'IMAGE', asImage: () => image } };
+};
+const first = slideImage('a', { title: 'T', description: 'A chart', link: 'https://l.test' });
+const nested = slideImage('b');
+const third = slideImage('c');
+const shape = { getPageElementType: () => 'SHAPE' };
+const group = { getPageElementType: () => 'GROUP', asGroup: () => ({ getChildren: () => [nested.element] }) };
+const deck = {
+  getName: () => 'My Deck',
+  getSlides: () => [{ getPageElements: () => [first.element, shape, group] }, { getPageElements: () => [] }, { getPageElements: () => [third.element] }],
+};
+const menu = [];
+const slidesSandbox = {
+  Date, Logger: { log() {} },
+  PropertiesService: { getScriptProperties: () => ({ getProperty: () => 'secret' }) },
+  ScriptApp: { getIdentityToken: () => 'h.' + Buffer.from('{"sub":"s"}').toString('base64url') + '.x' },
+  Utilities: {
+    base64Encode: (bytes) => Buffer.from(bytes).toString('base64'), base64Decode: (text) => [...Buffer.from(text, 'base64')],
+    computeHmacSha256Signature: () => [], base64EncodeWebSafe: () => 'sig',
+    base64DecodeWebSafe: (text) => [...Buffer.from(text, 'base64')],
+    newBlob: (b, mime, name) => ({ b, mime, name, getDataAsString: () => Buffer.from(b).toString() }),
+  },
+  DocumentApp: { getActiveDocument: () => null },
+  SlidesApp: {
+    PageElementType: { IMAGE: 'IMAGE', GROUP: 'GROUP' }, LinkType: { URL: 'URL' },
+    getActivePresentation: () => deck,
+    getUi: () => ({ createMenu: (name) => ({ addItem(label, fn) { menu.push([name, label, fn]); return this; }, addToUi() {} }) }),
+  },
+};
+vm.createContext(slidesSandbox);
+vm.runInContext(readFileSync('apps-script/Code.gs', 'utf8'), slidesSandbox);
+
+slidesSandbox.onOpen();
+assert.deepEqual(menu, [['Pluckr', 'Extract images (Google reads this deck’s images)', 'openPluckrSidebar']]);
+assert.throws(() => slidesSandbox.getDocumentInfo('bad'), /LICENCE_REQUIRED/);
+slidesSandbox.requireEntitlement_ = () => {};
+assert.deepEqual({ ...slidesSandbox.getDocumentInfo('ok') }, { documentName: 'My Deck', host: 'slides', count: 3 });
+
+const img0 = slidesSandbox.getDocumentImage(0, 'ok');
+assert.equal(img0.name, 'slide-01-image-01.png');
+assert.equal(img0.altTitle, 'T');
+assert.equal(img0.altDescription, 'A chart');
+assert.equal(img0.linkUrl, 'https://l.test');
+assert.equal(slidesSandbox.getDocumentImage(1, 'ok').name, 'slide-01-image-02.png', 'images in a group are found');
+const img2 = slidesSandbox.getDocumentImage(2, 'ok');
+assert.equal(img2.name, 'slide-03-image-01.png');
+assert.deepEqual([img2.altTitle, img2.altDescription, img2.linkUrl], ['', '', ''], 'an image with no alt text or link');
+assert.throws(() => slidesSandbox.getDocumentImage(9, 'ok'), /no longer/);
+
+slidesSandbox.setImageAlt(0, 'New', 'Described', 'ok');
+assert.deepEqual(first.image.calls.splice(0), [['title', 'New'], ['alt', 'Described']]);
+
+slidesSandbox.replaceDocumentImage(0, Buffer.from('x').toString('base64'), 'image/jpeg', 'ok');
+assert.deepEqual(first.image.calls.splice(0), [['replace', 'image/jpeg', false], ['title', 'T'], ['alt', 'A chart'], ['link', 'https://l.test']], 'the swap keeps alt text and link');
+slidesSandbox.replaceDocumentImage(2, Buffer.from('x').toString('base64'), 'image/png', 'ok');
+assert.deepEqual(third.image.calls.splice(0), [['replace', 'image/png', false]], 'nothing to restore on a plain image');
+assert.throws(() => slidesSandbox.getDocumentMarkdown('ok'), /only available in Google Docs/);
+
+// Neither editor: a clear message instead of a crash.
+const nowhere = { ...slidesSandbox, SlidesApp: { getActivePresentation: () => null } };
+const lost = vm.createContext({ ...nowhere });
+vm.runInContext(readFileSync('apps-script/Code.gs', 'utf8'), lost);
+assert.throws(() => lost.host_(), /Google Doc or a Google Slides deck/);
+console.log('Code.gs in Slides: all checks passed');

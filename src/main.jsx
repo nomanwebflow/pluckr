@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ASPECTS, FORMATS, cancelEncoding, compressForDoc, detectSupportedFormats, exportName, prefetchAvifCodec, processImage } from './process.js';
 import { zipBundle } from './bundle.js';
@@ -34,6 +34,13 @@ function Asset({ name, className = '', alt = '' }) {
 }
 
 const lacksAlt = (image) => !(image.altDescription || image.altTitle);
+// Pluckr runs in Docs and in Slides. The wording follows the editor it was opened in.
+const HostContext = createContext('docs');
+function useWords() {
+  const slides = useContext(HostContext) === 'slides';
+  return { noun: slides ? 'deck' : 'Doc', file: slides ? 'deck' : 'document' };
+}
+
 const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
 function formatSize(bytes) {
@@ -162,6 +169,7 @@ function withExtension(name, original) {
 }
 
 function ImageRow({ image, result, thumbAspect, selected, onSelect, onRename, onDownload, onSaveAlt }) {
+  const { noun } = useWords();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(image.name);
   const [copyLabel, setCopyLabel] = useState('Copy');
@@ -274,7 +282,7 @@ function ImageRow({ image, result, thumbAspect, selected, onSelect, onRename, on
               />
               <div className="alt-edit-actions">
                 <button className="mini-button" type="button" disabled={altSaving} onClick={() => setAltEditing(false)}>Cancel</button>
-                <button className="mini-button" type="button" disabled={altSaving} onClick={saveAltText}>{altSaving ? 'Saving…' : 'Save to Doc'}</button>
+                <button className="mini-button" type="button" disabled={altSaving} onClick={saveAltText}>{altSaving ? 'Saving…' : `Save to ${noun}`}</button>
               </div>
               {altError && <p className="meta-note is-error" role="alert">{altError}</p>}
             </div>
@@ -312,6 +320,8 @@ function useImageExtractor() {
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState('');
   const [documentName, setDocumentName] = useState('');
+  // The server code says which editor this is. In the dev preview, #slides shows the Slides wording.
+  const [host, setHost] = useState(boot?.host || (!isAppsScript && window.location.hash === '#slides' ? 'slides' : 'docs'));
 
   /** Ask the licence service. `silent` keeps the current screen unless the licence turns out to be missing. */
   const checkLicence = useCallback(async ({ silent = false } = {}) => {
@@ -384,6 +394,7 @@ function useImageExtractor() {
     try {
       const info = await call('getDocumentInfo', entitlement);
       setDocumentName(info.documentName || '');
+      if (info.host) setHost(info.host);
       // Every image is requested at once; Apps Script serves them in parallel.
       const found = await Promise.all(Array.from({ length: info.count }, (_, index) => call('getDocumentImage', index, entitlement)));
       const stale = takeBlobUrls();
@@ -396,7 +407,7 @@ function useImageExtractor() {
         setImages((current) => current.map((image, index) => ({ ...image, ...(sizes[index]?.width ? sizes[index] : {}) })));
       });
     } catch (failure) {
-      handleServerFailure(failure, 'Could not read images from this document. Try again.');
+      handleServerFailure(failure, 'Could not read images from this file. Try again.');
     }
     setLoading(false);
   }, [isAppsScript, scriptRun, ensureEntitlement, handleServerFailure]);
@@ -541,12 +552,13 @@ function useImageExtractor() {
   const ready = licence === 'ready';
 
   return {
-    images, loading, downloading, error, ready, licence, licenceError, checkoutUrl, documentName, isAppsScript, serverCall, fetchMarkdown,
+    images, loading, downloading, error, ready, licence, licenceError, checkoutUrl, documentName, host, isAppsScript, serverCall, fetchMarkdown,
     checkLicence, startCheckout, extractImages, renameImage, renameMany, saveAlt, chosen, deselected, setSelected, setMany, downloadAll, closeSidebar, logout,
   };
 }
 
 function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, toggleTheme, onOptimize }) {
+  const { noun } = useWords();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -574,7 +586,7 @@ function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, 
       {menuOpen && (
         <div className="menu" role="menu">
           <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); toggleTheme(); }}>{theme === 'light' ? 'Dark mode' : 'Light mode'}</button>
-          {onOptimize && <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); onOptimize(); }}>Optimize Doc images</button>}
+          {onOptimize && <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); onOptimize(); }}>Optimize {noun} images</button>}
           <button className="menu-item" type="button" role="menuitem" onClick={closeSidebar}>Close sidebar</button>
           <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); logout(); }}>Log out</button>
           <a className="menu-item" role="menuitem" href="https://docpluckr.com/privacy" target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>Privacy policy</a>
@@ -586,14 +598,15 @@ function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, 
 }
 
 function Panel({ images, results, thumbAspect, loading, error, deselected, missingOnly, onSelect, onRename, onDownload, onSaveAlt }) {
+  const { file } = useWords();
   const hasAlt = (image) => Boolean(image.altDescription || image.altTitle);
   const visible = missingOnly ? images.filter((image) => !hasAlt(image)) : images;
   return (
     <section className="panel" aria-label="Extracted images" aria-live="polite">
       <div className="panel-texture" aria-hidden="true" />
-      {loading && <p className="panel-message is-delayed"><span className="loading-indicator" />Scanning your document…</p>}
+      {loading && <p className="panel-message is-delayed"><span className="loading-indicator" />Scanning your {file}…</p>}
       {!loading && error && <p className="panel-message is-error" role="alert">{error}</p>}
-      {!loading && !error && images.length === 0 && <p className="panel-message">No images found in this document.</p>}
+      {!loading && !error && images.length === 0 && <p className="panel-message">No images found in this {file}.</p>}
       {!loading && !error && images.length > 0 && visible.length === 0 && <p className="panel-message">Every image has alt text.</p>}
       {!loading && !error && visible.map((image) => (
         <ImageRow key={image.id} image={image} result={results[image.id]} thumbAspect={thumbAspect} selected={!deselected.has(image.id)} onSelect={onSelect} onRename={onRename} onDownload={onDownload} onSaveAlt={onSaveAlt} />
@@ -765,6 +778,7 @@ function Disclosure({ title, open, onToggle, children }) {
 }
 
 function ExportPanel({ settings, onChange, supported, open, onToggle, extras, onExtras }) {
+  const host = useContext(HostContext);
   const lossy = FORMATS.find((item) => item.id === settings.format)?.lossy;
   return (
     <Disclosure title="Output settings" open={open} onToggle={onToggle}>
@@ -830,10 +844,12 @@ function ExportPanel({ settings, onChange, supported, open, onToggle, extras, on
             <input type="checkbox" checked={extras.metadata} onChange={(event) => onExtras({ metadata: event.target.checked })} />
             <span>Add alt text files (CSV and JSON)</span>
           </label>
-          <label className="notice-agree">
-            <input type="checkbox" checked={extras.markdown} onChange={(event) => onExtras({ markdown: event.target.checked })} />
-            <span>Add the Doc as Markdown (content.md)</span>
-          </label>
+          {host === 'docs' && (
+            <label className="notice-agree">
+              <input type="checkbox" checked={extras.markdown} onChange={(event) => onExtras({ markdown: event.target.checked })} />
+              <span>Add the Doc as Markdown (content.md)</span>
+            </label>
+          )}
     </Disclosure>
   );
 }
@@ -875,7 +891,7 @@ function RenamePanel({ images, docName, open, onToggle, onApply }) {
       <div className="field">
         <div className="field-label-row">
           <label className="field-label" htmlFor="rename-pattern">Name pattern</label>
-          <InfoTip label="About name patterns">{'{n}'} is the number, {'{name}'} the current name, {'{doc}'} the document name and {'{alt}'} the alt text. The file type stays as it is.</InfoTip>
+          <InfoTip label="About name patterns">{'{n}'} is the number, {'{name}'} the current name, {'{doc}'} the file name and {'{alt}'} the alt text. The file type stays as it is.</InfoTip>
         </div>
         <input id="rename-pattern" className="field-input" value={pattern} spellCheck="false" onChange={(event) => setPattern(event.target.value)} />
       </div>
@@ -915,8 +931,9 @@ const PRESETS = [
 ];
 const OPTIMIZABLE = ['image/jpeg', 'image/png', 'image/bmp'];
 
-/** Shrinks the Doc's own images in place. Docs gets JPEG or PNG back; the size each image is drawn at does not change. */
+/** Shrinks the file's own images in place. It gets JPEG or PNG back; the size each image is drawn at does not change. */
 function OptimizePanel({ images, serverCall, rescan, onBack }) {
+  const { noun, file } = useWords();
   const [presetId, setPresetId] = useState('web');
   const [agreed, setAgreed] = useState(false);
   const [running, setRunning] = useState(false);
@@ -958,17 +975,17 @@ function OptimizePanel({ images, serverCall, rescan, onBack }) {
     <section className="privacy-notice" aria-labelledby="optimize-title" aria-live="polite">
       <div className="panel-texture" aria-hidden="true" />
       <Asset name="mark" className="notice-mark" />
-      <h1 id="optimize-title">Optimize Doc images</h1>
-      <p>Shrinks the images inside this Doc so it opens and scrolls faster. Each image is redrawn at the size it already has on the page.</p>
+      <h1 id="optimize-title">Optimize {noun} images</h1>
+      <p>Shrinks the images inside this {file} so it opens and scrolls faster. Each image is redrawn at the size it already has on the page.</p>
       <p>{candidates} of {images.length} selected images can be optimized (JPEG, PNG and BMP). Others are left alone, and so is any image that would save less than a tenth.</p>
       <div className="field">
         <span className="field-label">Preset</span>
         <Select label="Preset" value={presetId} options={PRESETS} onChange={setPresetId} disabled={running} />
       </div>
-      <p className="export-hint">This replaces images in your open Doc. Make a copy first (File &gt; Make a copy). You can also go back with File &gt; Version history. Cropping or rotation set inside Docs may be lost.</p>
+      <p className="export-hint">This replaces images in your open {file}. Make a copy first (File &gt; Make a copy). You can also go back with File &gt; Version history. Cropping or rotation set in the editor may be lost.</p>
       <label className="notice-agree">
         <input type="checkbox" checked={agreed} disabled={running} onChange={(event) => setAgreed(event.target.checked)} />
-        <span>I have a copy, or I am happy to replace the images in this Doc.</span>
+        <span>I have a copy, or I am happy to replace the images in this {file}.</span>
       </label>
       {running && (
         <>
@@ -1007,7 +1024,7 @@ function PaywallNotice({ state, error, price, checkoutUrl, onBuy, onCheck }) {
             <p>Finish checking out in the tab that just opened. This screen updates by itself when your payment goes through.</p>
           ) : (
             <>
-              <p>Pluckr is a one-time purchase of {price}. Pay once and use it on any Doc with this Google account.</p>
+              <p>Pluckr is a one-time purchase of {price}. Pay once and use it on any Doc or Slides deck with this Google account.</p>
               <p>You check out securely with Polar. Pluckr never sees your card details, and uses your Google email only to find your licence. Document images are never sent to Pluckr's servers.</p>
               {state !== 'error' && (
                 <label className="notice-agree">
@@ -1076,7 +1093,7 @@ function App() {
   const [view, setView] = useState(() => (window.location.hash === '#optimize' ? 'optimize' : 'images'));
   // A collapsed export section means "no conversion"; the choices are kept for when it reopens.
   const activeSettings = exportOpen ? settings : { ...settings, format: null };
-  const bundle = exportOpen ? extras : { metadata: false, markdown: false };
+  const bundle = exportOpen ? { ...extras, markdown: extras.markdown && extractor.host === 'docs' } : { metadata: false, markdown: false };
   const wantsBundle = bundle.metadata || bundle.markdown;
   const { results, converted, busy, convert } = useConverter(extractor.chosen, activeSettings);
   const { format } = activeSettings;
@@ -1152,6 +1169,7 @@ function App() {
   })();
 
   return (
+    <HostContext.Provider value={extractor.host}>
     <main className="app-shell">
       <div className="sidebar">
 <TopBar theme={theme} toggleTheme={toggleTheme} loading={extractor.loading} canScan={extractor.ready} extractImages={extractor.extractImages} closeSidebar={extractor.closeSidebar} logout={extractor.logout} onOptimize={extractor.ready && extractor.isAppsScript && view === 'images' ? () => setView('optimize') : undefined} />
@@ -1211,6 +1229,7 @@ function App() {
         )}
       </div>
     </main>
+    </HostContext.Provider>
   );
 }
 
