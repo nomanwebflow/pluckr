@@ -480,7 +480,7 @@ function useImageExtractor() {
   };
 }
 
-function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, toggleTheme, onOptimize, onRename }) {
+function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, toggleTheme, onOptimize }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -508,7 +508,6 @@ function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, 
       {menuOpen && (
         <div className="menu" role="menu">
           <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); toggleTheme(); }}>{theme === 'light' ? 'Dark mode' : 'Light mode'}</button>
-          {onRename && <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); onRename(); }}>Bulk rename</button>}
           {onOptimize && <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); onOptimize(); }}>Optimize Doc images</button>}
           <button className="menu-item" type="button" role="menuitem" onClick={closeSidebar}>Close sidebar</button>
           <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); logout(); }}>Log out</button>
@@ -667,8 +666,8 @@ function InfoTip({ label, children }) {
   );
 }
 
-function ExportPanel({ settings, onChange, supported, open, onToggle, extras, onExtras }) {
-  const lossy = FORMATS.find((item) => item.id === settings.format)?.lossy;
+/** A titled section that slides open and shut, shared by Bulk rename and Output settings. */
+function Disclosure({ title, open, onToggle, children }) {
   // The dropdown lists need to overflow the panel, so clipping applies only while it is sliding. Closing clips at once.
   const [settled, setSettled] = useState(open);
   useEffect(() => {
@@ -677,10 +676,10 @@ function ExportPanel({ settings, onChange, supported, open, onToggle, extras, on
   }, [open]);
 
   return (
-    <section className="export" aria-label="Output settings">
+    <section className="export" aria-label={title}>
       <div className="panel-texture" aria-hidden="true" />
       <button className="export-toggle" type="button" aria-expanded={open} onClick={onToggle}>
-        <span className="trim">Output settings</span>
+        <span className="trim">{title}</span>
         <Asset name="chevron-down" className={`chevron${open ? '' : ' is-closed'}`} />
       </button>
       <div
@@ -689,7 +688,17 @@ function ExportPanel({ settings, onChange, supported, open, onToggle, extras, on
         onTransitionEnd={(event) => { if (open && event.target === event.currentTarget && event.propertyName === 'grid-template-rows') setSettled(true); }}
       >
         <div className="export-clip">
-          <div className="export-fields">
+          <div className="export-fields">{children}</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ExportPanel({ settings, onChange, supported, open, onToggle, extras, onExtras }) {
+  const lossy = FORMATS.find((item) => item.id === settings.format)?.lossy;
+  return (
+    <Disclosure title="Output settings" open={open} onToggle={onToggle}>
           <div className="field">
             <span className="field-label" id="format-label">Format</span>
             <Select
@@ -756,29 +765,30 @@ function ExportPanel({ settings, onChange, supported, open, onToggle, extras, on
             <input type="checkbox" checked={extras.markdown} onChange={(event) => onExtras({ markdown: event.target.checked })} />
             <span>Add the Doc as Markdown (content.md)</span>
           </label>
-          </div>
-        </div>
-      </div>
-    </section>
+    </Disclosure>
   );
 }
 
-/** One pattern for every file name, with a live preview. */
-function BulkRenamePanel({ images, docName, onApply, onBack }) {
+/** One pattern for every file name, with a live preview. Renames the list in the sidebar, not the Doc. */
+function RenamePanel({ images, docName, open, onToggle, onApply }) {
   const [pattern, setPattern] = useState('{doc}-{n}');
   const [start, setStart] = useState(1);
   const [clean, setClean] = useState(true);
+  const [applied, setApplied] = useState(false);
   const names = useMemo(
     () => bulkNames(images, { pattern, start: Number.isFinite(start) ? start : 1, clean, docName: docName || 'image' }),
     [images, pattern, start, clean, docName],
   );
-  const shown = names.slice(0, 4);
+  const shown = names.slice(0, 3);
+
+  const apply = () => {
+    onApply(names);
+    setApplied(true);
+    window.setTimeout(() => setApplied(false), 1500);
+  };
 
   return (
-    <section className="privacy-notice" aria-labelledby="rename-title">
-      <div className="panel-texture" aria-hidden="true" />
-      <Asset name="mark" className="notice-mark" />
-      <h1 id="rename-title">Bulk rename</h1>
+    <Disclosure title="Bulk rename" open={open} onToggle={onToggle}>
       <div className="field">
         <div className="field-label-row">
           <label className="field-label" htmlFor="rename-pattern">Name pattern</label>
@@ -800,11 +810,10 @@ function BulkRenamePanel({ images, docName, onApply, onBack }) {
         ))}
         {names.length > shown.length && <li className="rename-more">and {names.length - shown.length} more</li>}
       </ul>
-      <div className="notice-actions">
-        <button className="secondary-button" type="button" onClick={onBack}>Back</button>
-        <button className="primary-button" type="button" disabled={!pattern.trim()} onClick={() => onApply(names)}>Rename {images.length} images</button>
-      </div>
-    </section>
+      <button className="secondary-button" type="button" disabled={!pattern.trim() || images.length === 0} onClick={apply}>
+        {applied ? 'Renamed' : `Rename ${images.length} images`}
+      </button>
+    </Disclosure>
   );
 }
 
@@ -967,7 +976,8 @@ function App() {
   const [exportError, setExportError] = useState('');
   const [extras, setExtras] = useState({ metadata: false, markdown: false });
   // The hash lets the optimize screen be opened directly in the dev preview, where the menu item is hidden.
-  const [view, setView] = useState(() => (['#optimize', '#rename'].includes(window.location.hash) ? window.location.hash.slice(1) : 'images'));
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [view, setView] = useState(() => (window.location.hash === '#optimize' ? 'optimize' : 'images'));
   // A collapsed export section means "no conversion"; the choices are kept for when it reopens.
   const activeSettings = exportOpen ? settings : { ...settings, format: null };
   const bundle = exportOpen ? extras : { metadata: false, markdown: false };
@@ -1044,10 +1054,8 @@ function App() {
   return (
     <main className="app-shell">
       <div className="sidebar">
-<TopBar theme={theme} toggleTheme={toggleTheme} loading={extractor.loading} canScan={extractor.ready} extractImages={extractor.extractImages} closeSidebar={extractor.closeSidebar} logout={extractor.logout} onOptimize={extractor.ready && extractor.isAppsScript && view === 'images' ? () => setView('optimize') : undefined} onRename={extractor.ready && view === 'images' && extractor.images.length > 0 ? () => setView('rename') : undefined} />
-        {extractor.ready && view === 'rename' ? (
-          <BulkRenamePanel images={extractor.images} docName={extractor.documentName} onApply={(names) => { extractor.renameMany(names); setView('images'); }} onBack={() => setView('images')} />
-        ) : extractor.ready && view === 'optimize' ? (
+<TopBar theme={theme} toggleTheme={toggleTheme} loading={extractor.loading} canScan={extractor.ready} extractImages={extractor.extractImages} closeSidebar={extractor.closeSidebar} logout={extractor.logout} onOptimize={extractor.ready && extractor.isAppsScript && view === 'images' ? () => setView('optimize') : undefined} />
+        {extractor.ready && view === 'optimize' ? (
           <OptimizePanel images={extractor.images} serverCall={extractor.serverCall} rescan={extractor.extractImages} onBack={() => setView('images')} />
         ) : extractor.ready ? (
           <Panel
@@ -1071,6 +1079,9 @@ function App() {
         )}
         {extractor.ready && view === 'images' && (
           <>
+          {extractor.images.length > 0 && (
+            <RenamePanel images={extractor.images} docName={extractor.documentName} open={renameOpen} onToggle={() => setRenameOpen((value) => !value)} onApply={extractor.renameMany} />
+          )}
           <ExportPanel settings={settings} onChange={updateSettings} supported={supported} open={exportOpen} onToggle={() => setExportOpen((value) => !value)} extras={extras} onExtras={(patch) => setExtras((current) => ({ ...current, ...patch }))} />
           <button
             className="primary-button"
