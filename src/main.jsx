@@ -970,13 +970,15 @@ function App() {
     window.google?.script?.run?.withFailureHandler(() => {}).setTheme(next);
   };
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
-  const [exportOpen, setExportOpen] = useState(false);
+  // One section open at a time: opening one closes the other.
+  const [openSection, setOpenSection] = useState(null);
+  const exportOpen = openSection === 'export';
+  const toggleSection = (name) => setOpenSection((current) => (current === name ? null : name));
   const [supported, setSupported] = useState({});
   const [zipping, setZipping] = useState(false);
   const [exportError, setExportError] = useState('');
   const [extras, setExtras] = useState({ metadata: false, markdown: false });
   // The hash lets the optimize screen be opened directly in the dev preview, where the menu item is hidden.
-  const [renameOpen, setRenameOpen] = useState(false);
   const [view, setView] = useState(() => (window.location.hash === '#optimize' ? 'optimize' : 'images'));
   // A collapsed export section means "no conversion"; the choices are kept for when it reopens.
   const activeSettings = exportOpen ? settings : { ...settings, format: null };
@@ -1080,9 +1082,9 @@ function App() {
         {extractor.ready && view === 'images' && (
           <>
           {extractor.images.length > 0 && (
-            <RenamePanel images={extractor.images} docName={extractor.documentName} open={renameOpen} onToggle={() => setRenameOpen((value) => !value)} onApply={extractor.renameMany} />
+            <RenamePanel images={extractor.images} docName={extractor.documentName} open={openSection === 'rename'} onToggle={() => toggleSection('rename')} onApply={extractor.renameMany} />
           )}
-          <ExportPanel settings={settings} onChange={updateSettings} supported={supported} open={exportOpen} onToggle={() => setExportOpen((value) => !value)} extras={extras} onExtras={(patch) => setExtras((current) => ({ ...current, ...patch }))} />
+          <ExportPanel settings={settings} onChange={updateSettings} supported={supported} open={exportOpen} onToggle={() => toggleSection('export')} extras={extras} onExtras={(patch) => setExtras((current) => ({ ...current, ...patch }))} />
           <button
             className="primary-button"
             type="button"
