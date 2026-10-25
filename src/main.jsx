@@ -364,6 +364,11 @@ function useImageExtractor() {
       setLicence('unpaid');
       return;
     }
+    // A scope was added since the user last approved Pluckr: Google refuses the call until they approve again.
+    if (/do not have permission to call|Authorization is required/i.test(String(failure?.message || ''))) {
+      setError('Pluckr needs a new permission for this file type. Open the menu, choose Log out, then open Pluckr again and allow access.');
+      return;
+    }
     if (String(failure?.message || '').includes('GATE_UNCONFIGURED')) {
       setError('Pluckr is temporarily unavailable. Please try again later or contact support@docpluckr.com.');
       return;
