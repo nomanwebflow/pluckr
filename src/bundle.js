@@ -23,9 +23,14 @@ export function metadataCsv(rows) {
     .join('\n') + '\n';
 }
 
-/** Swaps the sidebar's pluckr-image:N placeholders for the exported files' paths; an image that was not exported becomes an empty link. */
+/**
+ * Swaps the sidebar's pluckr-image:N placeholders for the exported files' paths. An image that was not exported
+ * (left unticked) is dropped from the Markdown, and so is the link around it.
+ */
 export function linkMarkdownImages(markdown, pathBySourceIndex) {
-  return markdown.replace(/\(pluckr-image:(\d+)\)/g, (_, index) => `(${encodeURI(pathBySourceIndex[index] || '')})`);
+  return markdown
+    .replace(/!\[((?:\\.|[^\]\\])*)\]\(pluckr-image:(\d+)\)/g, (all, alt, index) => (pathBySourceIndex[index] ? `![${alt}](${encodeURI(pathBySourceIndex[index])})` : ''))
+    .replace(/\[\]\([^)]*\)/g, '');
 }
 
 /**

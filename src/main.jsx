@@ -33,6 +33,8 @@ function Asset({ name, className = '', alt = '' }) {
   return <img className={className} src={sources[name] || `/assets/${name}.svg`} alt={alt} />;
 }
 
+const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
 function formatSize(bytes) {
   if (!bytes) return '0 KB';
   const kb = bytes / 1024;
@@ -158,12 +160,16 @@ function withExtension(name, original) {
   return clean.includes('.') || !extension ? clean : clean + extension;
 }
 
-function ImageRow({ image, result, thumbAspect, onRename, onDownload }) {
+function ImageRow({ image, result, thumbAspect, selected, onSelect, onRename, onDownload, onSaveAlt }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(image.name);
   const [copyLabel, setCopyLabel] = useState('Copy');
   const [downloadLabel, setDownloadLabel] = useState('Download');
   const [altLabel, setAltLabel] = useState('Copy alt');
+  const [altEditing, setAltEditing] = useState(false);
+  const [altDraft, setAltDraft] = useState('');
+  const [altSaving, setAltSaving] = useState(false);
+  const [altError, setAltError] = useState('');
   const alt = image.altDescription || image.altTitle || '';
   const shrunk = result?.blob;
   const dims = shrunk ? [result.width, result.height] : [image.width, image.height];
@@ -193,6 +199,18 @@ function ImageRow({ image, result, thumbAspect, onRename, onDownload }) {
       .finally(() => window.setTimeout(() => setAltLabel('Copy alt'), 1500));
   };
 
+  const saveAltText = async () => {
+    setAltSaving(true);
+    setAltError('');
+    try {
+      await onSaveAlt(image.id, altDraft.trim());
+      setAltEditing(false);
+    } catch (failure) {
+      setAltError(failure?.message || 'Could not save the alt text.');
+    }
+    setAltSaving(false);
+  };
+
   const download = () => {
     setDownloadLabel('Starting…');
     onDownload(image, result);
@@ -200,11 +218,12 @@ function ImageRow({ image, result, thumbAspect, onRename, onDownload }) {
   };
 
   return (
-    <article className="image-row" aria-label={`Extracted image ${image.name}`}>
+    <article className={`image-row${selected ? '' : ' is-off'}`} aria-label={`Extracted image ${image.name}`}>
       <img className="thumb" src={imageUrl(image)} alt="" style={{ aspectRatio: thumbAspect }} />
       <div className="image-body">
         <div className="image-info">
           <div className="name-row">
+            <input className="row-check" type="checkbox" checked={selected} aria-label={`Include ${image.name}`} onChange={(event) => onSelect(image.id, event.target.checked)} />
             {editing ? (
               <input
                 className="name-input"
@@ -235,10 +254,32 @@ function ImageRow({ image, result, thumbAspect, onRename, onDownload }) {
             {meta.map((item) => <p className="trim" key={item}>{item}</p>)}
           </div>
           {result?.note && <p className="meta-note">{result.note}</p>}
-          {alt && (
+          {altEditing ? (
+            <div className="alt-edit">
+              <textarea
+                className="alt-input"
+                rows={3}
+                autoFocus
+                value={altDraft}
+                aria-label={`Alt text for ${image.name}`}
+                placeholder="Describe the image"
+                onChange={(event) => setAltDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Escape') setAltEditing(false);
+                  if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) saveAltText();
+                }}
+              />
+              <div className="alt-edit-actions">
+                <button className="alt-copy" type="button" disabled={altSaving} onClick={() => setAltEditing(false)}>Cancel</button>
+                <button className="alt-copy" type="button" disabled={altSaving} onClick={saveAltText}>{altSaving ? 'Saving…' : 'Save to Doc'}</button>
+              </div>
+              {altError && <p className="meta-note is-error" role="alert">{altError}</p>}
+            </div>
+          ) : (
             <div className="alt-row">
-              <p className="meta-note alt-text" title={alt}>Alt: {alt}</p>
-              <button className="alt-copy" type="button" onClick={copyAlt}>{altLabel}</button>
+              <p className={`meta-note alt-text${alt ? '' : ' is-missing'}`} title={alt}>{alt ? `Alt: ${alt}` : 'No alt text'}</p>
+              {alt && <button className="alt-copy" type="button" onClick={copyAlt}>{altLabel}</button>}
+              <button className="alt-copy" type="button" onClick={() => { setAltDraft(alt); setAltError(''); setAltEditing(true); }}>{alt ? 'Edit' : 'Add alt'}</button>
             </div>
           )}
         </div>
@@ -345,6 +386,7 @@ function useImageExtractor() {
       const stale = takeBlobUrls();
       found.forEach(prepareOriginal);
       setImages(found);
+      setDeselected(new Set());
       window.setTimeout(() => stale.forEach((url) => URL.revokeObjectURL(url)), 1000);
       // Not awaited: the list shows at once and the sizes correct themselves a moment later.
       Promise.all(found.map(naturalSize)).then((sizes) => {
@@ -392,16 +434,35 @@ function useImageExtractor() {
     setImages((current) => current.map((image) => (image.id === id ? { ...image, name } : image)));
   }, []);
 
+  /** names: { [image id]: new name }. */
   const renameMany = useCallback((names) => {
-    setImages((current) => current.map((image, index) => (names[index] ? { ...image, name: names[index] } : image)));
+    setImages((current) => current.map((image) => (names[image.id] ? { ...image, name: names[image.id] } : image)));
   }, []);
 
-  const downloadAll = useCallback(async () => {
-    if (images.length === 0) return;
+  /** Writes the alt text into the Doc, then updates the list. Clearing the text clears the title too. */
+  const saveAlt = useCallback(async (id, text) => {
+    const image = images.find((item) => item.id === id);
+    if (!image) return;
+    const title = text ? image.altTitle || '' : '';
+    if (isAppsScript) await serverCall('setImageAlt', image.sourceIndex, title, text);
+    setImages((current) => current.map((item) => (item.id === id ? { ...item, altTitle: title, altDescription: text } : item)));
+  }, [images, isAppsScript, serverCall]);
+
+  // Every image is ticked after a scan; the user unticks the ones to leave out.
+  const [deselected, setDeselected] = useState(() => new Set());
+  const chosen = useMemo(() => images.filter((image) => !deselected.has(image.id)), [images, deselected]);
+  const setSelected = useCallback((id, on) => {
+    setDeselected((current) => { const next = new Set(current); if (on) next.delete(id); else next.add(id); return next; });
+  }, []);
+  const selectAll = useCallback(() => setDeselected(new Set()), []);
+  const selectNone = useCallback(() => setDeselected(new Set(images.map((image) => image.id))), [images]);
+
+  const downloadAll = useCallback(async (list = images) => {
+    if (list.length === 0) return;
     setError('');
 
     if (!isAppsScript) {
-      images.forEach((image, index) => window.setTimeout(() => downloadImage(image), index * 250));
+      list.forEach((image, index) => window.setTimeout(() => downloadImage(image), index * 250));
       return;
     }
 
@@ -409,7 +470,7 @@ function useImageExtractor() {
     if (entitlement === null) return;
 
     const names = {};
-    images.forEach((image) => { names[image.sourceIndex] = image.name; });
+    list.forEach((image) => { names[image.sourceIndex] = image.name; });
     setDownloading(true);
     scriptRun
       .withSuccessHandler((archive) => {
@@ -420,7 +481,7 @@ function useImageExtractor() {
         setDownloading(false);
         handleServerFailure(failure, 'Could not prepare the image download. Try again.');
       })
-      .getImagesArchive(images.map((image) => image.sourceIndex), names, entitlement);
+      .getImagesArchive(list.map((image) => image.sourceIndex), names, entitlement);
   }, [images, isAppsScript, scriptRun, ensureEntitlement, handleServerFailure]);
 
   const closeSidebar = useCallback(() => {
@@ -476,7 +537,7 @@ function useImageExtractor() {
 
   return {
     images, loading, downloading, error, ready, licence, licenceError, checkoutUrl, documentName, isAppsScript, serverCall, fetchMarkdown,
-    checkLicence, startCheckout, extractImages, renameImage, renameMany, downloadAll, closeSidebar, logout,
+    checkLicence, startCheckout, extractImages, renameImage, renameMany, saveAlt, chosen, deselected, setSelected, selectAll, selectNone, downloadAll, closeSidebar, logout,
   };
 }
 
@@ -519,15 +580,27 @@ function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, 
   );
 }
 
-function Panel({ images, results, thumbAspect, loading, error, onRename, onDownload }) {
+function Panel({ images, results, thumbAspect, loading, error, deselected, chosenCount, missingOnly, onMissingOnly, onSelect, onSelectAll, onSelectNone, onRename, onDownload, onSaveAlt }) {
+  const hasAlt = (image) => Boolean(image.altDescription || image.altTitle);
+  const missing = images.filter((image) => !hasAlt(image)).length;
+  const visible = missingOnly ? images.filter((image) => !hasAlt(image)) : images;
+  const allChosen = chosenCount === images.length;
   return (
     <section className="panel" aria-label="Extracted images" aria-live="polite">
       <div className="panel-texture" aria-hidden="true" />
+      {!loading && !error && images.length > 0 && (
+        <div className="select-bar">
+          <span className="select-count">{chosenCount} of {images.length} selected</span>
+          <button className="alt-copy" type="button" onClick={allChosen ? onSelectNone : onSelectAll}>{allChosen ? 'Clear' : 'Select all'}</button>
+          <button className={`alt-copy select-filter${missingOnly ? ' is-active' : ''}`} type="button" aria-pressed={missingOnly} onClick={onMissingOnly}>Missing alt ({missing})</button>
+        </div>
+      )}
       {loading && <p className="panel-message is-delayed"><span className="loading-indicator" />Scanning your document…</p>}
       {!loading && error && <p className="panel-message is-error" role="alert">{error}</p>}
       {!loading && !error && images.length === 0 && <p className="panel-message">No images found in this document.</p>}
-      {!loading && !error && images.map((image) => (
-        <ImageRow key={image.id} image={image} result={results[image.id]} thumbAspect={thumbAspect} onRename={onRename} onDownload={onDownload} />
+      {!loading && !error && images.length > 0 && visible.length === 0 && <p className="panel-message">Every image has alt text.</p>}
+      {!loading && !error && visible.map((image) => (
+        <ImageRow key={image.id} image={image} result={results[image.id]} thumbAspect={thumbAspect} selected={!deselected.has(image.id)} onSelect={onSelect} onRename={onRename} onDownload={onDownload} onSaveAlt={onSaveAlt} />
       ))}
     </section>
   );
@@ -782,7 +855,7 @@ function RenamePanel({ images, docName, open, onToggle, onApply }) {
   const shown = names.slice(0, 3);
 
   const apply = () => {
-    onApply(names);
+    onApply(Object.fromEntries(images.map((image, index) => [image.id, names[index]])));
     setApplied(true);
     window.setTimeout(() => setApplied(false), 1500);
   };
@@ -820,7 +893,7 @@ function RenamePanel({ images, docName, open, onToggle, onApply }) {
         </ul>
       </div>
       <button className="secondary-button" type="button" disabled={!pattern.trim() || images.length === 0} onClick={apply}>
-        {applied ? 'Renamed' : `Rename ${images.length} images`}
+        {applied ? 'Renamed' : `Rename ${count(images.length, 'image')}`}
       </button>
     </Disclosure>
   );
@@ -877,7 +950,7 @@ function OptimizePanel({ images, serverCall, rescan, onBack }) {
       <Asset name="mark" className="notice-mark" />
       <h1 id="optimize-title">Optimize Doc images</h1>
       <p>Shrinks the images inside this Doc so it opens and scrolls faster. Each image is redrawn at the size it already has on the page.</p>
-      <p>{candidates} of {images.length} images can be optimized (JPEG, PNG and BMP). Others are left alone, and so is any image that would save less than a tenth.</p>
+      <p>{candidates} of {images.length} selected images can be optimized (JPEG, PNG and BMP). Others are left alone, and so is any image that would save less than a tenth.</p>
       <div className="field">
         <span className="field-label">Preset</span>
         <Select label="Preset" value={presetId} options={PRESETS} onChange={setPresetId} disabled={running} />
@@ -900,7 +973,7 @@ function OptimizePanel({ images, serverCall, rescan, onBack }) {
       <div className="notice-actions">
         <button className="secondary-button" type="button" disabled={running} onClick={onBack}>Back</button>
         <button className="primary-button" type="button" disabled={!agreed || running || candidates === 0} onClick={run}>
-          {running ? 'Optimizing…' : `Optimize ${candidates} images`}
+          {running ? 'Optimizing…' : `Optimize ${count(candidates, 'image')}`}
         </button>
       </div>
     </section>
@@ -981,6 +1054,7 @@ function App() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   // One section open at a time: opening one closes the other.
   const [openSection, setOpenSection] = useState(null);
+  const [missingOnly, setMissingOnly] = useState(false);
   const exportOpen = openSection === 'export';
   const toggleSection = (name) => setOpenSection((current) => (current === name ? null : name));
   const [supported, setSupported] = useState({});
@@ -993,7 +1067,7 @@ function App() {
   const activeSettings = exportOpen ? settings : { ...settings, format: null };
   const bundle = exportOpen ? extras : { metadata: false, markdown: false };
   const wantsBundle = bundle.metadata || bundle.markdown;
-  const { results, converted, busy, convert } = useConverter(extractor.images, activeSettings);
+  const { results, converted, busy, convert } = useConverter(extractor.chosen, activeSettings);
   const { format } = activeSettings;
   // The thumbnail previews the centred crop a fixed aspect ratio will make; otherwise the design's square.
   const previewAspect = format && activeSettings.aspect !== 'original' ? activeSettings.aspect.replace(':', ' / ') : '1 / 1';
@@ -1015,7 +1089,7 @@ function App() {
 
   const downloadAll = async () => {
     if (!format && !wantsBundle) {
-      extractor.downloadAll();
+      extractor.downloadAll(extractor.chosen);
       return;
     }
     if (format && !converted) {
@@ -1026,7 +1100,7 @@ function App() {
     setZipping(true);
     try {
       const entries = [];
-      for (const [position, image] of extractor.images.entries()) {
+      for (const [position, image] of extractor.chosen.entries()) {
         const result = results[image.id];
         if (format && !result?.blob) continue;
         entries.push({
@@ -1056,10 +1130,14 @@ function App() {
 
   const label = (() => {
     if (extractor.downloading || zipping) return 'Preparing download…';
-    if (!format) return wantsBundle ? 'Download bundle' : 'Download originals';
+    if (!format) {
+      const all = extractor.chosen.length === extractor.images.length;
+      if (wantsBundle) return all ? 'Download bundle' : `Download bundle of ${extractor.chosen.length}`;
+      return all ? 'Download originals' : `Download ${count(extractor.chosen.length, 'original')}`;
+    }
     if (busy) return 'Converting…';
     if (!converted) return 'Convert';
-    return `Download ${extractor.images.length} as ${target.label}`;
+    return `Download ${extractor.chosen.length} as ${target.label}`;
   })();
 
   return (
@@ -1067,10 +1145,18 @@ function App() {
       <div className="sidebar">
 <TopBar theme={theme} toggleTheme={toggleTheme} loading={extractor.loading} canScan={extractor.ready} extractImages={extractor.extractImages} closeSidebar={extractor.closeSidebar} logout={extractor.logout} onOptimize={extractor.ready && extractor.isAppsScript && view === 'images' ? () => setView('optimize') : undefined} />
         {extractor.ready && view === 'optimize' ? (
-          <OptimizePanel images={extractor.images} serverCall={extractor.serverCall} rescan={extractor.extractImages} onBack={() => setView('images')} />
+          <OptimizePanel images={extractor.chosen} serverCall={extractor.serverCall} rescan={extractor.extractImages} onBack={() => setView('images')} />
         ) : extractor.ready ? (
           <Panel
             images={extractor.images}
+            deselected={extractor.deselected}
+            chosenCount={extractor.chosen.length}
+            missingOnly={missingOnly}
+            onMissingOnly={() => setMissingOnly((value) => !value)}
+            onSelect={extractor.setSelected}
+            onSelectAll={extractor.selectAll}
+            onSelectNone={extractor.selectNone}
+            onSaveAlt={extractor.saveAlt}
             results={results}
           thumbAspect={previewAspect}
             loading={extractor.loading}
@@ -1090,15 +1176,15 @@ function App() {
         )}
         {extractor.ready && view === 'images' && (
           <>
-          {extractor.images.length > 0 && (
-            <RenamePanel images={extractor.images} docName={extractor.documentName} open={openSection === 'rename'} onToggle={() => toggleSection('rename')} onApply={extractor.renameMany} />
+          {extractor.chosen.length > 0 && (
+            <RenamePanel images={extractor.chosen} docName={extractor.documentName} open={openSection === 'rename'} onToggle={() => toggleSection('rename')} onApply={extractor.renameMany} />
           )}
           <ExportPanel settings={settings} onChange={updateSettings} supported={supported} open={exportOpen} onToggle={() => toggleSection('export')} extras={extras} onExtras={(patch) => setExtras((current) => ({ ...current, ...patch }))} />
           <button
             className="primary-button"
             type="button"
             onClick={downloadAll}
-            disabled={extractor.images.length === 0 || extractor.loading || extractor.downloading || zipping || busy}
+            disabled={extractor.chosen.length === 0 || extractor.loading || extractor.downloading || zipping || busy}
           >
             <span className="trim">{label}</span>
           </button>

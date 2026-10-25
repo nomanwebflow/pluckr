@@ -14,7 +14,8 @@ assert.equal(
   'filename,original_name,alt_title,alt_description,width,height,format,link_url'.split(',').map((c) => `"${c}"`).join(',') +
   '\n"a.webp","a.png","Say ""hi""","one, two","10","5","webp",""\n',
 );
-assert.equal(linkMarkdownImages('![a](pluckr-image:0) ![b](pluckr-image:3)', { 0: './images/my pic.webp' }), '![a](./images/my%20pic.webp) ![b]()');
+assert.equal(linkMarkdownImages('![a](pluckr-image:0) ![b](pluckr-image:3)', { 0: './images/my pic.webp' }), '![a](./images/my%20pic.webp) ', 'an unticked image is dropped');
+assert.equal(linkMarkdownImages('x [![b \\] c](pluckr-image:3)](https://l.test) y', {}), 'x  y', 'its link goes with it');
 
 const entry = (name, sourceIndex, alt) => ({
   blob: new Blob([new Uint8Array([1, 2, 3])]), name, width: 4, height: 3, format: 'png',
@@ -91,7 +92,7 @@ vm.createContext(sandbox);
 vm.runInContext(readFileSync('apps-script/Code.gs', 'utf8'), sandbox);
 
 // Both new calls sit behind the paywall.
-for (const call of [() => sandbox.getDocumentMarkdown('bad'), () => sandbox.replaceDocumentImage(0, '', 'image/jpeg', 'bad')]) {
+for (const call of [() => sandbox.getDocumentMarkdown('bad'), () => sandbox.replaceDocumentImage(0, '', 'image/jpeg', 'bad'), () => sandbox.setImageAlt(0, '', '', 'bad')]) {
   assert.throws(call, /LICENCE_REQUIRED/);
 }
 
@@ -129,4 +130,13 @@ sandbox.replaceDocumentImage(0, Buffer.from('x').toString('base64'), 'image/jpeg
 assert.deepEqual(log, [['insert', 2, 'image/jpeg'], ['w', 300], ['h', 200], ['title', 'T'], ['alt', 'D'], ['link', 'https://l.test'], ['removed']]);
 assert.throws(() => sandbox.replaceDocumentImage(0, '', 'image/webp', 'ok'), /Unsupported/);
 assert.throws(() => sandbox.replaceDocumentImage(5, '', 'image/png', 'ok'), /no longer/);
-console.log('Code.gs markdown and replace: all checks passed');
+
+// Saving alt text writes both fields and clears them when told to.
+const alts = [];
+const target = { setAltTitle: (v) => alts.push(['title', v]), setAltDescription: (v) => alts.push(['alt', v]) };
+sandbox.collectDocumentImages_ = () => [target];
+sandbox.setImageAlt(0, 'T', 'A chart', 'ok');
+sandbox.setImageAlt(0, null, null, 'ok');
+assert.deepEqual(alts, [['title', 'T'], ['alt', 'A chart'], ['title', ''], ['alt', '']]);
+assert.throws(() => sandbox.setImageAlt(3, '', '', 'ok'), /no longer/);
+console.log('Code.gs markdown, replace and alt text: all checks passed');

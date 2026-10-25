@@ -162,6 +162,16 @@ function getDocumentImage(index, entitlement) {
   };
 }
 
+/** Save an image's alt text into the Doc. The sidebar calls this only when the user presses Save. */
+function setImageAlt(index, altTitle, altDescription, entitlement) {
+  requireEntitlement_(entitlement);
+  var image = collectDocumentImages_(DocumentApp.getActiveDocument())[index];
+  if (!image) throw new Error('This image is no longer in the document. Scan again.');
+  image.setAltTitle(String(altTitle || ''));
+  image.setAltDescription(String(altDescription || ''));
+  return true;
+}
+
 /**
  * Swap one image for a smaller copy, in place. The new image takes the old one's displayed size, alt text and link,
  * so the page looks the same. The sidebar calls this one image at a time, in order, so indexes stay valid.
