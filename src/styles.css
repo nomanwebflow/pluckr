@@ -199,10 +199,11 @@ button:focus-visible, .name-input:focus-visible { outline: 2px solid var(--white
 /* Light theme: the white line icons are inverted; the blue logo keeps its colours. */
 .icon-button img, .edit-button img, .chevron { filter: var(--icon-filter); }
 
-.alt-row { display: flex; align-items: flex-start; gap: 8px; }
+.alt-row { display: flex; align-items: center; gap: 6px; }
 .alt-text { display: -webkit-box; flex: 1; min-width: 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.alt-copy { flex: none; padding: 0; color: var(--muted); font-size: 11px; line-height: 1.3; text-decoration: underline; }
-.alt-copy:hover { color: var(--white); }
+.mini-button { display: inline-flex; flex: none; align-items: center; justify-content: center; padding: 6px 10px; border: 1px solid var(--edge-card); border-radius: 8px; background: var(--panel); color: var(--white); font-size: 11px; line-height: normal; text-transform: uppercase; white-space: nowrap; }
+.mini-button:hover:not(:disabled) { background: var(--hover-strong); }
+.mini-button[aria-pressed="true"] { border-color: var(--white); background: var(--selected); }
 .progress { height: 4px; overflow: hidden; border-radius: 2px; background: var(--track); }
 .progress > span { display: block; height: 100%; background: var(--blue); transition: width 0.2s; }
 
@@ -249,11 +250,9 @@ button, .secondary-button, .menu-item, .notice-agree, .select-option { -webkit-u
 .alt-input { width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid var(--edge-card); border-radius: 12px; outline: 0; background: var(--panel); font-size: 12px; line-height: 1.4; resize: none; }
 .alt-input:focus-visible { border-color: var(--white); }
 .alt-input::placeholder { color: var(--muted); opacity: 1; }
-.alt-edit-actions { display: flex; justify-content: flex-end; gap: 12px; }
-.alt-copy:disabled { opacity: 0.4; cursor: not-allowed; }
+.alt-edit-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.mini-button:disabled { opacity: 0.4; cursor: not-allowed; }
 .meta-note.is-error { color: #ff6b6b; }
-.select-bar { position: relative; z-index: 1; display: flex; align-items: center; gap: 16px; padding: 10px 14px 14px; color: var(--white); font-size: 12px; line-height: 1.3; }
+.select-bar { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; padding: 10px 14px 14px; color: var(--white); font-size: 12px; line-height: 1.3; }
 .select-count { color: var(--white); }
-.select-bar .alt-copy { color: var(--white); font-size: 12px; }
 .select-filter { margin-left: auto; }
-.select-filter.is-active { color: var(--white); text-decoration: none; border-bottom: 1px solid var(--white); }

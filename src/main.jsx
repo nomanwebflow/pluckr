@@ -272,16 +272,16 @@ function ImageRow({ image, result, thumbAspect, selected, onSelect, onRename, on
                 }}
               />
               <div className="alt-edit-actions">
-                <button className="alt-copy" type="button" disabled={altSaving} onClick={() => setAltEditing(false)}>Cancel</button>
-                <button className="alt-copy" type="button" disabled={altSaving} onClick={saveAltText}>{altSaving ? 'Saving…' : 'Save to Doc'}</button>
+                <button className="mini-button" type="button" disabled={altSaving} onClick={() => setAltEditing(false)}>Cancel</button>
+                <button className="mini-button" type="button" disabled={altSaving} onClick={saveAltText}>{altSaving ? 'Saving…' : 'Save to Doc'}</button>
               </div>
               {altError && <p className="meta-note is-error" role="alert">{altError}</p>}
             </div>
           ) : (
             <div className="alt-row">
               <p className={`meta-note alt-text${alt ? '' : ' is-missing'}`} title={alt}>{alt ? `Alt: ${alt}` : 'No alt text'}</p>
-              {alt && <button className="alt-copy" type="button" onClick={copyAlt}>{altLabel}</button>}
-              <button className="alt-copy" type="button" onClick={() => { setAltDraft(alt); setAltError(''); setAltEditing(true); }}>{alt ? 'Edit' : 'Add alt'}</button>
+              {alt && <button className="mini-button" type="button" onClick={copyAlt}>{altLabel}</button>}
+              <button className="mini-button" type="button" onClick={() => { setAltDraft(alt); setAltError(''); setAltEditing(true); }}>{alt ? 'Edit' : 'Add alt'}</button>
             </div>
           )}
         </div>
@@ -593,8 +593,8 @@ function Panel({ images, results, thumbAspect, loading, error, deselected, chose
       {!loading && !error && images.length > 0 && (
         <div className="select-bar">
           <span className="select-count">{chosenCount} of {images.length} selected</span>
-          <button className="alt-copy" type="button" onClick={allChosen ? onSelectNone : onSelectAll}>{allChosen ? 'Clear' : 'Select all'}</button>
-          <button className={`alt-copy select-filter${missingOnly ? ' is-active' : ''}`} type="button" aria-pressed={missingOnly} onClick={onMissingOnly}>Missing alt ({missing})</button>
+          <button className="mini-button" type="button" onClick={allChosen ? onSelectNone : onSelectAll}>{allChosen ? 'Clear' : 'Select all'}</button>
+          <button className="mini-button select-filter" type="button" aria-pressed={missingOnly} onClick={onMissingOnly}>Missing alt ({missing})</button>
         </div>
       )}
       {loading && <p className="panel-message is-delayed"><span className="loading-indicator" />Scanning your document…</p>}
