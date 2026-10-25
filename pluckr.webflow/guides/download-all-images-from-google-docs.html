@@ -26,7 +26,13 @@
   <meta property="og:url" content="https://docpluckr.com/guides/download-all-images-from-google-docs">
   <meta property="og:image" content="https://docpluckr.com/images/og-image.png">
   <meta name="twitter:image" content="https://docpluckr.com/images/og-image.png">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Do I need to publish the Doc to download its images?","acceptedAnswer":{"@type":"Answer","text":"No. None of these methods needs you to publish the Doc."}},{"@type":"Question","name":"Which method is fastest?","acceptedAnswer":{"@type":"Answer","text":"For a single Doc, the zipped web page download. For many Docs, or when you also want to rename or convert the images, Pluckr."}},{"@type":"Question","name":"Does Pluckr find images inside tables?","acceptedAnswer":{"@type":"Answer","text":"Yes. It lists images in tables and in other document tabs."}}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Do I need to publish the Doc to download its images?","acceptedAnswer":{"@type":"Answer","text":"No. None of these methods needs you to publish the Doc."}},{"@type":"Question","name":"Which method is fastest?","acceptedAnswer":{"@type":"Answer","text":"For a single Doc, the zipped web page download. For many Docs, or when you also want to rename or convert the images, Pluckr."}},{"@type":"Question","name":"Does Pluckr find images inside tables?","acceptedAnswer":{"@type":"Answer","text":"Yes. It lists images in tables and in other document tabs."}},{"@type":"Question","name":"Why are my downloaded images called image1, image2?","acceptedAnswer":{"@type":"Answer","text":"Docs uses generic names when it exports a document. Pluckr lets you rename each image before you download it."}},{"@type":"Question","name":"Can I get the images in a smaller format?","acceptedAnswer":{"@type":"Answer","text":"With the manual methods you need a separate converter. Pluckr converts to WebP, AVIF, JPEG or PNG in the same sidebar."}},{"@type":"Question","name":"Are floating images included?","acceptedAnswer":{"@type":"Answer","text":"Not in Pluckr yet. It reads inline images. Images set to float in front of or behind text are not listed."}}]}</script>
+  <style>
+    .u-rich-text figure.shot { max-width: 100%; margin: 40px 0; }
+    .u-rich-text figure.shot img { display: block; width: 100%; height: auto; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.10); }
+    .u-rich-text figure.shot figcaption { margin-top: 12px; font-size: 14px; color: rgba(255, 255, 255, 0.62); }
+    .u-rich-text pre { margin: 24px 0; padding: 16px 20px; overflow-x: auto; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.10); background: rgba(255, 255, 255, 0.04); font-size: 14px; line-height: 1.6; }
+  </style>
   <style>
     /* Smaller headings on the legal pages. */
     .page_wrap h1.u-text { font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.25rem); }
@@ -653,36 +659,63 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
           </div>
           <div class="u-rich-text w-richtext">
+<p>You need the pictures from a Google Doc: a blog draft, a client brief, a report with screenshots. Docs lets you download the document as a file, but it does not offer a folder of the images. These are the four routes people use, in order of effort, with the honest downside of each. Nobody needs to publish the Doc for any of them.</p>
 <h2>Method 1: download the Doc as a zipped web page</h2>
 <ol role="list">
   <li>Open the Doc and choose <strong>File &gt; Download &gt; Web Page (.html, zipped)</strong>.</li>
-  <li>Unzip the file you get.</li>
-  <li>Open the <strong>images</strong> folder.</li>
+  <li>Open the downloaded ZIP so it unpacks.</li>
+  <li>Open the <strong>images</strong> folder. Your pictures are inside.</li>
 </ol>
-<p>Trade-off: nothing to install, but the files have generic names like image1.png and you get no preview before you download.</p>
-<h2>Method 2: download as Word and open the zip inside</h2>
+<p>Good: nothing to install, and it is free. Not so good: the files have generic names like image1.png, you cannot see which is which until you open them, and the folder sits next to an HTML file you did not want.</p>
+<h2>Method 2: download as Word and open the ZIP inside</h2>
 <ol role="list">
   <li>Choose <strong>File &gt; Download &gt; Microsoft Word (.docx)</strong>.</li>
-  <li>Rename the file so it ends in .zip, then unzip it.</li>
+  <li>Rename the file so it ends in .zip instead of .docx, then unzip it. On Windows you may need to turn on file extensions first.</li>
   <li>Open <strong>word &gt; media</strong>.</li>
 </ol>
-<p>Trade-off: the same generic names, plus a fiddly rename step on some systems.</p>
+<p>Good: also free, and the images are plain files. Not so good: the same generic names, and a rename step that confuses some people.</p>
 <h2>Method 3: run an Apps Script</h2>
-<p>A short script can loop over the document and save each image to Google Drive. <a href="https://labnol.org/extract-images-google-docs-slides-230913" target="_blank" rel="noopener">Amit Agarwal’s guide on Digital Inspiration</a> walks through one. Trade-off: you copy code, authorize it yourself and pull the files out of Drive afterwards.</p>
+<p>A short script can loop over the document and save each image to Google Drive. <a href="https://labnol.org/extract-images-google-docs-slides-230913" target="_blank" rel="noopener">Amit Agarwal’s guide on Digital Inspiration</a> walks through a fuller version. The core idea looks like this:</p>
+<pre><code>function saveImages() {
+  const images = DocumentApp.getActiveDocument().getBody().getImages();
+  const folder = DriveApp.createFolder('Doc images');
+  images.forEach((img, i) =&gt; folder.createFile(img.getBlob().setName('image-' + (i + 1))));
+}</code></pre>
+<p>Good: free and repeatable once set up. Not so good: you paste code, authorize it yourself, and then download the files from Drive. It has no preview and no resizing.</p>
 <h2>Method 4: use Pluckr</h2>
 <ol role="list">
   <li>Open the Doc and choose <strong>Extensions &gt; Pluckr &gt; Extract images</strong>.</li>
-  <li>See every image with a preview, size and dimensions, including images in tables and tabs.</li>
-  <li>Rename what you need, then download one image or a ZIP of all of them.</li>
+  <li>See every image with a preview, a size and its dimensions, including images in tables and other tabs.</li>
+  <li>Rename what you need, then download one image, or press <strong>Download originals</strong> for a ZIP of all of them.</li>
+  <li>Optional: open <strong>Output settings</strong>, pick WebP, AVIF, JPEG or PNG, set a quality, a max width or a crop, and download the converted set instead.</li>
 </ol>
-<p>Trade-off: it costs $5, once. In return you can <a href="/convert-google-docs-images-to-webp">convert the images to WebP or AVIF</a>, resize and crop them in the same step. More on <a href="/extract-images-from-google-docs">extracting images from Google Docs</a>.</p>
+
+<figure class="w-richtext-align-fullwidth shot">
+  <img src="/images/guides/pluckr-image-list.webp" alt="The Pluckr sidebar next to a Google Doc listing each image with a preview, name and file size" width="1280" height="800" fetchpriority="high">
+  <figcaption>Pluckr in a Doc: every image listed with a preview, its name and its size.</figcaption>
+</figure>
+<p>Good: you see the images first, you choose the names, and you can shrink or reshape them in the same step. Not so good: it costs $5, once. You can read how it handles <a href="/extract-images-from-google-docs">extracting images from Google Docs</a> or <a href="/convert-google-docs-images-to-webp">converting them to WebP or AVIF</a> on their own pages.</p>
+
+<figure class="w-richtext-align-fullwidth shot">
+  <img src="/images/guides/pluckr-converted-sizes.webp" alt="The Pluckr sidebar showing an image reduced from 2.5 MB to 98.0 KB after conversion to WebP" width="1280" height="800" loading="lazy">
+  <figcaption>The optional step: convert while you download. This image went from 2.5 MB to 98.0 KB.</figcaption>
+</figure>
 <h2>Which one should you use</h2>
-<p>One Doc, once, no rush: Method 1. Many Docs, or images that need good names or a smaller format: Pluckr. If you like writing scripts, Method 3 is yours.</p>
+<ul role="list">
+  <li><strong>One Doc, once, no rush:</strong> Method 1.</li>
+  <li><strong>You like scripts and do this often:</strong> Method 3.</li>
+  <li><strong>Many Docs, or images that need good names, a smaller format or a fixed shape:</strong> Pluckr.</li>
+</ul>
+<h2>After you have the files</h2>
+<p>Give the files descriptive names before they go on a website, because image names are one of the things search engines read. Keep the originals somewhere, since converting to a lossy format cannot be undone. And write alt text where the image is published. The file name is not a substitute for it.</p>
 <p>Back to the <a href="/">homepage</a>.</p>
 <h2>Questions</h2>
 <p><strong>Do I need to publish the Doc to download its images?</strong><br>No. None of these methods needs you to publish the Doc.</p>
 <p><strong>Which method is fastest?</strong><br>For a single Doc, the zipped web page download. For many Docs, or when you also want to rename or convert the images, Pluckr.</p>
 <p><strong>Does Pluckr find images inside tables?</strong><br>Yes. It lists images in tables and in other document tabs.</p>
+<p><strong>Why are my downloaded images called image1, image2?</strong><br>Docs uses generic names when it exports a document. Pluckr lets you rename each image before you download it.</p>
+<p><strong>Can I get the images in a smaller format?</strong><br>With the manual methods you need a separate converter. Pluckr converts to WebP, AVIF, JPEG or PNG in the same sidebar.</p>
+<p><strong>Are floating images included?</strong><br>Not in Pluckr yet. It reads inline images. Images set to float in front of or behind text are not listed.</p>
           </div>
         </div>
       </section>

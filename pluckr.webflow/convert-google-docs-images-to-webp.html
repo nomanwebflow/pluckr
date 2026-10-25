@@ -26,7 +26,13 @@
   <meta property="og:url" content="https://docpluckr.com/convert-google-docs-images-to-webp">
   <meta property="og:image" content="https://docpluckr.com/images/og-image.png">
   <meta name="twitter:image" content="https://docpluckr.com/images/og-image.png">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Which formats can Pluckr convert to?","acceptedAnswer":{"@type":"Answer","text":"AVIF, WebP, JPEG and PNG."}},{"@type":"Question","name":"Are my images uploaded to convert them?","acceptedAnswer":{"@type":"Answer","text":"No. Conversion runs in your browser. Google Apps Script reads the images from your Doc, and Pluckr’s servers never receive them."}},{"@type":"Question","name":"Can it make every image the same shape?","acceptedAnswer":{"@type":"Answer","text":"Yes. Pick an aspect ratio and Pluckr crops each image from the centre."}}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Which formats can Pluckr convert to?","acceptedAnswer":{"@type":"Answer","text":"AVIF, WebP, JPEG and PNG."}},{"@type":"Question","name":"Are my images uploaded to convert them?","acceptedAnswer":{"@type":"Answer","text":"No. Conversion runs in your browser. Google Apps Script reads the images from your Doc, and Pluckr’s servers never receive them."}},{"@type":"Question","name":"Can it make every image the same shape?","acceptedAnswer":{"@type":"Answer","text":"Yes. Pick an aspect ratio and Pluckr crops each image from the centre."}},{"@type":"Question","name":"Will it make small images bigger?","acceptedAnswer":{"@type":"Answer","text":"No. Max width only shrinks images. An image narrower than the limit keeps its size."}},{"@type":"Question","name":"Can I use the results in WordPress?","acceptedAnswer":{"@type":"Answer","text":"Recent WordPress versions accept WebP and AVIF uploads. Check your own site’s version and plugins if uploads are refused."}},{"@type":"Question","name":"Does converting change the images in my Doc?","acceptedAnswer":{"@type":"Answer","text":"No. Pluckr only reads them. You get new files and the Doc stays as it was."}}]}</script>
+  <style>
+    .u-rich-text figure.shot { max-width: 100%; margin: 40px 0; }
+    .u-rich-text figure.shot img { display: block; width: 100%; height: auto; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.10); }
+    .u-rich-text figure.shot figcaption { margin-top: 12px; font-size: 14px; color: rgba(255, 255, 255, 0.62); }
+    .u-rich-text pre { margin: 24px 0; padding: 16px 20px; overflow-x: auto; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.10); background: rgba(255, 255, 255, 0.04); font-size: 14px; line-height: 1.6; }
+  </style>
   <style>
     /* Smaller headings on the legal pages. */
     .page_wrap h1.u-text { font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.25rem); }
@@ -653,37 +659,61 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
           </div>
           <div class="u-rich-text w-richtext">
+<p>Images pasted into a Google Doc are often PNGs straight from a screenshot tool or a design file, and they are big. Before they go onto a website or into a CMS, most of them need to be smaller, a sensible shape and in a modern format. Pluckr does that in the same sidebar you use to extract them, so there is no export, convert, re-export loop.</p>
 <h2>Why WebP and AVIF</h2>
-<p>Both formats make much smaller files than the PNG or JPEG you pasted into the Doc, so pages load faster and uploads go through. In our demo document a 2.5 MB photo came out at about 98 KB as WebP. Your results depend on the image and the quality you pick.</p>
+<p>Both formats make much smaller files than the PNG or JPEG you started with, so pages load faster and uploads fit within limits. In our demo document, a 2.5 MB PNG came out at 98.0 KB as a WebP at 80% quality, cropped to 16:9. The crop removed some pixels as well, so treat that as one real example, not a promise. Your results depend on the image and the settings.</p>
+
+<figure class="w-richtext-align-fullwidth shot">
+  <img src="/images/guides/pluckr-converted-sizes.webp" alt="The Pluckr sidebar after converting, showing an image going from 2.5 MB to 98.0 KB as WebP" width="1280" height="800" fetchpriority="high">
+  <figcaption>After converting, each image shows its old and new size. Here, 2.5 MB became 98.0 KB. The button now reads Download 4 as WebP.</figcaption>
+</figure>
 <h2>The output settings</h2>
+
+<figure class="w-richtext-align-fullwidth shot">
+  <img src="/images/guides/pluckr-output-settings.webp" alt="The Pluckr output settings panel with WebP selected, quality at 80 percent and a 16:9 aspect ratio" width="1280" height="800" loading="lazy">
+  <figcaption>Output settings: format, quality, aspect ratio and maximum width.</figcaption>
+</figure>
 <ul role="list">
   <li><strong>Format.</strong> AVIF, WebP, JPEG or PNG.</li>
-  <li><strong>Quality.</strong> A slider for the lossy formats. It starts at 80%.</li>
-  <li><strong>Max width.</strong> Set a width in pixels. Images are never enlarged.</li>
-  <li><strong>Aspect ratio.</strong> Keep the original, or crop from the centre to 1:1, 4:3, 3:4, 3:2, 2:3, 16:9 or 9:16.</li>
+  <li><strong>Quality.</strong> A slider for the lossy formats, starting at 80%. Lower it for smaller files, raise it if you can see artefacts. PNG is lossless, so the slider does not apply to it.</li>
+  <li><strong>Aspect ratio.</strong> Keep the original, or crop from the centre to 1:1, 4:3, 3:4, 3:2, 2:3, 16:9 or 9:16. The thumbnails in the list update to show the crop.</li>
+  <li><strong>Max width.</strong> A width in pixels. Leave it empty to keep each image’s own size. Images are never enlarged, so a small image stays small.</li>
 </ul>
+<p>The settings apply to every image in the list. Pluckr crops first, then scales, then encodes.</p>
 <h2>How to convert the images</h2>
 <ol role="list">
   <li>Open the Doc and choose <strong>Extensions &gt; Pluckr &gt; Extract images</strong>.</li>
-  <li>Open <strong>Output settings</strong> and pick a format, quality, width and aspect ratio.</li>
-  <li>Convert. Each image shows its new size next to the original.</li>
-  <li>Download the results.</li>
+  <li>Open <strong>Output settings</strong> at the bottom of the sidebar and pick a format. The button changes from Download originals to Convert.</li>
+  <li>Set the quality, aspect ratio and maximum width.</li>
+  <li>Press <strong>Convert</strong>. Each image shows its original size and its new size.</li>
+  <li>Check the numbers, then press the download button. You get one ZIP, for example images-webp.zip.</li>
 </ol>
+<p>Change a setting afterwards and Pluckr converts again, so you can try a lower quality and compare the sizes before you save anything.</p>
 <h2>Which format to pick</h2>
 <ul role="list">
-  <li><strong>AVIF</strong> gives the smallest files and takes the longest to encode.</li>
-  <li><strong>WebP</strong> is the safe all-rounder: small files and wide support.</li>
-  <li><strong>JPEG</strong> suits places that still want the oldest format.</li>
-  <li><strong>PNG</strong> is lossless. Use it for screenshots and images that need transparency.</li>
+  <li><strong>AVIF</strong> usually gives the smallest files and takes the longest to encode. The first AVIF conversion in a session also has to load the encoder.</li>
+  <li><strong>WebP</strong> is the safe all-rounder: small files, fast to encode and supported by current browsers and most CMSs.</li>
+  <li><strong>JPEG</strong> suits places that still insist on the oldest photo format.</li>
+  <li><strong>PNG</strong> is lossless. Use it for screenshots with sharp text and for images that need transparency.</li>
+</ul>
+<h2>Shapes for common uses</h2>
+<ul role="list">
+  <li><strong>1:1</strong> for avatars and square social posts.</li>
+  <li><strong>16:9</strong> for blog headers, video thumbnails and slides.</li>
+  <li><strong>4:3 and 3:2</strong> for ordinary photos.</li>
+  <li><strong>3:4, 2:3 and 9:16</strong> for portrait images and stories.</li>
 </ul>
 <h2>Where the conversion runs</h2>
-<p>In your browser, in the sidebar. The converted files are not uploaded to Pluckr. Your original images in the Doc are not touched. See the <a href="/privacy">privacy policy</a> for the full picture.</p>
+<p>In your browser, in the sidebar. The converted files are not uploaded to Pluckr. Google Apps Script reads the original images from your Doc, and your browser converts them. The images in the Doc are not touched. See the <a href="/privacy">privacy policy</a> for the full picture.</p>
 <h2>Keep going</h2>
 <p>Just need the originals? <a href="/extract-images-from-google-docs">Extract images from Google Docs</a>. Comparing manual methods? Read <a href="/guides/download-all-images-from-google-docs">how to download all images from a Google Doc</a>. Pluckr is $5 once. See the <a href="/">homepage</a>.</p>
 <h2>Questions</h2>
 <p><strong>Which formats can Pluckr convert to?</strong><br>AVIF, WebP, JPEG and PNG.</p>
 <p><strong>Are my images uploaded to convert them?</strong><br>No. Conversion runs in your browser. Google Apps Script reads the images from your Doc, and Pluckr’s servers never receive them.</p>
 <p><strong>Can it make every image the same shape?</strong><br>Yes. Pick an aspect ratio and Pluckr crops each image from the centre.</p>
+<p><strong>Will it make small images bigger?</strong><br>No. Max width only shrinks images. An image narrower than the limit keeps its size.</p>
+<p><strong>Can I use the results in WordPress?</strong><br>Recent WordPress versions accept WebP and AVIF uploads. Check your own site’s version and plugins if uploads are refused.</p>
+<p><strong>Does converting change the images in my Doc?</strong><br>No. Pluckr only reads them. You get new files and the Doc stays as it was.</p>
           </div>
         </div>
       </section>

@@ -26,7 +26,13 @@
   <meta property="og:url" content="https://docpluckr.com/extract-images-from-google-docs">
   <meta property="og:image" content="https://docpluckr.com/images/og-image.png">
   <meta name="twitter:image" content="https://docpluckr.com/images/og-image.png">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does Pluckr change my Google Doc?","acceptedAnswer":{"@type":"Answer","text":"No. It reads the images and shows them in the sidebar. Your document stays as it is."}},{"@type":"Question","name":"Does it find images inside tables?","acceptedAnswer":{"@type":"Answer","text":"Yes. Images in tables and in other document tabs are listed with the rest."}},{"@type":"Question","name":"Do I have to publish the Doc?","acceptedAnswer":{"@type":"Answer","text":"No. Pluckr works on the Doc you have open. There is nothing to publish or share."}}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does Pluckr change my Google Doc?","acceptedAnswer":{"@type":"Answer","text":"No. It reads the images and shows them in the sidebar. Your document stays as it is."}},{"@type":"Question","name":"Does it find images inside tables?","acceptedAnswer":{"@type":"Answer","text":"Yes. Images in tables and in other document tabs are listed with the rest."}},{"@type":"Question","name":"Do I have to publish the Doc?","acceptedAnswer":{"@type":"Answer","text":"No. Pluckr works on the Doc you have open. There is nothing to publish or share."}},{"@type":"Question","name":"Are the downloaded images the same quality as in the Doc?","acceptedAnswer":{"@type":"Answer","text":"Yes. Download originals gives you the stored images without recompressing them. Quality only changes if you choose to convert."}},{"@type":"Question","name":"Can I extract images from a Doc someone shared with me?","acceptedAnswer":{"@type":"Answer","text":"You need to be able to open the Doc and use add-ons in it. Pluckr reads the Doc you have open, so access follows your permissions in Google Docs."}},{"@type":"Question","name":"What file names do I get?","acceptedAnswer":{"@type":"Answer","text":"image-01, image-02 and so on, in document order. You can rename any of them before you download."}}]}</script>
+  <style>
+    .u-rich-text figure.shot { max-width: 100%; margin: 40px 0; }
+    .u-rich-text figure.shot img { display: block; width: 100%; height: auto; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.10); }
+    .u-rich-text figure.shot figcaption { margin-top: 12px; font-size: 14px; color: rgba(255, 255, 255, 0.62); }
+    .u-rich-text pre { margin: 24px 0; padding: 16px 20px; overflow-x: auto; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.10); background: rgba(255, 255, 255, 0.04); font-size: 14px; line-height: 1.6; }
+  </style>
   <style>
     /* Smaller headings on the legal pages. */
     .page_wrap h1.u-text { font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.25rem); }
@@ -653,30 +659,51 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
           </div>
           <div class="u-rich-text w-richtext">
-<h2>What you get</h2>
+<p>Google Docs has no “save all images” command. You can right-click one image at a time, or download the whole Doc as a web page and dig through a folder of files called image1, image2 and so on. Pluckr puts the images in a sidebar next to the Doc instead, so you can see what you have before you take it.</p>
+
+<figure class="w-richtext-align-fullwidth shot">
+  <img src="/images/guides/pluckr-image-list.webp" alt="The Pluckr sidebar open next to a Google Doc, showing an extracted image with its name, dimensions and file size" width="1280" height="800" fetchpriority="high">
+  <figcaption>The Pluckr sidebar next to a Google Doc. Each image gets a preview, a name, its dimensions and its file size.</figcaption>
+</figure>
+<h2>What you see for each image</h2>
 <ul role="list">
-  <li><strong>Every image, listed.</strong> A preview, the file name, the dimensions and the file size for each one, in document order.</li>
-  <li><strong>Tables and tabs included.</strong> Images nested in tables and spread across document tabs show up in the same list.</li>
-  <li><strong>Copy, download or rename.</strong> Copy an image as PNG, download one, or rename it before it is saved.</li>
-  <li><strong>A ZIP of the originals.</strong> Download everything in one file, named after the document.</li>
+  <li><strong>A preview</strong> large enough to tell the images apart, in the order they appear in the Doc.</li>
+  <li><strong>A file name</strong> such as image-01.png. Click the pencil to rename it.</li>
+  <li><strong>The dimensions and file size</strong>, for example 1536 × 1024 and 2.5 MB, so you can spot the heavy ones.</li>
+  <li><strong>Copy and Download buttons</strong>. Copy puts the image on your clipboard as a PNG. Download saves that one file.</li>
 </ul>
 <h2>How to extract the images</h2>
 <ol role="list">
   <li>Open the Google Doc.</li>
-  <li>Choose <strong>Extensions &gt; Pluckr &gt; Extract images</strong>. The sidebar opens.</li>
-  <li>The first time, allow the permissions Google asks for and unlock Pluckr.</li>
-  <li>Look through the list. Rename, copy or download single images, or download them all.</li>
+  <li>Choose <strong>Extensions &gt; Pluckr &gt; Extract images</strong>. The sidebar opens on the right.</li>
+  <li>The first time, Google asks you to allow the add-on. Pluckr asks for access to the current document only, plus your Google account identity so it can check your licence. The <a href="/privacy">privacy policy</a> lists every permission and why.</li>
+  <li>Unlock Pluckr if you have not already. It is a one-time $5 purchase, and the unlock screen explains the terms before you pay.</li>
+  <li>Scroll through the list. Rename, copy or download single images, or press <strong>Download originals</strong> to get all of them in one ZIP named after the Doc.</li>
 </ol>
+<h2>Images in tables and other tabs</h2>
+<p>Images placed inside table cells are listed with the rest, and so are images on other document tabs. You do not have to open each tab and scan it separately.</p>
+<h2>After you edit the Doc</h2>
+<p>The list shows the Doc as it was when Pluckr last scanned it. Add, remove or replace images, then press the refresh icon at the top of the sidebar to scan again.</p>
+<h2>The originals, untouched</h2>
+<p>Download originals gives you the images as they are stored in the Doc, with no recompression. If you want smaller files, open <strong>Output settings</strong> and convert them. That is covered on the page about <a href="/convert-google-docs-images-to-webp">converting Google Docs images to WebP or AVIF</a>.</p>
+
+<figure class="w-richtext-align-fullwidth shot">
+  <img src="/images/guides/pluckr-light-theme.webp" alt="The Pluckr sidebar in its light theme next to a Google Doc" width="1280" height="800" loading="lazy">
+  <figcaption>Light and dark themes. Pluckr follows your system setting until you pick one from the menu.</figcaption>
+</figure>
 <h2>What it does not cover yet</h2>
-<p>Pluckr reads inline images. Images set to float in front of or behind text are not listed yet.</p>
+<p>Pluckr reads inline images. Images set to float in front of or behind text are not listed yet, and neither are drawings. If an image you expect is missing, check its wrap setting in Docs.</p>
 <h2>Price and privacy</h2>
-<p>Pluckr costs $5 once. No subscription. Your images are read by Google Apps Script and handled in your browser. They are never sent to Pluckr’s servers. The details are in the <a href="/privacy">privacy policy</a>.</p>
+<p>Pluckr costs $5 once. There is no subscription, and the <a href="/terms">terms</a> include a 14-day refund. Your images are read by Google Apps Script inside your Google account and handled in your browser. They are not sent to Pluckr’s servers. What Pluckr does store is a licence record: your Google account ID, your email and the purchase details.</p>
 <h2>Keep going</h2>
-<p>Want smaller files? <a href="/convert-google-docs-images-to-webp">Convert the images to WebP or AVIF</a> while you extract them. Prefer to compare options first? Read <a href="/guides/download-all-images-from-google-docs">how to download all images from a Google Doc</a> the manual way. Or start from the <a href="/">homepage</a>.</p>
+<p>Want smaller files? <a href="/convert-google-docs-images-to-webp">Convert the images to WebP or AVIF</a> while you extract them. Want to compare this with the manual routes first? Read <a href="/guides/download-all-images-from-google-docs">how to download all images from a Google Doc</a>. Or start from the <a href="/">homepage</a>.</p>
 <h2>Questions</h2>
 <p><strong>Does Pluckr change my Google Doc?</strong><br>No. It reads the images and shows them in the sidebar. Your document stays as it is.</p>
 <p><strong>Does it find images inside tables?</strong><br>Yes. Images in tables and in other document tabs are listed with the rest.</p>
 <p><strong>Do I have to publish the Doc?</strong><br>No. Pluckr works on the Doc you have open. There is nothing to publish or share.</p>
+<p><strong>Are the downloaded images the same quality as in the Doc?</strong><br>Yes. Download originals gives you the stored images without recompressing them. Quality only changes if you choose to convert.</p>
+<p><strong>Can I extract images from a Doc someone shared with me?</strong><br>You need to be able to open the Doc and use add-ons in it. Pluckr reads the Doc you have open, so access follows your permissions in Google Docs.</p>
+<p><strong>What file names do I get?</strong><br>image-01, image-02 and so on, in document order. You can rename any of them before you download.</p>
           </div>
         </div>
       </section>
