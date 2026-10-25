@@ -139,7 +139,7 @@ button:focus-visible, .name-input:focus-visible { outline: 2px solid var(--white
 .export-hint { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
 .field { display: flex; flex-direction: column; gap: 8px; }
 .field:focus-within { z-index: 3; }
-.field.is-off > :not(.field-label):not(.field-head) { opacity: 0.4; }
+.field.is-off > :not(.field-label):not(.field-label-row):not(.field-head) { opacity: 0.4; }
 .field.is-off .field-head .field-value { opacity: 0.4; }
 .field-label { color: var(--muted); font-size: 12px; line-height: normal; }
 .field-label.is-strong { color: var(--white); }
@@ -217,3 +217,12 @@ button:focus-visible, .name-input:focus-visible { outline: 2px solid var(--white
 /* Controls are not text to select. */
 button, .secondary-button, .menu-item, .notice-agree, .select-option { -webkit-user-select: none; user-select: none; }
 .notice-agree a { -webkit-user-select: text; user-select: text; }
+
+/* The tooltip sits under its label and spans the field, so it never runs past the panel. */
+.field-label-row { position: relative; display: flex; align-items: center; gap: 6px; }
+.info-tip { display: contents; }
+.info-button { display: grid; place-content: center; width: 16px; height: 16px; border-radius: 50%; color: var(--muted); }
+.info-button:hover, .info-button[aria-expanded="true"] { color: var(--white); }
+.info-note { position: absolute; z-index: 5; top: calc(100% + 6px); left: 0; right: 0; padding: 10px 12px; border: 1px solid var(--edge-card-strong); border-radius: 12px; background: var(--hover-strong); color: var(--text-soft); font-size: 12px; line-height: 1.4; pointer-events: none; opacity: 0; visibility: hidden; transform: translateY(-4px); transition: opacity 0.12s ease, transform 0.12s ease, visibility 0s 0.12s; }
+.info-note.is-open { opacity: 1; visibility: visible; transform: none; transition: opacity 0.12s ease, transform 0.12s ease; }
+@media (prefers-reduced-motion: reduce) { .info-note, .info-note.is-open { transition: none; } }

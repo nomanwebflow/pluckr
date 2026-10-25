@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ASPECTS, FORMATS, cancelEncoding, compressForDoc, detectSupportedFormats, exportName, prefetchAvifCodec, processImage } from './process.js';
 import { zipBundle } from './bundle.js';
@@ -633,6 +633,34 @@ function Select({ value, options, onChange, label, disabled = false, isAvailable
   );
 }
 
+/** An info icon beside a label. The note shows on hover or keyboard focus, and toggles on tap. */
+function InfoTip({ label, children }) {
+  const [open, setOpen] = useState(false);
+  const id = useId();
+  return (
+    <span className="info-tip" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+      <button
+        className="info-button"
+        type="button"
+        aria-label={label}
+        aria-describedby={id}
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+        onFocus={(event) => { if (event.target.matches(':focus-visible')) setOpen(true); }}
+        onBlur={() => setOpen(false)}
+        onKeyDown={(event) => { if (event.key === 'Escape') setOpen(false); }}
+      >
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9.5" />
+          <path d="M12 11v5.5" />
+          <path d="M12 7.6v.01" />
+        </svg>
+      </button>
+      <span className={`info-note${open ? ' is-open' : ''}`} id={id} role="tooltip">{children}</span>
+    </span>
+  );
+}
+
 function ExportPanel({ settings, onChange, supported, open, onToggle, extras, onExtras }) {
   const lossy = FORMATS.find((item) => item.id === settings.format)?.lossy;
   // The dropdown lists need to overflow the panel, so clipping applies only while it is sliding. Closing clips at once.
@@ -685,7 +713,10 @@ function ExportPanel({ settings, onChange, supported, open, onToggle, extras, on
             />
           </div>
           <div className={`field${settings.format ? '' : ' is-off'}`}>
-            <span className="field-label">Aspect ratio</span>
+            <div className="field-label-row">
+              <span className="field-label">Aspect ratio</span>
+              <InfoTip label="About aspect ratio">A fixed aspect ratio crops each image from the centre.</InfoTip>
+            </div>
             <Select
               label="Aspect ratio"
               value={settings.aspect}
@@ -695,7 +726,10 @@ function ExportPanel({ settings, onChange, supported, open, onToggle, extras, on
             />
           </div>
           <div className={`field${settings.format ? '' : ' is-off'}`}>
-            <label className="field-label" htmlFor="max-width">Max width (px)</label>
+            <div className="field-label-row">
+              <label className="field-label" htmlFor="max-width">Max width (px)</label>
+              <InfoTip label="About max width">Leave the width empty to keep the original size. Images are never enlarged.</InfoTip>
+            </div>
             <input
               id="max-width"
               className="field-input"
@@ -708,7 +742,6 @@ function ExportPanel({ settings, onChange, supported, open, onToggle, extras, on
               onChange={(event) => onChange({ maxWidth: event.target.value })}
             />
           </div>
-          <p className="export-hint">A fixed aspect ratio crops from the centre. Leave the width empty to keep the original size; images are never enlarged.</p>
           <label className="notice-agree">
             <input type="checkbox" checked={extras.metadata} onChange={(event) => onExtras({ metadata: event.target.checked })} />
             <span>Add alt text files (CSV and JSON)</span>
