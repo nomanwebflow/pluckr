@@ -88,6 +88,9 @@ no invented stats; no em dashes.
 
 ## 4. Technical SEO (do first, about half a day)
 
+**Status (Oct 25, 2026): done and live** for items 1 to 3 (title, description, canonical, OG/Twitter image, JSON-LD, sitemap, robots sitemap line).
+Still open: the `www` to apex 301 (needs a Cloudflare Redirect Rule, `_redirects` cannot match hostnames; the canonical tag covers duplicates meanwhile), Search Console verification, speed work, and the new pages.
+
 1. **Homepage tags** (index.html `<head>`):
    - Title: `Extract and Convert Images from Google Docs | Pluckr` (keeps the brand, puts the verbs first).
    - Description (under 155): `Pull every image out of a Google Doc, convert to WebP, AVIF, JPEG or PNG, and crop or resize. One-time $5. Images never leave your browser.`
