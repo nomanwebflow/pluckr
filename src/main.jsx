@@ -33,6 +33,7 @@ function Asset({ name, className = '', alt = '' }) {
   return <img className={className} src={sources[name] || `/assets/${name}.svg`} alt={alt} />;
 }
 
+const lacksAlt = (image) => !(image.altDescription || image.altTitle);
 const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
 function formatSize(bytes) {
@@ -456,10 +457,10 @@ function useImageExtractor() {
   const setSelected = useCallback((id, on) => {
     setDeselected((current) => { const next = new Set(current); if (on) next.delete(id); else next.add(id); return next; });
   }, []);
-  const selectAll = useCallback(() => setDeselected(new Set()), []);
-  const selectNone = useCallback(() => setDeselected(new Set(images.map((image) => image.id))), [images]);
-  /** Ticks exactly these images. */
-  const selectOnly = useCallback((ids) => setDeselected(new Set(images.filter((image) => !ids.includes(image.id)).map((image) => image.id))), [images]);
+  /** Ticks or unticks these images and leaves the rest as they are. */
+  const setMany = useCallback((ids, on) => {
+    setDeselected((current) => { const next = new Set(current); ids.forEach((id) => (on ? next.delete(id) : next.add(id))); return next; });
+  }, []);
 
   const downloadAll = useCallback(async (list = images) => {
     if (list.length === 0) return;
@@ -541,7 +542,7 @@ function useImageExtractor() {
 
   return {
     images, loading, downloading, error, ready, licence, licenceError, checkoutUrl, documentName, isAppsScript, serverCall, fetchMarkdown,
-    checkLicence, startCheckout, extractImages, renameImage, renameMany, saveAlt, chosen, deselected, setSelected, selectAll, selectNone, selectOnly, downloadAll, closeSidebar, logout,
+    checkLicence, startCheckout, extractImages, renameImage, renameMany, saveAlt, chosen, deselected, setSelected, setMany, downloadAll, closeSidebar, logout,
   };
 }
 
@@ -735,7 +736,7 @@ function InfoTip({ label, children }) {
 }
 
 /** A titled section that slides open and shut, shared by Bulk rename and Output settings. */
-function Disclosure({ title, meta, open, onToggle, children }) {
+function Disclosure({ title, open, onToggle, children }) {
   // The dropdown lists need to overflow the panel, so clipping applies only while it is sliding. Closing clips at once.
   const [settled, setSettled] = useState(open);
   useEffect(() => {
@@ -748,10 +749,7 @@ function Disclosure({ title, meta, open, onToggle, children }) {
       <div className="panel-texture" aria-hidden="true" />
       <button className="export-toggle" type="button" aria-expanded={open} onClick={onToggle}>
         <span className="trim">{title}</span>
-        <span className="export-toggle-end">
-          {meta && <span className="export-meta">{meta}</span>}
-          <Asset name="chevron-down" className={`chevron${open ? '' : ' is-closed'}`} />
-        </span>
+        <Asset name="chevron-down" className={`chevron${open ? '' : ' is-closed'}`} />
       </button>
       <div
         className={`export-body${open ? ' is-open' : ''}${settled ? ' is-settled' : ''}`}
@@ -840,22 +838,17 @@ function ExportPanel({ settings, onChange, supported, open, onToggle, extras, on
   );
 }
 
-/** Which images the exports, renames and optimizing apply to, and a filter for images with no alt text. */
-function SelectionPanel({ images, chosenCount, missingOnly, onMissingOnly, onSelectAll, onSelectNone, onSelectOnly, open, onToggle }) {
-  const missing = images.filter((image) => !(image.altDescription || image.altTitle));
+/** Which images the exports, renames and optimizing apply to. The buttons act on the images currently listed. */
+function SelectionBar({ images, visible, chosenCount, allVisibleChosen, noAltCount, noAltOnly, onToggleAll, onNoAltOnly }) {
   return (
-    <Disclosure title="Selection" meta={`${chosenCount} of ${images.length}`} open={open} onToggle={onToggle}>
-      <p className="export-hint">Only ticked images are downloaded, converted, renamed or optimized.</p>
+    <section className="export selection-bar" aria-label="Selection">
+      <div className="panel-texture" aria-hidden="true" />
+      <span className="selection-count" aria-live="polite">{chosenCount} of {images.length} selected</span>
       <div className="selection-actions">
-        <button className="mini-button" type="button" disabled={chosenCount === images.length} onClick={onSelectAll}>Select all</button>
-        <button className="mini-button" type="button" disabled={chosenCount === 0} onClick={onSelectNone}>Clear</button>
-        <button className="mini-button" type="button" disabled={missing.length === 0} onClick={() => onSelectOnly(missing.map((image) => image.id))}>Select missing alt ({missing.length})</button>
+        <button className="mini-button" type="button" disabled={visible.length === 0} onClick={onToggleAll}>{allVisibleChosen ? 'Clear' : 'Select all'}</button>
+        <button className="mini-button" type="button" aria-pressed={noAltOnly} disabled={noAltCount === 0 && !noAltOnly} title="Show only images that have no alt text" onClick={onNoAltOnly}>No alt text ({noAltCount})</button>
       </div>
-      <label className="notice-agree">
-        <input type="checkbox" checked={missingOnly} onChange={onMissingOnly} />
-        <span>Show only images missing alt text</span>
-      </label>
-    </Disclosure>
+    </section>
   );
 }
 
@@ -1072,6 +1065,7 @@ function App() {
   // One section open at a time: opening one closes the other.
   const [openSection, setOpenSection] = useState(null);
   const [missingOnly, setMissingOnly] = useState(false);
+  const visibleImages = missingOnly ? extractor.images.filter(lacksAlt) : extractor.images;
   const exportOpen = openSection === 'export';
   const toggleSection = (name) => setOpenSection((current) => (current === name ? null : name));
   const [supported, setSupported] = useState({});
@@ -1162,7 +1156,16 @@ function App() {
       <div className="sidebar">
 <TopBar theme={theme} toggleTheme={toggleTheme} loading={extractor.loading} canScan={extractor.ready} extractImages={extractor.extractImages} closeSidebar={extractor.closeSidebar} logout={extractor.logout} onOptimize={extractor.ready && extractor.isAppsScript && view === 'images' ? () => setView('optimize') : undefined} />
         {extractor.ready && view === 'images' && extractor.images.length > 0 && !extractor.loading && (
-          <SelectionPanel images={extractor.images} chosenCount={extractor.chosen.length} missingOnly={missingOnly} onMissingOnly={() => setMissingOnly((value) => !value)} onSelectAll={extractor.selectAll} onSelectNone={extractor.selectNone} onSelectOnly={extractor.selectOnly} open={openSection === 'selection'} onToggle={() => toggleSection('selection')} />
+          <SelectionBar
+            images={extractor.images}
+            visible={visibleImages}
+            chosenCount={extractor.chosen.length}
+            allVisibleChosen={visibleImages.length > 0 && visibleImages.every((image) => !extractor.deselected.has(image.id))}
+            noAltCount={extractor.images.filter(lacksAlt).length}
+            noAltOnly={missingOnly}
+            onToggleAll={() => extractor.setMany(visibleImages.map((image) => image.id), !visibleImages.every((image) => !extractor.deselected.has(image.id)))}
+            onNoAltOnly={() => setMissingOnly((value) => !value)}
+          />
         )}
         {extractor.ready && view === 'optimize' ? (
           <OptimizePanel images={extractor.chosen} serverCall={extractor.serverCall} rescan={extractor.extractImages} onBack={() => setView('images')} />

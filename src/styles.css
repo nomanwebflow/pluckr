@@ -254,6 +254,6 @@ button, .secondary-button, .menu-item, .notice-agree, .select-option { -webkit-u
 .mini-button:disabled { opacity: 0.4; cursor: not-allowed; }
 .meta-note.is-error { color: #ff6b6b; }
 
-.export-toggle-end { display: flex; align-items: center; gap: 10px; }
-.export-meta { color: var(--muted); font-size: 12px; text-transform: none; }
+.selection-bar { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+.selection-count { font-size: 12px; line-height: normal; }
 .selection-actions { display: flex; flex-wrap: wrap; gap: 6px; }
