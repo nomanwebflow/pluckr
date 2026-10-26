@@ -7,7 +7,7 @@ import { resolve } from 'node:path';
 const SITE = resolve('pluckr.webflow');
 const ORIGIN = 'https://docpluckr.com';
 const TEMPLATE = readFileSync(`${SITE}/privacy.html`, 'utf8');
-const TODAY = '2026-10-25';
+const TODAY = '2026-10-26';
 
 const strip = (html) => html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
 const esc = (text) => text.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
