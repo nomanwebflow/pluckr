@@ -53,7 +53,7 @@ rows_html = "\n".join(
               <div class="thumb-slot" data-slot="{i}"></div>
               <div class="image-info">
                 <div class="name-row"><p class="image-name"><span>{name}</span></p><span class="edit-button"><img src="{icon['edit']}" alt=""></span></div>
-                <div class="meta-row"><p>3000 × 3000</p><p>{size}</p></div>
+                <div class="meta-row"><p>3000 × 3000</p><p>{size}</p><p data-after></p></div>
               </div>
               <div class="actions"><button class="action-button" type="button" tabindex="-1">Copy</button><button class="action-button" type="button" tabindex="-1">Download</button></div>
             </article>"""
@@ -64,6 +64,201 @@ figures_html = "\n".join(
     f"""          <figure class="doc-figure" data-fig="{i}"><img class="doc-img" data-img="{i}" src="{photos[key]}" alt="{alt}"></figure>"""
     for i, (key, _, _, alt) in enumerate(ROWS)
 )
+
+chev = icon["chevron-down"]
+arrow = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5v6a3 3 0 0 0 3 3h11"/><path d="m15 10 4 4-4 4"/></svg>'
+preview_rows = "\n".join(
+    f'<div class="rename-row"><span class="rename-old">{name}</span><span class="rename-new">{arrow}<span></span></span></div>'
+    for _, name, _, _ in ROWS
+)
+sections_html = f"""<section class="export" id="renameSec">
+                      <button class="export-toggle" id="renameToggle" type="button" tabindex="-1"><span>Bulk rename</span><img class="chevron is-closed" src="{chev}" alt=""></button>
+                      <div class="export-body" id="renameBody"><div class="export-inner">
+                        <div class="field"><span class="field-label">Name pattern</span><div class="field-input" id="patternBox"><span id="patternText"></span></div></div>
+                        <div class="rename-preview">{preview_rows}</div>
+                        <button class="secondary-button" id="renameBtn" type="button" tabindex="-1">Rename 3 images</button>
+                      </div></div>
+                    </section>
+                    <section class="export" id="outSec">
+                      <button class="export-toggle" id="outToggle" type="button" tabindex="-1"><span>Output settings</span><img class="chevron is-closed" src="{chev}" alt=""></button>
+                      <div class="export-body" id="outBody"><div class="export-inner">
+                        <div class="field"><span class="field-label">Format</span><div class="select"><button class="select-button" id="fmtBtn" type="button" tabindex="-1"><span id="fmtValue">Original</span><img class="chevron" src="{chev}" alt=""></button></div></div>
+                        <div class="field is-off" data-needs-format><div class="field-head"><span class="field-label">Quality</span><span class="field-value">80%</span></div><div class="slider"></div></div>
+                        <div class="field is-off" data-needs-format><span class="field-label">Aspect ratio</span><div class="select"><button class="select-button" id="arBtn" type="button" tabindex="-1"><span id="arValue">Original</span><img class="chevron" src="{chev}" alt=""></button></div></div>
+                      </div></div>
+                    </section>"""
+cursor_html = between(src, '<div class="cursor" id="cursor"', "</svg>\n      </div>", include_end=True)
+
+css_extra = """
+/* Bulk rename and Output settings: the bodies slide open with GSAP (height 0 to auto). */
+.hero3 .export { gap: 0; }
+.hero3 .export .export-body { display: block; height: 0; overflow: hidden; }
+.hero3 .export-inner { display: flex; flex-direction: column; gap: 16px; padding-top: 16px; }
+.hero3 .field > * { transition: opacity 0.3s; }
+.hero3 .field-input { min-height: 44px; }
+.hero3 .field-input.is-focus { border-color: var(--white); color: var(--white); }
+.hero3 .rename-preview { display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--edge-card); border-radius: 12px; font-size: 12px; line-height: 1.3; }
+.hero3 .rename-row { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-top: 1px solid var(--edge); }
+.hero3 .rename-row:first-child { border-top: 0; }
+.hero3 .rename-old { color: var(--muted); font-size: 11px; }
+.hero3 .rename-new { display: flex; align-items: center; gap: 6px; min-height: 16px; }
+.hero3 .rename-new svg { flex: none; color: var(--muted); }
+.hero3 .secondary-button { display: flex; align-items: center; justify-content: center; width: 100%; padding: 15px; border: 1px solid var(--edge-card); border-radius: 16px; background: var(--panel); color: var(--white); font-size: 12px; line-height: normal; text-transform: uppercase; }
+.hero3 .secondary-button.is-pressed { background: #171717; }
+.hero3 #list.is-wide .thumb-slot { aspect-ratio: 16 / 9; }
+"""
+
+js_showcase = r"""
+  /* ---- After the scan: Bulk rename, then Output settings, with a pointer ---- */
+  var cursor = $('#cursor'), pos = { x: 0, y: 0 };
+  var renameToggle = $('#renameToggle'), renameBody = $('#renameBody'), renameBtn = $('#renameBtn');
+  var patternBox = $('#patternBox'), patternText = $('#patternText');
+  var outToggle = $('#outToggle'), outBody = $('#outBody'), fmtBtn = $('#fmtBtn'), fmtValue = $('#fmtValue'), arBtn = $('#arBtn'), arValue = $('#arValue');
+  var ctaBtn = $('.primary-button'), needFormat = $$('[data-needs-format]'), previewNew = $$('.rename-new span');
+  var names = $$('.image-name span'), dims = $$('.meta-row p:first-child'), afters = $$('[data-after]');
+  var oldNames = names.map(function (n) { return n.textContent; });
+  var newNames = ['west-coast-road-trip-01.jpg', 'west-coast-road-trip-02.jpg', 'west-coast-road-trip-03.jpg'];
+  var sizesAfter = ['→ 71.2 KB', '→ 108.5 KB', '→ 30.1 KB'];
+  var tr = function (p) { return 'translate(' + p.x.toFixed(1) + 'px,' + p.y.toFixed(1) + 'px)'; };
+
+  function centerOf(el, dx, dy) {
+    var a = el.getBoundingClientRect(), b = stage.getBoundingClientRect();
+    return { x: a.left - b.left + a.width / 2 + (dx || 0), y: a.top - b.top + a.height / 2 + (dy || 0) };
+  }
+  /* Glide along a gentle arc; longer trips take longer, like a hand would. */
+  function glide(to, id) {
+    var from = pos, dist = Math.hypot(to.x - from.x, to.y - from.y);
+    var dur = Math.max(450, Math.min(1300, 380 + dist * 1.9));
+    var mid = { x: (from.x + to.x) / 2 + (to.y - from.y) * 0.12, y: (from.y + to.y) / 2 - (to.x - from.x) * 0.12 };
+    var anim = cursor.animate([{ transform: tr(from) }, { transform: tr(mid), offset: 0.5 }, { transform: tr(to) }],
+      { duration: dur, easing: 'cubic-bezier(.45,.05,.25,1)' });
+    pos = to;
+    var park = function () { cursor.style.transform = tr(to); anim.cancel(); };
+    return anim.finished.then(park, park).then(function () { if (id !== run) throw 0; });
+  }
+  function go(el, id, dx, dy) { return glide(centerOf(el, dx, dy), id); }
+  function press(el, id) {
+    cursor.firstElementChild.animate([{ transform: 'scale(1)' }, { transform: 'scale(0.84)' }, { transform: 'scale(1)' }], { duration: 220, easing: 'ease-out' });
+    if (el) el.classList.add('is-pressed');
+    return new Promise(function (res, rej) { setTimeout(function () { if (el) el.classList.remove('is-pressed'); id === run ? res() : rej(0); }, 150); });
+  }
+  function typeInto(el, text, id) {
+    el.textContent = '';
+    var i = 0;
+    return new Promise(function (resolve, reject) {
+      (function tick() {
+        if (id !== run) return reject(0);
+        if (i >= text.length) return resolve();
+        el.textContent += text.charAt(i++);
+        setTimeout(tick, 55 + Math.random() * 60);
+      })();
+    });
+  }
+  function setOpen(toggle, body, on, id) {
+    $('.chevron', toggle).classList.toggle('is-closed', !on);
+    return done(gsap.to(body, { height: on ? 'auto' : 0, duration: 0.55, ease: 'power2.inOut' }), id);
+  }
+  function swapText(el, text, id) {
+    return done(gsap.to(el, { opacity: 0, duration: 0.14 }), id).then(function () {
+      el.textContent = text;
+      return done(gsap.to(el, { opacity: 1, duration: 0.22 }), id);
+    });
+  }
+  /* Cropping to 16:9 reshapes every card. Flip records the old layout and eases to the new one. */
+  function setWide(on, id) {
+    return new Promise(function (res, rej) {
+      var state = Flip.getState('.image-row, .thumb-slot');
+      list.classList.toggle('is-wide', on);
+      Flip.from(state, { duration: 0.8, ease: 'power2.inOut', onComplete: function () { id === run ? res() : rej(0); } });
+    });
+  }
+
+  function resetShowcase() {
+    gsap.killTweensOf([renameBody, outBody, fmtValue, arValue, previewNew, names]);
+    Flip.killFlipsOf('.image-row, .thumb-slot');
+    gsap.set('.thumb-slot', { clearProps: 'transform,width,height' });
+    gsap.set([renameBody, outBody], { height: 0 });
+    $$('.export-toggle .chevron').forEach(function (c) { c.classList.add('is-closed'); });
+    list.classList.remove('is-wide');
+    fmtValue.textContent = 'Original'; arValue.textContent = 'Original';
+    gsap.set([fmtValue, arValue], { opacity: 1 });
+    needFormat.forEach(function (f) { f.classList.add('is-off'); });
+    names.forEach(function (n, i) { n.textContent = oldNames[i]; });
+    gsap.set(names, { opacity: 1 });
+    dims.forEach(function (d) { d.textContent = '3000 × 3000'; });
+    afters.forEach(function (a) { a.textContent = ''; });
+    renameBtn.textContent = 'Rename 3 images'; patternText.textContent = '';
+    patternBox.classList.remove('is-focus');
+    previewNew.forEach(function (n, i) { n.textContent = newNames[i]; });
+    gsap.set(previewNew, { opacity: 0 });
+    ctaBtn.classList.remove('is-busy');
+    cursor.classList.remove('is-on');
+  }
+
+  async function showcase(id) {
+    var s = stage.getBoundingClientRect();
+    pos = { x: s.width - 60, y: s.height * 0.84 };
+    cursor.style.transform = tr(pos);
+    cursor.classList.add('is-on');
+    await wait(0.5, id);
+
+    /* Bulk rename: type a pattern, preview the names, apply. */
+    await go(renameToggle, id, 40, 0); await press(renameToggle, id);
+    await setOpen(renameToggle, renameBody, true, id);
+    await go(patternBox, id, 30, 0); await press(patternBox, id);
+    patternBox.classList.add('is-focus');
+    await typeInto(patternText, '{doc}-{n}', id);
+    patternBox.classList.remove('is-focus');
+    await done(gsap.to(previewNew, { opacity: 1, duration: 0.35, stagger: 0.12 }), id);
+    await wait(0.5, id);
+    await go(renameBtn, id); await press(renameBtn, id);
+    renameBtn.textContent = 'Renamed';
+    await Promise.all(names.map(function (n, i) { return swapText(n, newNames[i], id); }));
+    await wait(0.7, id);
+    await go(renameToggle, id, 40, 0); await press(renameToggle, id);
+    await setOpen(renameToggle, renameBody, false, id);
+    await wait(0.3, id);
+
+    /* Output settings: WebP, 16:9, convert. */
+    await go(outToggle, id, 40, 0); await press(outToggle, id);
+    await setOpen(outToggle, outBody, true, id);
+    await go(fmtBtn, id); await press(fmtBtn, id);
+    await swapText(fmtValue, 'WebP', id);
+    needFormat.forEach(function (f) { f.classList.remove('is-off'); });
+    cta.textContent = 'Convert';
+    await wait(0.5, id);
+    await go(arBtn, id); await press(arBtn, id);
+    await swapText(arValue, '16:9', id);
+    await setWide(true, id);
+    await wait(0.4, id);
+    await go(ctaBtn, id, -30, 0); await press(ctaBtn, id);
+    cta.innerHTML = '<span class="spin"></span>Converting…'; ctaBtn.classList.add('is-busy');
+    await wait(1.3, id);
+    ctaBtn.classList.remove('is-busy');
+    dims.forEach(function (d) { d.textContent = '3000 × 1688'; });
+    afters.forEach(function (a, i) { a.textContent = sizesAfter[i]; });
+    cta.textContent = 'Download 3 as WebP';
+    await done(gsap.to(list, { y: -(slots[0].offsetHeight + 8), duration: 0.7, ease: 'power2.inOut' }), id);
+    await wait(2.4, id);
+  }
+
+  /* Put everything back before the pictures return to the Doc. */
+  async function unwind(id) {
+    await go(outToggle, id, 40, 0); await press(outToggle, id);
+    await Promise.all([setOpen(outToggle, outBody, false, id), done(gsap.to(list, { y: 0, duration: 0.6, ease: 'power2.inOut' }), id)]);
+    cursor.classList.remove('is-on');
+    fmtValue.textContent = 'Original'; arValue.textContent = 'Original';
+    needFormat.forEach(function (f) { f.classList.add('is-off'); });
+    cta.textContent = 'Download originals';
+    dims.forEach(function (d) { d.textContent = '3000 × 3000'; });
+    afters.forEach(function (a) { a.textContent = ''; });
+    renameBtn.textContent = 'Rename 3 images'; patternText.textContent = '';
+    gsap.set(previewNew, { opacity: 0 });
+    await setWide(false, id);
+    await Promise.all(names.map(function (n, i) { return swapText(n, oldNames[i], id); }));
+    await wait(0.3, id);
+  }
+"""
 
 html = f"""<!doctype html>
 <html lang="en">
@@ -101,7 +296,7 @@ body {{ display: grid; grid-template-rows: 1fr auto; min-height: 100vh; min-heig
 
 /* Stage: a dark floor with the Docs window centred on it. The window sits in a slot that has its scaled size,
    so it is laid out by grid and nothing here is absolutely positioned. */
-.hero3 .stage {{ display: grid; place-items: center; min-height: 0; padding: 24px; overflow: hidden; background: #0a0a0a; --s: 0.9; }}
+.hero3 .stage {{ position: relative; display: grid; place-items: center; min-height: 0; padding: 24px; overflow: hidden; background: #0a0a0a; --s: 0.9; }}
 .hero3 .window-slot {{ width: calc(900px * var(--s)); height: calc(860px * var(--s)); }}
 .hero3 .window {{ display: flex; flex-direction: column; width: 900px; height: 860px; transform: scale(var(--s)); transform-origin: top left; background: #f9fbfd; border-radius: 12px; color: #202124; font-family: Arial, "Helvetica Neue", sans-serif; font-weight: 400; }}
 
@@ -144,6 +339,7 @@ body {{ display: grid; grid-template-rows: 1fr auto; min-height: 100vh; min-heig
 .hero3 .scan {{ position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; color: var(--muted); }}
 .hero3 .scan .spin {{ margin-right: 8px; }}
 
+{css_extra}
 .credit {{ margin: 0; padding: 14px 24px; color: rgba(255, 255, 255, 0.58); font: 500 12px/1.4 "Helvetica Neue", Arial, sans-serif; text-align: center; }}
 .credit a {{ color: inherit; text-decoration: underline; }}
 </style>
@@ -188,9 +384,7 @@ body {{ display: grid; grid-template-rows: 1fr auto; min-height: 100vh; min-heig
 {rows_html}
                       </div>
                     </section>
-                    <section class="export">
-                      <button class="export-toggle" type="button" tabindex="-1"><span>Output settings</span><img class="chevron is-closed" src="{icon['chevron-down']}" alt=""></button>
-                    </section>
+                    {sections_html}
                     <button class="primary-button" type="button" tabindex="-1"><span id="ctaText">Download originals</span></button>
                   </div>
                 </div>
@@ -199,6 +393,7 @@ body {{ display: grid; grid-template-rows: 1fr auto; min-height: 100vh; min-heig
           </div>
         </div>
       </div>
+      {cursor_html}
     </div>
   </section>
   <p class="credit">Photos by Ben Jessop, Gavin Allanwood and Elina Ayupova on <a href="https://unsplash.com">Unsplash</a>.</p>
@@ -262,6 +457,7 @@ body {{ display: grid; grid-template-rows: 1fr auto; min-height: 100vh; min-heig
     gsap.set('.image-info, .actions', {{ opacity: 0 }});
     gsap.set(scan, {{ opacity: 1 }});
     cta.textContent = 'Download originals';
+    resetShowcase();
   }}
 
   /* Reduced motion: the finished state, no movement. */
@@ -273,6 +469,7 @@ body {{ display: grid; grid-template-rows: 1fr auto; min-height: 100vh; min-heig
     gsap.set(scan, {{ opacity: 0 }});
   }}
 
+{js_showcase}
   async function demo(id) {{
     reset();
     await wait(1.1, id);
@@ -290,7 +487,8 @@ body {{ display: grid; grid-template-rows: 1fr auto; min-height: 100vh; min-heig
       await wait(0.25, id);
     }}
     await showRow(0, id, 0.7);
-    await wait(2.4, id);
+    await showcase(id);
+    await unwind(id);
 
     /* And back again, so the loop reads as "taken out, not removed". */
     for (var j = imgs.length - 1; j >= 0; j--) {{
