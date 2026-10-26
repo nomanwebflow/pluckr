@@ -83,3 +83,36 @@ Upload as unlisted on YouTube, or share a Drive link with view access for anyone
 - If approved: revoke the reviewer licence (command above), then start the version 2 release in `docs/slides-rollout.md`.
 - If they ask for changes: read the exact message first; do not touch scopes without telling the reviewer.
 - Keep `pluckr.tester@gmail.com` licensed until the review ends too (it is the earlier reviewer account).
+
+## Rejection on Oct 26, 2026: what was asked and the reply
+
+The submission was rejected for two reasons:
+
+1. **Trademark attribution.** Google product names in the descriptions need a ™ symbol, with a footnote such as "Google Docs™ is a trademark of Google LLC". Fixed in the new listing text: `brand/marketplace/LISTING-v1.md` (for the version 1 resubmission) and `LISTING.md` (for version 2). Also the "Pluckr" name has no Google trademark, so it stays.
+2. **Testing credentials.** Pluckr has no login of its own, so there is nothing to share except the licence for their account (done: `gsmtestuser@marketplacetest.net`, order `reviewer-grant-gsm-1`, active) and a test Doc.
+
+### What to do, in order
+
+1. Marketplace SDK > Store Listing: paste the short and detailed description from `LISTING-v1.md`. Keep the name and the four version 1 screenshots.
+2. Share a test Doc with `gsmtestuser@marketplacetest.net` (Editor), with 3 or 4 images and one inside a table.
+3. Submit the listing for review again.
+4. Reply on the rejection email with the text below.
+
+### Reply (paste, fill in the Doc link)
+
+Subject: Re: Pluckr (315157378382): attribution and testing credentials
+
+> Hi,
+>
+> Thanks for the review. I have fixed both points and resubmitted.
+>
+> **Trademark attribution.** The short and detailed descriptions now put the ™ symbol after every Google product name (Google Docs™, Google Account™) and end with "Google Docs™ and Google Account™ are trademarks of Google LLC."
+>
+> **Testing credentials.** Pluckr has no separate login, password or API token: it works with the Google account of the person who opens it. Your test account **gsmtestuser@marketplacetest.net** already has a free licence, so no payment or code is needed. I have shared a test Doc with that account: [LINK TO THE SHARED DOC].
+>
+> To test: open the Doc, choose Extensions > Pluckr > Extract images, approve the consent screen, and the sidebar lists the images. You can then copy, rename and download images, press "Download originals" for a ZIP, and in "Output settings" convert to WebP and download the result.
+>
+> If your reviewers use a different test account, tell me its address and I will give it a free licence the same day.
+>
+> Thanks,
+> Noman
