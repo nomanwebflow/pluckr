@@ -118,7 +118,7 @@ css_extra = """
 
 js_showcase = r"""
   /* ---- After the scan: Bulk rename, then Output settings, with a pointer ---- */
-  var cursor = $('#cursor'), pos = { x: 0, y: 0 };
+  var cursor = $('#cursor'), layer = $('.cursor-layer'), pos = { x: 0, y: 0 };
   var renameToggle = $('#renameToggle'), renameBody = $('#renameBody'), renameBtn = $('#renameBtn');
   var patternBox = $('#patternBox'), patternText = $('#patternText');
   var outToggle = $('#outToggle'), outBody = $('#outBody'), fmtBtn = $('#fmtBtn'), fmtValue = $('#fmtValue'), arBtn = $('#arBtn'), arValue = $('#arValue');
@@ -131,7 +131,7 @@ js_showcase = r"""
   var tr = function (p) { return 'translate(' + p.x.toFixed(1) + 'px,' + p.y.toFixed(1) + 'px)'; };
 
   function centerOf(el, dx, dy) {
-    var a = el.getBoundingClientRect(), b = stage.getBoundingClientRect();
+    var a = el.getBoundingClientRect(), b = layer.getBoundingClientRect();
     return { x: a.left - b.left + a.width / 2 + (dx || 0), y: a.top - b.top + a.height / 2 + (dy || 0) };
   }
   /* Glide along a gentle arc; longer trips take longer, like a hand would. */
@@ -221,7 +221,7 @@ js_showcase = r"""
   }
 
   async function showcase(id) {
-    var s = stage.getBoundingClientRect();
+    var s = layer.getBoundingClientRect();
     pos = { x: s.width - 60, y: s.height * 0.84 };
     cursor.style.transform = tr(pos);
     cursor.classList.add('is-on');
@@ -327,7 +327,9 @@ body {{ display: grid; grid-template-rows: 1fr auto; min-height: 100vh; min-heig
 /* Stage: a dark floor with the Docs window centred on it. The window sits in a slot that has its scaled size,
    so it is laid out by grid and nothing here is absolutely positioned. */
 .hero3 .stage {{ position: relative; display: grid; place-items: center; min-height: 0; padding: 24px; overflow: hidden; background: #0a0a0a; --s: 0.9; }}
-.hero3 .window-slot {{ width: calc(900px * var(--s)); height: calc(860px * var(--s)); }}
+.hero3 .window-slot {{ position: relative; width: calc(900px * var(--s)); height: calc(860px * var(--s)); }}
+/* The pointer lives in a layer the size of the white window and is clipped to its rounded corners. */
+.hero3 .cursor-layer {{ position: absolute; inset: 0; overflow: hidden; border-radius: calc(12px * var(--s)); pointer-events: none; }}
 .hero3 .window {{ display: flex; flex-direction: column; width: 900px; height: 860px; transform: scale(var(--s)); transform-origin: top left; background: #f9fbfd; border-radius: 12px; color: #202124; font-family: Arial, "Helvetica Neue", sans-serif; font-weight: 400; }}
 
 /* The Doc. */
@@ -422,8 +424,8 @@ body {{ display: grid; grid-template-rows: 1fr auto; min-height: 100vh; min-heig
             </aside>
           </div>
         </div>
+        <div class="cursor-layer">{cursor_html}</div>
       </div>
-      {cursor_html}
     </div>
   </section>
   <p class="credit">Photos by Ben Jessop, Gavin Allanwood and Elina Ayupova on <a href="https://unsplash.com">Unsplash</a>.</p>
