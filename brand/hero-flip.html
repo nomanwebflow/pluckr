@@ -233,9 +233,9 @@ body { display: grid; grid-template-rows: 1fr auto; min-height: 100vh; min-heigh
                     <section class="export" id="outSec">
                       <button class="export-toggle" id="outToggle" type="button" tabindex="-1"><span>Output settings</span><img class="chevron is-closed" src="data:image/svg+xml;base64,PHN2ZyBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIiBvdmVyZmxvdz0idmlzaWJsZSIgc3R5bGU9ImRpc3BsYXk6IGJsb2NrOyIgd2lkdGg9IjE1IiBoZWlnaHQ9IjE1IiB2aWV3Qm94PSIwIDAgMTUgMTUiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGlkPSJjaGV2cm9uLWRvd24iPgo8cGF0aCBpZD0iVmVjdG9yIiBkPSJNMy43NSA1LjYyNUw3LjUgOS4zNzVMMTEuMjUgNS42MjUiIHN0cm9rZS13aWR0aD0iMS4yNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2U9IndoaXRlIi8+CjwvZz4KPC9zdmc+Cg==" alt=""></button>
                       <div class="export-body" id="outBody"><div class="export-inner">
-                        <div class="field"><span class="field-label">Format</span><div class="select"><button class="select-button" id="fmtBtn" type="button" tabindex="-1"><span id="fmtValue">Original</span><img class="chevron" src="data:image/svg+xml;base64,PHN2ZyBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIiBvdmVyZmxvdz0idmlzaWJsZSIgc3R5bGU9ImRpc3BsYXk6IGJsb2NrOyIgd2lkdGg9IjE1IiBoZWlnaHQ9IjE1IiB2aWV3Qm94PSIwIDAgMTUgMTUiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGlkPSJjaGV2cm9uLWRvd24iPgo8cGF0aCBpZD0iVmVjdG9yIiBkPSJNMy43NSA1LjYyNUw3LjUgOS4zNzVMMTEuMjUgNS42MjUiIHN0cm9rZS13aWR0aD0iMS4yNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2U9IndoaXRlIi8+CjwvZz4KPC9zdmc+Cg==" alt=""></button></div></div>
+                        <div class="field"><span class="field-label">Format</span><div class="select" id="fmtSel"><button class="select-button" id="fmtBtn" type="button" tabindex="-1"><span id="fmtValue">Original</span><img class="chevron" src="data:image/svg+xml;base64,PHN2ZyBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIiBvdmVyZmxvdz0idmlzaWJsZSIgc3R5bGU9ImRpc3BsYXk6IGJsb2NrOyIgd2lkdGg9IjE1IiBoZWlnaHQ9IjE1IiB2aWV3Qm94PSIwIDAgMTUgMTUiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGlkPSJjaGV2cm9uLWRvd24iPgo8cGF0aCBpZD0iVmVjdG9yIiBkPSJNMy43NSA1LjYyNUw3LjUgOS4zNzVMMTEuMjUgNS42MjUiIHN0cm9rZS13aWR0aD0iMS4yNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2U9IndoaXRlIi8+CjwvZz4KPC9zdmc+Cg==" alt=""></button><div class="select-list" role="listbox"><button class="select-option is-selected" type="button" data-format="Original" tabindex="-1">Original</button><button class="select-option" type="button" data-format="AVIF" tabindex="-1">AVIF</button><button class="select-option" type="button" data-format="WebP" tabindex="-1">WebP</button><button class="select-option" type="button" data-format="PNG" tabindex="-1">PNG</button><button class="select-option" type="button" data-format="JPEG" tabindex="-1">JPEG</button></div></div></div>
                         <div class="field is-off" data-needs-format><div class="field-head"><span class="field-label">Quality</span><span class="field-value">80%</span></div><div class="slider"></div></div>
-                        <div class="field is-off" data-needs-format><span class="field-label">Aspect ratio</span><div class="select"><button class="select-button" id="arBtn" type="button" tabindex="-1"><span id="arValue">Original</span><img class="chevron" src="data:image/svg+xml;base64,PHN2ZyBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIiBvdmVyZmxvdz0idmlzaWJsZSIgc3R5bGU9ImRpc3BsYXk6IGJsb2NrOyIgd2lkdGg9IjE1IiBoZWlnaHQ9IjE1IiB2aWV3Qm94PSIwIDAgMTUgMTUiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGlkPSJjaGV2cm9uLWRvd24iPgo8cGF0aCBpZD0iVmVjdG9yIiBkPSJNMy43NSA1LjYyNUw3LjUgOS4zNzVMMTEuMjUgNS42MjUiIHN0cm9rZS13aWR0aD0iMS4yNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2U9IndoaXRlIi8+CjwvZz4KPC9zdmc+Cg==" alt=""></button></div></div>
+                        <div class="field is-off" data-needs-format><span class="field-label">Aspect ratio</span><div class="select" id="arSel"><button class="select-button" id="arBtn" type="button" tabindex="-1"><span id="arValue">Original</span><img class="chevron" src="data:image/svg+xml;base64,PHN2ZyBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIiBvdmVyZmxvdz0idmlzaWJsZSIgc3R5bGU9ImRpc3BsYXk6IGJsb2NrOyIgd2lkdGg9IjE1IiBoZWlnaHQ9IjE1IiB2aWV3Qm94PSIwIDAgMTUgMTUiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGlkPSJjaGV2cm9uLWRvd24iPgo8cGF0aCBpZD0iVmVjdG9yIiBkPSJNMy43NSA1LjYyNUw3LjUgOS4zNzVMMTEuMjUgNS42MjUiIHN0cm9rZS13aWR0aD0iMS4yNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2U9IndoaXRlIi8+CjwvZz4KPC9zdmc+Cg==" alt=""></button><div class="select-list" id="arList" role="listbox"><button class="select-option is-selected" type="button" data-aspect="Original" tabindex="-1">Original</button><button class="select-option" type="button" data-aspect="1:1" tabindex="-1">1:1</button><button class="select-option" type="button" data-aspect="4:3" tabindex="-1">4:3</button><button class="select-option" type="button" data-aspect="3:4" tabindex="-1">3:4</button><button class="select-option" type="button" data-aspect="3:2" tabindex="-1">3:2</button><button class="select-option" type="button" data-aspect="2:3" tabindex="-1">2:3</button><button class="select-option" type="button" data-aspect="16:9" tabindex="-1">16:9</button><button class="select-option" type="button" data-aspect="9:16" tabindex="-1">9:16</button></div></div></div>
                       </div></div>
                     </section>
                     <button class="primary-button" type="button" tabindex="-1"><span id="ctaText">Download originals</span></button>
@@ -352,6 +352,7 @@ body { display: grid; grid-template-rows: 1fr auto; min-height: 100vh; min-heigh
   var renameToggle = $('#renameToggle'), renameBody = $('#renameBody'), renameBtn = $('#renameBtn');
   var patternBox = $('#patternBox'), patternText = $('#patternText');
   var outToggle = $('#outToggle'), outBody = $('#outBody'), fmtBtn = $('#fmtBtn'), fmtValue = $('#fmtValue'), arBtn = $('#arBtn'), arValue = $('#arValue');
+  var fmtSel = $('#fmtSel'), arSel = $('#arSel'), arList = $('#arList');
   var ctaBtn = $('.primary-button'), needFormat = $$('[data-needs-format]'), previewNew = $$('.rename-new span');
   var names = $$('.image-name span'), dims = $$('.meta-row p:first-child'), afters = $$('[data-after]');
   var oldNames = names.map(function (n) { return n.textContent; });
@@ -392,9 +393,21 @@ body { display: grid; grid-template-rows: 1fr auto; min-height: 100vh; min-heigh
       })();
     });
   }
+  /* The body clips while it slides; once open it lets the dropdown lists reach outside it. */
   function setOpen(toggle, body, on, id) {
     $('.chevron', toggle).classList.toggle('is-closed', !on);
-    return done(gsap.to(body, { height: on ? 'auto' : 0, duration: 0.55, ease: 'power2.inOut' }), id);
+    if (!on) body.style.overflow = 'hidden';
+    return done(gsap.to(body, { height: on ? 'auto' : 0, duration: 0.55, ease: 'power2.inOut' }), id).then(function () { if (on) body.style.overflow = 'visible'; });
+  }
+  /* Open a list, move to an option, press it, close the list. */
+  async function choose(btn, sel, option, mark, id) {
+    await go(btn, id); await press(btn, id);
+    sel.classList.add('is-open'); btn.classList.add('is-open');
+    await wait(0.6, id);
+    if (sel === arSel) { arList.scrollTo({ top: arList.scrollHeight, behavior: 'smooth' }); await wait(0.7, id); }
+    await go(option, id); await press(option, id);
+    mark();
+    sel.classList.remove('is-open'); btn.classList.remove('is-open');
   }
   function swapText(el, text, id) {
     return done(gsap.to(el, { opacity: 0, duration: 0.14 }), id).then(function () {
@@ -415,7 +428,11 @@ body { display: grid; grid-template-rows: 1fr auto; min-height: 100vh; min-heigh
     gsap.killTweensOf([renameBody, outBody, fmtValue, arValue, previewNew, names]);
     Flip.killFlipsOf('.image-row, .thumb-slot');
     gsap.set('.thumb-slot', { clearProps: 'transform,width,height' });
-    gsap.set([renameBody, outBody], { height: 0 });
+    gsap.set([renameBody, outBody], { height: 0, overflow: 'hidden' });
+    [fmtSel, arSel, fmtBtn, arBtn].forEach(function (e) { e.classList.remove('is-open'); });
+    $$('[data-format]').forEach(function (o) { o.classList.toggle('is-selected', o.dataset.format === 'Original'); });
+    $$('[data-aspect]').forEach(function (o) { o.classList.toggle('is-selected', o.dataset.aspect === 'Original'); });
+    arList.scrollTop = 0;
     $$('.export-toggle .chevron').forEach(function (c) { c.classList.add('is-closed'); });
     list.classList.remove('is-wide');
     fmtValue.textContent = 'Original'; arValue.textContent = 'Original';
@@ -460,12 +477,14 @@ body { display: grid; grid-template-rows: 1fr auto; min-height: 100vh; min-heigh
     /* Output settings: WebP, 16:9, convert. */
     await go(outToggle, id, 40, 0); await press(outToggle, id);
     await setOpen(outToggle, outBody, true, id);
-    await go(fmtBtn, id); await press(fmtBtn, id);
+    var webp = $('[data-format="WebP"]');
+    await choose(fmtBtn, fmtSel, webp, function () { $$('[data-format]').forEach(function (o) { o.classList.toggle('is-selected', o === webp); }); }, id);
     await swapText(fmtValue, 'WebP', id);
     needFormat.forEach(function (f) { f.classList.remove('is-off'); });
     cta.textContent = 'Convert';
     await wait(0.5, id);
-    await go(arBtn, id); await press(arBtn, id);
+    var wide = $('[data-aspect="16:9"]');
+    await choose(arBtn, arSel, wide, function () { $$('[data-aspect]').forEach(function (o) { o.classList.toggle('is-selected', o === wide); }); }, id);
     await swapText(arValue, '16:9', id);
     await setWide(true, id);
     await wait(0.4, id);
@@ -486,6 +505,9 @@ body { display: grid; grid-template-rows: 1fr auto; min-height: 100vh; min-heigh
     await Promise.all([setOpen(outToggle, outBody, false, id), done(gsap.to(list, { y: 0, duration: 0.6, ease: 'power2.inOut' }), id)]);
     cursor.classList.remove('is-on');
     fmtValue.textContent = 'Original'; arValue.textContent = 'Original';
+    $$('[data-format]').forEach(function (o) { o.classList.toggle('is-selected', o.dataset.format === 'Original'); });
+    $$('[data-aspect]').forEach(function (o) { o.classList.toggle('is-selected', o.dataset.aspect === 'Original'); });
+    arList.scrollTop = 0;
     needFormat.forEach(function (f) { f.classList.add('is-off'); });
     cta.textContent = 'Download originals';
     dims.forEach(function (d) { d.textContent = '3000 × 3000'; });

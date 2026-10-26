@@ -71,6 +71,14 @@ preview_rows = "\n".join(
     f'<div class="rename-row"><span class="rename-old">{name}</span><span class="rename-new">{arrow}<span></span></span></div>'
     for _, name, _, _ in ROWS
 )
+fmt_options = "".join(
+    f'<button class="select-option{" is-selected" if f == "Original" else ""}" type="button" data-format="{f}" tabindex="-1">{f}</button>'
+    for f in ("Original", "AVIF", "WebP", "PNG", "JPEG")
+)
+ar_options = "".join(
+    f'<button class="select-option{" is-selected" if a == "Original" else ""}" type="button" data-aspect="{a}" tabindex="-1">{a}</button>'
+    for a in ("Original", "1:1", "4:3", "3:4", "3:2", "2:3", "16:9", "9:16")
+)
 sections_html = f"""<section class="export" id="renameSec">
                       <button class="export-toggle" id="renameToggle" type="button" tabindex="-1"><span>Bulk rename</span><img class="chevron is-closed" src="{chev}" alt=""></button>
                       <div class="export-body" id="renameBody"><div class="export-inner">
@@ -82,9 +90,9 @@ sections_html = f"""<section class="export" id="renameSec">
                     <section class="export" id="outSec">
                       <button class="export-toggle" id="outToggle" type="button" tabindex="-1"><span>Output settings</span><img class="chevron is-closed" src="{chev}" alt=""></button>
                       <div class="export-body" id="outBody"><div class="export-inner">
-                        <div class="field"><span class="field-label">Format</span><div class="select"><button class="select-button" id="fmtBtn" type="button" tabindex="-1"><span id="fmtValue">Original</span><img class="chevron" src="{chev}" alt=""></button></div></div>
+                        <div class="field"><span class="field-label">Format</span><div class="select" id="fmtSel"><button class="select-button" id="fmtBtn" type="button" tabindex="-1"><span id="fmtValue">Original</span><img class="chevron" src="{chev}" alt=""></button><div class="select-list" role="listbox">{fmt_options}</div></div></div>
                         <div class="field is-off" data-needs-format><div class="field-head"><span class="field-label">Quality</span><span class="field-value">80%</span></div><div class="slider"></div></div>
-                        <div class="field is-off" data-needs-format><span class="field-label">Aspect ratio</span><div class="select"><button class="select-button" id="arBtn" type="button" tabindex="-1"><span id="arValue">Original</span><img class="chevron" src="{chev}" alt=""></button></div></div>
+                        <div class="field is-off" data-needs-format><span class="field-label">Aspect ratio</span><div class="select" id="arSel"><button class="select-button" id="arBtn" type="button" tabindex="-1"><span id="arValue">Original</span><img class="chevron" src="{chev}" alt=""></button><div class="select-list" id="arList" role="listbox">{ar_options}</div></div></div>
                       </div></div>
                     </section>"""
 cursor_html = between(src, '<div class="cursor" id="cursor"', "</svg>\n      </div>", include_end=True)
@@ -114,6 +122,7 @@ js_showcase = r"""
   var renameToggle = $('#renameToggle'), renameBody = $('#renameBody'), renameBtn = $('#renameBtn');
   var patternBox = $('#patternBox'), patternText = $('#patternText');
   var outToggle = $('#outToggle'), outBody = $('#outBody'), fmtBtn = $('#fmtBtn'), fmtValue = $('#fmtValue'), arBtn = $('#arBtn'), arValue = $('#arValue');
+  var fmtSel = $('#fmtSel'), arSel = $('#arSel'), arList = $('#arList');
   var ctaBtn = $('.primary-button'), needFormat = $$('[data-needs-format]'), previewNew = $$('.rename-new span');
   var names = $$('.image-name span'), dims = $$('.meta-row p:first-child'), afters = $$('[data-after]');
   var oldNames = names.map(function (n) { return n.textContent; });
@@ -154,9 +163,21 @@ js_showcase = r"""
       })();
     });
   }
+  /* The body clips while it slides; once open it lets the dropdown lists reach outside it. */
   function setOpen(toggle, body, on, id) {
     $('.chevron', toggle).classList.toggle('is-closed', !on);
-    return done(gsap.to(body, { height: on ? 'auto' : 0, duration: 0.55, ease: 'power2.inOut' }), id);
+    if (!on) body.style.overflow = 'hidden';
+    return done(gsap.to(body, { height: on ? 'auto' : 0, duration: 0.55, ease: 'power2.inOut' }), id).then(function () { if (on) body.style.overflow = 'visible'; });
+  }
+  /* Open a list, move to an option, press it, close the list. */
+  async function choose(btn, sel, option, mark, id) {
+    await go(btn, id); await press(btn, id);
+    sel.classList.add('is-open'); btn.classList.add('is-open');
+    await wait(0.6, id);
+    if (sel === arSel) { arList.scrollTo({ top: arList.scrollHeight, behavior: 'smooth' }); await wait(0.7, id); }
+    await go(option, id); await press(option, id);
+    mark();
+    sel.classList.remove('is-open'); btn.classList.remove('is-open');
   }
   function swapText(el, text, id) {
     return done(gsap.to(el, { opacity: 0, duration: 0.14 }), id).then(function () {
@@ -177,7 +198,11 @@ js_showcase = r"""
     gsap.killTweensOf([renameBody, outBody, fmtValue, arValue, previewNew, names]);
     Flip.killFlipsOf('.image-row, .thumb-slot');
     gsap.set('.thumb-slot', { clearProps: 'transform,width,height' });
-    gsap.set([renameBody, outBody], { height: 0 });
+    gsap.set([renameBody, outBody], { height: 0, overflow: 'hidden' });
+    [fmtSel, arSel, fmtBtn, arBtn].forEach(function (e) { e.classList.remove('is-open'); });
+    $$('[data-format]').forEach(function (o) { o.classList.toggle('is-selected', o.dataset.format === 'Original'); });
+    $$('[data-aspect]').forEach(function (o) { o.classList.toggle('is-selected', o.dataset.aspect === 'Original'); });
+    arList.scrollTop = 0;
     $$('.export-toggle .chevron').forEach(function (c) { c.classList.add('is-closed'); });
     list.classList.remove('is-wide');
     fmtValue.textContent = 'Original'; arValue.textContent = 'Original';
@@ -222,12 +247,14 @@ js_showcase = r"""
     /* Output settings: WebP, 16:9, convert. */
     await go(outToggle, id, 40, 0); await press(outToggle, id);
     await setOpen(outToggle, outBody, true, id);
-    await go(fmtBtn, id); await press(fmtBtn, id);
+    var webp = $('[data-format="WebP"]');
+    await choose(fmtBtn, fmtSel, webp, function () { $$('[data-format]').forEach(function (o) { o.classList.toggle('is-selected', o === webp); }); }, id);
     await swapText(fmtValue, 'WebP', id);
     needFormat.forEach(function (f) { f.classList.remove('is-off'); });
     cta.textContent = 'Convert';
     await wait(0.5, id);
-    await go(arBtn, id); await press(arBtn, id);
+    var wide = $('[data-aspect="16:9"]');
+    await choose(arBtn, arSel, wide, function () { $$('[data-aspect]').forEach(function (o) { o.classList.toggle('is-selected', o === wide); }); }, id);
     await swapText(arValue, '16:9', id);
     await setWide(true, id);
     await wait(0.4, id);
@@ -248,6 +275,9 @@ js_showcase = r"""
     await Promise.all([setOpen(outToggle, outBody, false, id), done(gsap.to(list, { y: 0, duration: 0.6, ease: 'power2.inOut' }), id)]);
     cursor.classList.remove('is-on');
     fmtValue.textContent = 'Original'; arValue.textContent = 'Original';
+    $$('[data-format]').forEach(function (o) { o.classList.toggle('is-selected', o.dataset.format === 'Original'); });
+    $$('[data-aspect]').forEach(function (o) { o.classList.toggle('is-selected', o.dataset.aspect === 'Original'); });
+    arList.scrollTop = 0;
     needFormat.forEach(function (f) { f.classList.add('is-off'); });
     cta.textContent = 'Download originals';
     dims.forEach(function (d) { d.textContent = '3000 × 3000'; });
