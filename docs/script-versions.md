@@ -7,7 +7,7 @@ The Marketplace listing points at one numbered script version. HEAD is the lates
 | 1 | Marketplace 1.0 | The first submission. Docs only. The menu is a top-level "Pluckr" menu (`createMenu`). | Rejected on Oct 26, 2026 (trademark attribution and testing credentials) |
 | 2 | Marketplace 1.1: menu under Extensions | Version 1 with one change: `createAddonMenu()` instead of `createMenu('Pluckr')`, and the menu label without an em dash. Same scopes (documents.currentonly, script.container.ui, openid, userinfo.email). | **The resubmission** (App Configuration > Docs add-on script version = 2, saved Oct 27, 2026) |
 | HEAD | latest code | Slides, alt text, Markdown, optimize, bulk rename, selection, new look. Adds the `presentations.currentonly` scope. | Testing only |
-| 3 (planned) | Slides release | Cut from HEAD after the review is approved. | The Slides release (see `docs/slides-rollout.md`) |
+| 3 | Marketplace 2.0: Slides, alt text, Markdown, optimize | Cut from HEAD (commit 7fc7949) on Oct 27, 2026 after the deck test passed. Adds `presentations.currentonly`. | The Slides release (see `docs/slides-rollout.md`) | The Slides release (see `docs/slides-rollout.md`) |
 
 Why version 2 exists: Google's review rules say menu items must appear under the Add-ons menu (Extensions in Docs). Version 1 used a top-level menu while the listing, the post install tip and the reply to the reviewers all say "Extensions > Pluckr > Extract images".
 
