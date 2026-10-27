@@ -24,7 +24,7 @@ Unit tests (`npm run test:features`) use mocks. These need a real deck:
 
 1. Merge `feature/slides` once Docs-only features on the feature branch are released too, or release them together.
 2. Cloud console: add `presentations.currentonly` to the OAuth consent screen, with a one-line justification ("reads the pictures of the open presentation to list, convert and download them"). Resubmit for verification.
-3. Create script version 2. In the Marketplace SDK, add a **Slides add-on** configuration (same script ID, version 2) next to the Docs one, update the listing text and screenshots (a Slides screenshot or two), and submit.
+3. Create script version 3 (version 2 is the Docs-only menu fix, see `docs/script-versions.md`). In the Marketplace SDK, add a **Slides add-on** configuration (same script ID, version 3) next to the Docs one, update the listing text and screenshots (a Slides screenshot or two), and submit.
 4. Deploy the site with the updated privacy and terms (already edited on this branch) and add Slides to the homepage and listing copy.
 5. Keep the reviewer account (`pluckr.tester@gmail.com`) licensed for the review.
 

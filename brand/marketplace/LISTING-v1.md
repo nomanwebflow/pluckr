@@ -1,6 +1,6 @@
 # Pluckr: Marketplace listing for the resubmission (version 1, Google Docs™ only)
 
-The first submission was rejected on Oct 26, 2026 for two reasons: Google trademarks in the descriptions need a ™ symbol and attribution, and the reviewers asked for testing credentials. This is the text for the resubmission of **script version 1** (the version under review). It matches what version 1 does: no Slides, no alt text editing, no Markdown, no optimize. The later listing for version 2 is in `LISTING.md`.
+The first submission was rejected on Oct 26, 2026 for two reasons: Google trademarks in the descriptions need a ™ symbol and attribution, and the reviewers asked for testing credentials. This is the text for the resubmission of **script version 2** ("Marketplace 1.1": version 1 with the menu moved under Extensions, see `docs/script-versions.md`). It matches what version 1 does: no Slides, no alt text editing, no Markdown, no optimize. The later listing for version 2 is in `LISTING.md`.
 
 Put the ™ symbol after every use of a Google product name, in the short and the detailed description. The application name `Pluckr` contains no Google trademark, so it stays as it is.
 
@@ -45,5 +45,5 @@ Pluckr has no login or API token of its own: it uses the Google account of whoev
 
 1. Store Listing: replace the short and the detailed description with the text above (App Details). Keep the name.
 2. Check that no other field (category text, post-install tip, additional info) names a Google product without the ™.
-3. Save, then **Submit for review** again.
+3. App Configuration: the Docs add-on script version is **2** (done). Save, then **Submit for review** again.
 4. Reply to the review email thread with the testing information (see `docs/review-reply.md`).

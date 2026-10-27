@@ -60,7 +60,7 @@ Google Docs™, Google Slides™, Google Sheets™ and Google Account™ are tra
 
 - Visibility: Public (cannot be changed after publishing)
 - Installation: Individual and admin install
-- Integration: Docs add-on and (version 2) Slides add-on, both on the same script. Apps Script deployment ID: `AKfycbxcfNun4c4REi2wgEVmS9Ky0eYZg5O_ewg1aXIuoUfKSjGCVQLwfvxhDGzYJii2zSCAiw` (versioned deployment @1, "Marketplace 1.0"). Version 2 needs a new numbered deployment.
+- Integration: Docs add-on and (the release after the menu fix, script version 3) Slides add-on, both on the same script. Apps Script deployment ID: `AKfycbxcfNun4c4REi2wgEVmS9Ky0eYZg5O_ewg1aXIuoUfKSjGCVQLwfvxhDGzYJii2zSCAiw` (versioned deployment @1, "Marketplace 1.0"). The Slides release needs a new numbered script version (3).
 - OAuth scopes (must match the manifest): documents.currentonly, presentations.currentonly (new in version 2), script.container.ui, openid, userinfo.email
 - Developer info: name, website https://docpluckr.com, email support@docpluckr.com
 
