@@ -91,6 +91,15 @@ const sandbox = {
 vm.createContext(sandbox);
 vm.runInContext(readFileSync('apps-script/Code.gs', 'utf8'), sandbox);
 
+// The menu is the add-on menu (Extensions > Pluckr), never a top-level one, in Docs too.
+const docsMenu = [];
+sandbox.DocumentApp.getUi = () => ({
+  createAddonMenu: () => ({ addItem(label, fn) { docsMenu.push([label, fn]); return this; }, addToUi() {} }),
+  createMenu: () => { throw new Error('a top-level menu is not allowed'); },
+});
+sandbox.onOpen();
+assert.deepEqual(docsMenu, [['Extract images (Google reads this Doc’s images)', 'openPluckrSidebar']]);
+
 // Both new calls sit behind the paywall.
 for (const call of [() => sandbox.getDocumentMarkdown('bad'), () => sandbox.replaceDocumentImage(0, '', 'image/jpeg', 'bad'), () => sandbox.setImageAlt(0, '', '', 'bad')]) {
   assert.throws(call, /LICENCE_REQUIRED/);

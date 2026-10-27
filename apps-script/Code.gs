@@ -5,9 +5,8 @@
 function onOpen() {
   var slides = host_() === 'slides';
   var ui = ui_();
-  // Slides gets the standard add-on menu (Extensions > Pluckr); Docs keeps the menu it already had.
-  var menu = slides ? ui.createAddonMenu() : ui.createMenu('Pluckr');
-  menu
+  // The standard add-on menu in both editors: Extensions > Pluckr > Extract images.
+  ui.createAddonMenu()
     .addItem(slides ? 'Extract images (Google reads this deck’s images)' : 'Extract images (Google reads this Doc’s images)', 'openPluckrSidebar')
     .addToUi();
 }
