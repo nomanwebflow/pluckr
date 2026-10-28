@@ -1,5 +1,6 @@
 // Takes the Marketplace screenshots (1280x800, real Docs and Slides files) with Playwright and the installed Chrome.
-//   node scripts/marketplace-screenshots.mjs docs   [doc-url]
+//   node scripts/marketplace-screenshots.mjs docs   [doc-url]   (the new sidebar: alt text, bulk rename, Markdown)
+//   node scripts/marketplace-screenshots.mjs live   <doc-url>    (the published script version 2: list, settings, converted, light)
 //   node scripts/marketplace-screenshots.mjs slides [deck-url]
 // A Chrome window opens. If it asks you to sign in to Google, do it yourself in that window; the script waits.
 // The sign-in is kept in .secrets/playwright-profile (git-ignored) so later runs do not ask again.
@@ -8,9 +9,10 @@ import { chromium } from 'playwright-core';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const MODE = process.argv[2] === 'slides' ? 'slides' : 'docs';
+const MODE = ['slides', 'live'].includes(process.argv[2]) ? process.argv[2] : 'docs';
 const URLS = {
-  docs: 'https://docs.google.com/document/d/1hVJjoBh2O_wLD5wSjhVIaJNdC7ERmdxTRBsYBbdks68/edit',
+  docs: 'https://docs.google.com/document/d/1yntVX-3Y_S3z2WQSKecH7vav1n04_HtDD0Y5Fg3-UpY/edit',
+  live: 'https://docs.google.com/document/d/1yntVX-3Y_S3z2WQSKecH7vav1n04_HtDD0Y5Fg3-UpY/edit',
   slides: 'https://docs.google.com/presentation/d/1GO2PMFy3-fSUK-_ufhNdm4bNmDVAk12rp2NDqe0kums/edit',
 };
 const TARGET = process.argv[3] || URLS[MODE];
@@ -21,7 +23,7 @@ const context = await chromium.launchPersistentContext(resolve('.secrets/playwri
   channel: 'chrome',
   headless: false,
   viewport: { width: 1280, height: 800 },
-  deviceScaleFactor: 1,
+  deviceScaleFactor: 2, // 2560x1600 files; marketplace-shots.py scales them to 1280x800 for the upload
   ignoreDefaultArgs: ['--enable-automation'],
   args: ['--disable-blink-features=AutomationControlled'],
 });
@@ -35,20 +37,24 @@ const shot = async (name) => {
 
 try {
   await page.goto(TARGET);
-  const editor = MODE === 'docs' ? /docs\.google\.com\/document\/d\// : /docs\.google\.com\/presentation\/d\//;
+  const editor = MODE !== 'slides' ? /docs\.google\.com\/document\/d\// : /docs\.google\.com\/presentation\/d\//;
   if (!editor.test(page.url())) console.log('Sign in to Google in the Chrome window. Waiting...');
   await page.waitForURL(editor, { timeout: 10 * 60_000 });
   await page.waitForSelector('#docs-menubar', { timeout: 120_000 });
   await sleep(3000);
-
-  // Open the add-on: Docs has its own Pluckr menu, Slides puts it under Extensions.
-  if (MODE === 'docs') {
-    await page.locator('#docs-menubar .menu-button', { hasText: /^Pluckr$/ }).click();
-  } else {
-    await page.locator('#docs-menubar .menu-button', { hasText: /^Extensions$/ }).click();
-    await page.getByText(/^Pluckr$/).first().click();
+  // A neutral title for the screenshots.
+  const title = page.locator('input.docs-title-input');
+  if (/^sample-blog-draft/.test(await title.inputValue())) {
+    await title.click();
+    await title.fill('Blog draft: image SEO');
+    await title.press('Enter');
+    await sleep(1500);
   }
-  await page.getByText(/Extract images/).first().click();
+
+  // Open the add-on from Extensions > Pluckr (both editors).
+  await page.locator('#docs-menubar .menu-button', { hasText: /^Extensions$/ }).click();
+  await page.getByRole('menuitem', { name: /^Pluckr/ }).first().click();
+  await page.getByRole('menuitem', { name: /Extract images/ }).first().click();
 
   // The sidebar is a frame inside a frame; find the one that has the app.
   const findApp = async () => {
@@ -89,7 +95,7 @@ try {
   if (await firstRow.getByRole('button', { name: /^add alt$/i }).count()) {
     await firstRow.getByRole('button', { name: /^add alt$/i }).click();
     await firstRow.locator('.alt-input').fill(
-      MODE === 'docs' ? 'Side-by-side X-rays of a healthy neck and forward head posture' : 'Photo album cover picture',
+      MODE === 'slides' ? 'Photo album cover picture' : 'Dashboard showing load time and bounce rate charts',
     );
     await firstRow.getByRole('button', { name: /save to (doc|deck)/i }).click();
     await firstRow.getByText(/^Alt: /).waitFor({ timeout: 30_000 });
@@ -97,11 +103,13 @@ try {
   await app.locator('.panel').evaluate((el) => { el.scrollTop = 0; });
   await shot(`${MODE}-list`);
 
-  if (MODE === 'docs') {
-    // Bulk rename with the preview showing.
-    await openSection('Bulk rename');
-    await app.locator('#rename-pattern').fill('{doc}-{n}');
-    await shot('docs-rename');
+  if (MODE !== 'slides') {
+    if (MODE === 'docs') {
+      // Bulk rename with the preview showing.
+      await openSection('Bulk rename');
+      await app.locator('#rename-pattern').fill('{doc}-{n}');
+      await shot('docs-rename');
+    }
 
     // Output settings: WebP, 16:9, plus the two extra files.
     await openSection('Output settings');
@@ -109,23 +117,30 @@ try {
     await app.getByRole('option', { name: 'WebP' }).click();
     await section('Output settings').locator('.select-button').nth(1).click();
     await app.getByRole('option', { name: '16:9' }).click();
-    for (const label of [/alt text files/i, /as Markdown/i]) {
+    for (const label of MODE === 'docs' ? [/alt text files/i, /as Markdown/i] : []) {
       const box = app.locator('label.notice-agree', { hasText: label }).locator('input');
       if (!(await box.isChecked())) await box.check();
     }
     await shot('docs-settings');
 
-    // Convert and show the new file sizes.
+    // Convert, then scroll the list so the first image shows its before and after sizes above the settings.
     await app.locator('.primary-button').click();
     await app.locator('.primary-button', { hasText: /download \d+/i }).waitFor({ timeout: 240_000 });
-    await app.locator('.image-info').first().evaluate((el) => el.scrollIntoView({ block: 'center' }));
+    const showSizes = async () => {
+      await app.locator('.image-info').first().evaluate((el) => {
+        el.scrollIntoView({ block: 'start' });
+        for (let n = el.parentElement; n; n = n.parentElement) {
+          if (n.scrollHeight > n.clientHeight && getComputedStyle(n).overflowY !== 'visible') { n.scrollTop += 6; break; }
+        }
+      });
+      await sleep(500);
+    };
+    await showSizes();
     await shot('docs-converted');
 
-    // Light theme at the full list.
-    await section('Output settings').locator('.export-toggle').click();
-    await sleep(700);
-    await app.locator('.panel').evaluate((el) => { el.scrollTop = 0; });
+    // The same state in the light theme.
     await setTheme('light');
+    await showSizes();
     await shot('docs-light');
   }
 

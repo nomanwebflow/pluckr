@@ -3,7 +3,8 @@
 from pathlib import Path
 from PIL import Image, ImageFilter, ImageDraw
 
-DIR = Path(__file__).resolve().parent.parent / "brand" / "marketplace" / "screenshots"
+import os
+DIR = Path(os.environ.get("PLUCKR_SHOTS_OUT") or Path(__file__).resolve().parent.parent / "brand" / "marketplace" / "screenshots")
 BOX = (1218, 8, 1272, 54)  # around the avatar at 1280x800
 
 import sys
