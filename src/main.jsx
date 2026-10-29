@@ -53,6 +53,10 @@ function naturalSize(image) {
   });
 }
 
+// Images fetched per server call, and how many such calls run at once.
+const SCAN_BATCH_SIZE = 8;
+const SCAN_CONCURRENCY = 4;
+
 // Blob URLs created for the current scan; a rescan releases the previous scan's so a long session does not keep them all.
 const blobUrls = new Set();
 function takeBlobUrls() {
@@ -233,6 +237,8 @@ function useImageExtractor() {
   const [loading, setLoading] = useState(isAppsScript);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState('');
+  // Identifies the latest scan, so a rescan makes batches still in flight from the previous one stop publishing.
+  const scanRef = useRef(0);
 
   /** Ask the licence service. `silent` keeps the current screen unless the licence turns out to be missing. */
   const checkLicence = useCallback(async ({ silent = false } = {}) => {
@@ -302,18 +308,45 @@ function useImageExtractor() {
       scriptRun.withSuccessHandler(resolve).withFailureHandler(reject)[method](...args);
     });
 
+    const scan = scanRef.current + 1;
+    scanRef.current = scan;
+    const batches = [];
+    const publish = () => setImages(batches.flat());
+
     try {
-      const info = await call('getDocumentInfo', entitlement);
-      // Every image is requested at once; Apps Script serves them in parallel.
-      const found = await Promise.all(Array.from({ length: info.count }, (_, index) => call('getDocumentImage', index, entitlement)));
+      // The first batch also reports the total, so no separate count call is needed.
+      const first = await call('getDocumentImages', 0, SCAN_BATCH_SIZE, entitlement);
       const stale = takeBlobUrls();
-      found.forEach(prepareOriginal);
-      setImages(found);
+      batches[0] = first.images;
+      first.images.forEach(prepareOriginal);
+      publish();
       window.setTimeout(() => stale.forEach((url) => URL.revokeObjectURL(url)), 1000);
-      // Not awaited: the list shows at once and the sizes correct themselves a moment later.
-      Promise.all(found.map(naturalSize)).then((sizes) => {
-        setImages((current) => current.map((image, index) => ({ ...image, ...(sizes[index]?.width ? sizes[index] : {}) })));
+      // The first images are on screen; the rest fill in as their batches arrive.
+      setLoading(false);
+
+      // Not awaited: sizes correct themselves a moment after their images appear.
+      const correctSizes = (batch) => Promise.all(batch.map(naturalSize)).then((sizes) => {
+        if (scanRef.current !== scan) return;
+        const byId = new Map(batch.map((image, index) => [image.id, sizes[index]]));
+        setImages((current) => current.map((image) => ({ ...image, ...(byId.get(image.id)?.width ? byId.get(image.id) : {}) })));
       });
+      correctSizes(first.images);
+
+      // A few batches in flight at once: each call walks the document, and Apps Script limits concurrent calls.
+      let next = SCAN_BATCH_SIZE;
+      const worker = async () => {
+        while (next < first.total && scanRef.current === scan) {
+          const start = next;
+          next += SCAN_BATCH_SIZE;
+          const { images: batch } = await call('getDocumentImages', start, SCAN_BATCH_SIZE, entitlement);
+          if (scanRef.current !== scan) return;
+          batch.forEach(prepareOriginal);
+          batches[start / SCAN_BATCH_SIZE] = batch;
+          publish();
+          correctSizes(batch);
+        }
+      };
+      await Promise.all(Array.from({ length: SCAN_CONCURRENCY }, worker));
     } catch (failure) {
       handleServerFailure(failure, 'Could not read images from this document. Try again.');
     }

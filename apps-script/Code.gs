@@ -143,6 +143,24 @@ function getDocumentImage(index, entitlement) {
   requireEntitlement_(entitlement);
   var image = collectDocumentImages_(DocumentApp.getActiveDocument())[index];
   if (!image) throw new Error('This image is no longer in the document. Scan again.');
+  return describeImage_(image, index);
+}
+
+/**
+ * A batch of images starting at `start`, with the document's total image count. One call walks the document and
+ * checks the entitlement once for the whole batch, instead of once per image.
+ */
+function getDocumentImages(start, count, entitlement) {
+  requireEntitlement_(entitlement);
+  var document = DocumentApp.getActiveDocument();
+  var images = collectDocumentImages_(document);
+  var end = Math.min(images.length, start + count);
+  var batch = [];
+  for (var index = start; index < end; index += 1) batch.push(describeImage_(images[index], index));
+  return { documentName: document.getName(), total: images.length, images: batch };
+}
+
+function describeImage_(image, index) {
   var blob = image.getBlob();
   var bytes = blob.getBytes();
   var mimeType = blob.getContentType() || 'image/png';
