@@ -77,3 +77,5 @@ Take them from script version 3 on a test deployment (Apps Script editor > Deplo
 The shot order: 1 Docs list with selection and alt text (dark); 2 Slides sidebar next to a deck; 3 Bulk rename with the live preview; 4 Output settings with WebP and 16:9; 5 light theme. Browser zoom 100%.
 
 The four shots for the live version 2 are in `brand/marketplace/screenshots-live/`.
+
+The Release 2 set (taken from the version 3 test on Oct 30, 2026, neutral content, avatars blurred) is in `brand/marketplace/screenshots-r2/`: 1 Docs list with selection and alt text, 2 Slides, 3 bulk rename, 4 output settings, 5 light theme. The 2560x1600 originals are in `hires/`. To retake a Docs shot, run the test (Deploy > Test deployments > Execute), then pass the opened Doc's full address (it carries `addon_dry_run`) as the last argument: `node scripts/marketplace-screenshots.mjs docs "<address>"`. The capture runs hidden.

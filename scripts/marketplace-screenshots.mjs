@@ -130,24 +130,14 @@ try {
     }
     await shot('docs-settings');
 
-    // Convert, then scroll the list so the first image shows its before and after sizes above the settings.
-    await app.locator('.primary-button').click();
-    await app.locator('.primary-button', { hasText: /download \d+/i }).waitFor({ timeout: 240_000 });
-    const showSizes = async () => {
-      await app.locator('.image-info').first().evaluate((el) => {
-        el.scrollIntoView({ block: 'start' });
-        for (let n = el.parentElement; n; n = n.parentElement) {
-          if (n.scrollHeight > n.clientHeight && getComputedStyle(n).overflowY !== 'visible') { n.scrollTop += 6; break; }
-        }
-      });
-      await sleep(500);
-    };
-    await showSizes();
-    await shot('docs-converted');
-
-    // The same state in the light theme.
+    // The light theme on the plain list: close the open sections first so the list has room.
+    for (const title of ['Output settings', 'Bulk rename']) {
+      const toggle = section(title).locator('.export-toggle');
+      if (await toggle.count() && (await toggle.getAttribute('aria-expanded')) === 'true') await toggle.click();
+    }
+    await sleep(700);
+    await app.locator('.panel').evaluate((el) => { el.scrollTop = 0; });
     await setTheme('light');
-    await showSizes();
     await shot('docs-light');
   }
 
