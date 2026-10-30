@@ -8,5 +8,13 @@ export default {
       domain: "https://accounts.google.com",
       applicationID: process.env.GOOGLE_CLIENT_ID!,
     },
+    ...(process.env.GOOGLE_SLIDES_CLIENT_ID
+      ? [
+          {
+            domain: "https://accounts.google.com",
+            applicationID: process.env.GOOGLE_SLIDES_CLIENT_ID,
+          },
+        ]
+      : []),
   ],
 } satisfies AuthConfig;

@@ -1,11 +1,13 @@
 /**
  * @OnlyCurrentDoc
- * Add an image extraction command to each Google Docs editor session.
+ * Add an image extraction command to each Google Docs or Google Slides editor session.
  */
 function onOpen() {
-  DocumentApp.getUi()
-    .createMenu('Pluckr')
-    .addItem('Extract images (Google reads this Doc’s images)', 'openPluckrSidebar')
+  var ui = getActiveUi_();
+  if (!ui) return;
+  var label = isSlides_() ? 'Extract images (Google reads this Presentation’s images)' : 'Extract images (Google reads this Doc’s images)';
+  ui.createMenu('Pluckr')
+    .addItem(label, 'openPluckrSidebar')
     .addToUi();
 }
 
@@ -22,7 +24,45 @@ function openPluckrSidebar() {
   var boot = JSON.stringify(bootData).replace(/</g, '\\u003c');
   var page = HtmlService.createHtmlOutputFromFile('Sidebar').getContent()
     .replace('<!--PLUCKR_BOOT-->', function () { return '<script>window.PLUCKR_BOOT = ' + boot + ';document.documentElement.setAttribute("data-theme", window.PLUCKR_BOOT.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"));</script>'; });
-  DocumentApp.getUi().showSidebar(HtmlService.createHtmlOutput(page).setTitle('Pluckr'));
+  var ui = getActiveUi_();
+  if (ui) {
+    ui.showSidebar(HtmlService.createHtmlOutput(page).setTitle('Pluckr'));
+  }
+}
+
+function getActiveUi_() {
+  try {
+    if (typeof DocumentApp !== 'undefined') return DocumentApp.getUi();
+  } catch (e) {}
+  try {
+    if (typeof SlidesApp !== 'undefined') return SlidesApp.getUi();
+  } catch (e) {}
+  return null;
+}
+
+function isSlides_() {
+  try {
+    if (typeof SlidesApp !== 'undefined' && SlidesApp.getActivePresentation()) return true;
+  } catch (e) {}
+  return false;
+}
+
+function getActiveContainer_() {
+  try {
+    if (typeof DocumentApp !== 'undefined') {
+      var doc = DocumentApp.getActiveDocument();
+      if (doc) return { type: 'doc', name: doc.getName(), images: collectDocumentImages_(doc) };
+    }
+  } catch (e) {}
+
+  try {
+    if (typeof SlidesApp !== 'undefined') {
+      var pres = SlidesApp.getActivePresentation();
+      if (pres) return { type: 'slide', name: pres.getName(), images: collectPresentationImages_(pres) };
+    }
+  } catch (e) {}
+
+  throw new Error('No active Google Doc or Presentation found.');
 }
 
 /**
@@ -128,36 +168,35 @@ function logout() {
   ScriptApp.invalidateAuth();
 }
 
-/** Return image previews and metadata for every document tab. */
+/** Return image previews and metadata for every tab/slide. */
 function getDocumentInfo(entitlement) {
   requireEntitlement_(entitlement);
-  var document = DocumentApp.getActiveDocument();
-  return { documentName: document.getName(), count: collectDocumentImages_(document).length };
+  var container = getActiveContainer_();
+  return { documentName: container.name, count: container.images.length };
 }
 
 /**
- * One image's preview data. The sidebar asks for every image at once: Apps Script runs the calls in parallel, so
- * a scan takes as long as the slowest image instead of the sum of all of them.
+ * One image's preview data.
  */
 function getDocumentImage(index, entitlement) {
   requireEntitlement_(entitlement);
-  var image = collectDocumentImages_(DocumentApp.getActiveDocument())[index];
-  if (!image) throw new Error('This image is no longer in the document. Scan again.');
+  var container = getActiveContainer_();
+  var image = container.images[index];
+  if (!image) throw new Error('This image is no longer in the file. Scan again.');
   return describeImage_(image, index);
 }
 
 /**
- * A batch of images starting at `start`, with the document's total image count. One call walks the document and
- * checks the entitlement once for the whole batch, instead of once per image.
+ * A batch of images starting at `start`, with the file's total image count.
  */
 function getDocumentImages(start, count, entitlement) {
   requireEntitlement_(entitlement);
-  var document = DocumentApp.getActiveDocument();
-  var images = collectDocumentImages_(document);
+  var container = getActiveContainer_();
+  var images = container.images;
   var end = Math.min(images.length, start + count);
   var batch = [];
   for (var index = start; index < end; index += 1) batch.push(describeImage_(images[index], index));
-  return { documentName: document.getName(), total: images.length, images: batch };
+  return { documentName: container.name, total: images.length, images: batch };
 }
 
 function describeImage_(image, index) {
@@ -180,8 +219,8 @@ function describeImage_(image, index) {
 /** Package selected document images into a ZIP. `names` maps sourceIndex to a custom file name. */
 function getImagesArchive(sourceIndexes, names, entitlement) {
   requireEntitlement_(entitlement);
-  var document = DocumentApp.getActiveDocument();
-  var images = collectDocumentImages_(document);
+  var container = getActiveContainer_();
+  var images = container.images;
   var selected = {};
   (sourceIndexes || []).forEach(function (index) {
     selected[String(index)] = true;
@@ -204,11 +243,31 @@ function getImagesArchive(sourceIndexes, names, entitlement) {
 
   if (!blobs.length) throw new Error('No images are available to download.');
 
-  var archive = Utilities.zip(blobs, safeFileName_(document.getName()) + '-images.zip');
+  var archive = Utilities.zip(blobs, safeFileName_(container.name) + '-images.zip');
   return {
     name: archive.getName(),
     data: Utilities.base64Encode(archive.getBytes())
   };
+}
+
+function collectPresentationImages_(presentation) {
+  var images = [];
+  var slides = presentation.getSlides();
+  slides.forEach(function (slide) {
+    function walk(elements) {
+      elements.forEach(function (element) {
+        try {
+          if (element.getPageElementType() === SlidesApp.PageElementType.IMAGE) {
+            images.push(element.asImage());
+          } else if (element.getPageElementType() === SlidesApp.PageElementType.GROUP) {
+            walk(element.asGroup().getChildren());
+          }
+        } catch (e) {}
+      });
+    }
+    walk(slide.getPageElements());
+  });
+  return images;
 }
 
 function collectDocumentImages_(document) {
