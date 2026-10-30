@@ -7,3 +7,4 @@ site-dist/
 .secrets/
 .playwright-mcp/
 brand/marketplace/shots/
+.wrangler/

@@ -35,7 +35,7 @@ Google Docs™ and Google Account™ are trademarks of Google LLC. Pluckr is not
 
 ## Screenshots
 
-The four screenshots from the first submission are in `screenshots-v1/` (they show version 1). Keep those in the listing. Do not upload the five newer ones in `screenshots/` until version 2.
+The screenshots for the live version 2 listing are in `brand/marketplace/screenshots-live/`. The older sets (`screenshots-v1/`, `screenshots/`) showed a client's content and were deleted on Oct 30, 2026.
 
 ## Testing credentials (the second reason)
 

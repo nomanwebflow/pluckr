@@ -12,7 +12,7 @@ const TODAY = '2026-10-26';
 const strip = (html) => html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
 const esc = (text) => text.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 
-// Screenshots of the real add-on in a Google Doc (brand/marketplace/screenshots, converted to WebP).
+// Screenshots of the real add-on in a Google Doc (brand/marketplace/screenshots-live, converted to WebP).
 const shot = (file, alt, caption, eager = false) => `
 <figure class="w-richtext-align-fullwidth shot">
   <img src="/images/guides/${file}.webp" alt="${esc(alt)}" width="1280" height="800"${eager ? ' fetchpriority="high"' : ' loading="lazy"'}>
@@ -35,7 +35,7 @@ ${shot('pluckr-image-list', 'The Pluckr sidebar open next to a Google Doc, showi
 <ul role="list">
   <li><strong>A preview</strong> large enough to tell the images apart, in the order they appear in the Doc.</li>
   <li><strong>A file name</strong> such as image-01.png. Click the pencil to rename it.</li>
-  <li><strong>The dimensions and file size</strong>, for example 1536 × 1024 and 2.5 MB, so you can spot the heavy ones.</li>
+  <li><strong>The dimensions and file size</strong>, for example 2046 × 1364 and 213.3 KB, so you can spot the heavy ones.</li>
   <li><strong>Copy and Download buttons</strong>. Copy puts the image on your clipboard as a PNG. Download saves that one file.</li>
 </ul>
 <h2>How to extract the images</h2>
@@ -84,8 +84,8 @@ ${shot('pluckr-light-theme', 'The Pluckr sidebar in its light theme next to a Go
     body: `
 <p>Images pasted into a Google Doc are often PNGs straight from a screenshot tool or a design file, and they are big. Before they go onto a website or into a CMS, most of them need to be smaller, a sensible shape and in a modern format. Pluckr does that in the same sidebar you use to extract them, so there is no export, convert, re-export loop.</p>
 <h2>Why WebP and AVIF</h2>
-<p>Both formats make much smaller files than the PNG or JPEG you started with, so pages load faster and uploads fit within limits. In our demo document, a 2.5 MB PNG came out at 98.0 KB as a WebP at 80% quality, cropped to 16:9. The crop removed some pixels as well, so treat that as one real example, not a promise. Your results depend on the image and the settings.</p>
-${shot('pluckr-converted-sizes', 'The Pluckr sidebar after converting, showing an image going from 2.5 MB to 98.0 KB as WebP', 'After converting, each image shows its old and new size. Here, 2.5 MB became 98.0 KB. The button now reads Download 4 as WebP.', true)}
+<p>Both formats make much smaller files than the PNG or JPEG you started with, so pages load faster and uploads fit within limits. In our demo document, a 213.3 KB JPEG came out at 105.8 KB as a WebP at 80% quality, cropped to 16:9. The crop removed some pixels as well, so treat that as one real example, not a promise. Your results depend on the image and the settings.</p>
+${shot('pluckr-converted-sizes', 'The Pluckr sidebar after converting, showing an image going from 213.3 KB to 105.8 KB as WebP', 'After converting, each image shows its old and new size. Here, 213.3 KB became 105.8 KB. The button now reads Download 4 as WebP.', true)}
 <h2>The output settings</h2>
 ${shot('pluckr-output-settings', 'The Pluckr output settings panel with WebP selected, quality at 80 percent and a 16:9 aspect ratio', 'Output settings: format, quality, aspect ratio and maximum width.')}
 <ul role="list">
@@ -172,7 +172,7 @@ ${shot('pluckr-output-settings', 'The Pluckr output settings panel with WebP sel
 </ol>
 ${shot('pluckr-image-list', 'The Pluckr sidebar next to a Google Doc listing each image with a preview, name and file size', 'Pluckr in a Doc: every image listed with a preview, its name and its size.', true)}
 <p>Good: you see the images first, you choose the names, and you can shrink or reshape them in the same step. Not so good: it costs $5, once. You can read how it handles <a href="/extract-images-from-google-docs">extracting images from Google Docs</a> or <a href="/convert-google-docs-images-to-webp">converting them to WebP or AVIF</a> on their own pages.</p>
-${shot('pluckr-converted-sizes', 'The Pluckr sidebar showing an image reduced from 2.5 MB to 98.0 KB after conversion to WebP', 'The optional step: convert while you download. This image went from 2.5 MB to 98.0 KB.')}
+${shot('pluckr-converted-sizes', 'The Pluckr sidebar showing an image reduced from 213.3 KB to 105.8 KB after conversion to WebP', 'The optional step: convert while you download. This image went from 213.3 KB to 105.8 KB.')}
 <h2>Which one should you use</h2>
 <ul role="list">
   <li><strong>One Doc, once, no rush:</strong> Method 1.</li>
