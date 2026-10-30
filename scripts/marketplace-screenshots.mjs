@@ -2,7 +2,7 @@
 //   node scripts/marketplace-screenshots.mjs docs   [doc-url]   (the new sidebar: alt text, bulk rename, Markdown)
 //   node scripts/marketplace-screenshots.mjs live   <doc-url>    (the published script version 2: list, settings, converted, light)
 //   node scripts/marketplace-screenshots.mjs slides [deck-url]
-// A Chrome window opens. If it asks you to sign in to Google, do it yourself in that window; the script waits.
+// Runs hidden. If it asks you to sign in to Google, rerun with SHOW_BROWSER=1 and sign in yourself in the window; the script waits.
 // The sign-in is kept in .secrets/playwright-profile (git-ignored) so later runs do not ask again.
 // Output: brand/marketplace/shots/<name>.png. `scripts/marketplace-shots.py` then picks, numbers and blurs them.
 import { chromium } from 'playwright-core';
@@ -21,7 +21,7 @@ await mkdir(OUT, { recursive: true });
 
 const context = await chromium.launchPersistentContext(resolve('.secrets/playwright-profile'), {
   channel: 'chrome',
-  headless: false,
+  headless: !process.env.SHOW_BROWSER, // set SHOW_BROWSER=1 to watch, or to sign in to Google
   viewport: { width: 1280, height: 800 },
   deviceScaleFactor: 2, // 2560x1600 files; marketplace-shots.py scales them to 1280x800 for the upload
   ignoreDefaultArgs: ['--enable-automation'],
@@ -52,8 +52,15 @@ try {
   }
 
   // Open the add-on from Extensions > Pluckr (both editors).
-  await page.locator('#docs-menubar .menu-button', { hasText: /^Extensions$/ }).click();
-  await page.getByRole('menuitem', { name: /^Pluckr/ }).first().click();
+  // A test deployment puts the menu on the top bar; the published add-on puts it under Extensions.
+  const topMenu = page.locator('#docs-menubar .menu-button', { hasText: /^Pluckr$/ });
+  if (await topMenu.count()) {
+    // At 1280 wide the title bar buttons overlap the last menu, so send the mouse events to the menu itself.
+    await topMenu.evaluate((el) => ['mousedown', 'mouseup', 'click'].forEach((type) => el.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window }))));
+  } else {
+    await page.locator('#docs-menubar .menu-button', { hasText: /^Extensions$/ }).click();
+    await page.getByRole('menuitem', { name: /^Pluckr/ }).first().click();
+  }
   await page.getByRole('menuitem', { name: /Extract images/ }).first().click();
 
   // The sidebar is a frame inside a frame; find the one that has the app.
