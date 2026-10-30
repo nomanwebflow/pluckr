@@ -1,0 +1,3256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Pluckr — Extract, Rename &amp; Convert Images in Google Docs and Slides</title>
+  <meta name="description" content="Preview, bulk rename, and convert every image in Google Docs and Slides to WebP or AVIF. Audit alt text, export clean Markdown with images, and pay $5 once. 100% in your browser.">
+  <meta property="og:title" content="Pluckr — Every image in your Doc, plucked clean">
+  <meta property="og:description" content="Extract every image from Google Docs and Slides. Bulk rename, convert to WebP or AVIF, edit alt text, and export clean Markdown. One-time $5, runs locally in your browser.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://docpluckr.com/">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon.png" media="(prefers-color-scheme: light)">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-dark.png" media="(prefers-color-scheme: dark)">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/webclip-180.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script>document.documentElement.classList.add('js');</script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Pluckr",
+    "applicationCategory": "BrowserApplication",
+    "operatingSystem": "Web (Google Docs and Google Slides add-on)",
+    "description": "Extract every image from Google Docs and Slides. Bulk rename, convert to WebP or AVIF, crop, edit alt text, and export clean Markdown. One-time $5, runs in your browser.",
+    "url": "https://docpluckr.com/",
+    "offers": {
+      "@type": "Offer",
+      "price": "5.00",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+
+  <style>
+    /* First rule: eliminate any white flash before paint */
+    html, body {
+      background: #000000;
+      color: #ffffff;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #000000;
+      --bg-elevated: #080a0f;
+      --bg-card: #0b0e15;
+      --fg: 255 255 255;
+      --muted: rgb(255 255 255 / 0.64);
+      --subtle: rgb(255 255 255 / 0.42);
+      --line: rgb(255 255 255 / 0.11);
+      --line-soft: rgb(255 255 255 / 0.065);
+      --accent: #0062FB;
+      --accent-hover: #1b74ff;
+      --accent-soft: #7cb3ff;
+
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-serif: 'Instrument Serif', Georgia, serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-standard: cubic-bezier(0.25, 0.1, 0.25, 1);
+      --ease-material: cubic-bezier(0.4, 0, 0.2, 1);
+
+      --container: min(1280px, calc(100% - 48px));
+    }
+
+    @media (max-width: 640px) {
+      :root {
+        --container: calc(100% - 40px);
+      }
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 76px;
+      overflow-x: clip;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      font-size: 16px;
+      line-height: 1.55;
+      letter-spacing: -0.01em;
+      overflow-x: clip;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body.menu-locked {
+      overflow: hidden;
+    }
+
+    ::selection {
+      background: rgba(0, 98, 251, 0.38);
+      color: #ffffff;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button, input {
+      font: inherit;
+      color: inherit;
+    }
+
+    img, svg, video {
+      display: block;
+      max-width: 100%;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent-soft);
+      outline-offset: 3px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .wrap {
+      width: var(--container);
+      margin-inline: auto;
+    }
+
+    /* Architectural container guide lines (desktop only) */
+    .guide-rails {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      display: none;
+    }
+    @media (min-width: 1100px) {
+      .guide-rails {
+        display: block;
+      }
+      .guide-rails::before,
+      .guide-rails::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: rgb(255 255 255 / 0.045);
+      }
+      .guide-rails::before {
+        left: max(24px, calc(50% - 640px));
+      }
+      .guide-rails::after {
+        right: max(24px, calc(50% - 640px));
+      }
+    }
+
+    /* Page-wide subtle fractal grain */
+    .page-grain {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      pointer-events: none;
+      opacity: 0.34;
+      background-size: 200px 200px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.88' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.075'/%3E%3C/svg%3E");
+    }
+
+    /* Liquid-glass material — one unified surface system */
+    .liquid-glass {
+      position: relative;
+      overflow: hidden;
+      border: none;
+      background: rgba(255, 255, 255, 0.025);
+      background-blend-mode: luminosity;
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.12);
+    }
+    .liquid-glass::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1.25px;
+      pointer-events: none;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, var(--rim-a, 0.42)) 0%,
+        rgba(255, 255, 255, var(--rim-b, 0.14)) 22%,
+        rgba(255, 255, 255, 0.02) 48%,
+        rgba(255, 255, 255, 0.02) 56%,
+        rgba(255, 255, 255, var(--rim-b, 0.14)) 82%,
+        rgba(255, 255, 255, var(--rim-a, 0.36)) 100%
+      );
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+              mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+              mask-composite: exclude;
+    }
+    .liquid-glass--panel {
+      background: rgba(10, 13, 20, 0.72);
+      -webkit-backdrop-filter: blur(24px);
+      backdrop-filter: blur(24px);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.12);
+      --rim-a: 0.28;
+      --rim-b: 0.09;
+    }
+    .liquid-glass--nav {
+      background: rgba(8, 10, 15, 0.62);
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
+      --rim-a: 0.36;
+      --rim-b: 0.12;
+    }
+
+    /* Typography helpers */
+    .serif-accent {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      color: #dce9ff;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.2;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgb(var(--fg) / 0.48);
+      margin-bottom: 18px;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(0, 98, 251, 0.8);
+    }
+
+    .sec-title {
+      margin: 0;
+      font-family: var(--font-sans);
+      font-size: clamp(34px, 4.6vw, 64px);
+      font-weight: 500;
+      line-height: 1.02;
+      letter-spacing: -0.035em;
+      color: #ffffff;
+      max-width: 19ch;
+    }
+    .sec-title .serif-accent {
+      font-size: 1.07em;
+    }
+    .sec-title code,
+    .closing-stage h2 code {
+      font-family: var(--font-mono);
+      font-size: 0.76em;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      padding: 0.06em 0.3em 0.1em;
+      border-radius: 0.24em;
+      background: rgba(0, 98, 251, 0.14);
+      border: 1px solid rgba(124, 179, 255, 0.28);
+      color: #dce9ff;
+      vertical-align: 0.05em;
+    }
+    .br-desk {
+      display: none;
+    }
+    @media (min-width: 760px) {
+      .br-desk {
+        display: inline;
+      }
+    }
+
+    .sec-lede {
+      margin: 20px 0 0;
+      max-width: 33rem;
+      font-size: clamp(15.5px, 1.2vw, 17.5px);
+      line-height: 1.58;
+      color: var(--muted);
+    }
+
+    /* Buttons: tactile text-roll primary + liquid-glass secondary */
+    .btn-roll {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 8px 8px 8px 22px;
+      border-radius: 999px;
+      background: #ffffff;
+      color: #000000;
+      font-family: var(--font-sans);
+      font-size: 14.5px;
+      font-weight: 600;
+      line-height: 20px;
+      letter-spacing: -0.015em;
+      border: 0;
+      cursor: pointer;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16), 0 12px 32px rgba(0, 98, 251, 0.22);
+      transition: transform 0.25s var(--ease-out-quint), box-shadow 0.3s ease, background-color 0.25s ease;
+    }
+    .btn-roll:hover {
+      background: #f5f8ff;
+      transform: translateY(-1px);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3), 0 16px 40px rgba(0, 98, 251, 0.36);
+    }
+    .btn-roll:active {
+      transform: scale(0.98);
+    }
+    .btn-roll__label {
+      display: block;
+      height: 20px;
+      overflow: hidden;
+    }
+    .btn-roll__inner {
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.48s var(--ease-standard);
+    }
+    .btn-roll__inner > span {
+      display: block;
+      height: 20px;
+      white-space: nowrap;
+    }
+    .btn-roll:hover .btn-roll__inner,
+    .btn-roll:focus-visible .btn-roll__inner {
+      transform: translateY(-50%);
+    }
+    .btn-roll__chip {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      flex: none;
+      transition: background-color 0.25s ease, transform 0.3s var(--ease-standard);
+    }
+    .btn-roll__chip svg {
+      transition: transform 0.48s var(--ease-standard);
+    }
+    .btn-roll:hover .btn-roll__chip svg,
+    .btn-roll:focus-visible .btn-roll__chip svg {
+      transform: rotate(-45deg);
+    }
+    .btn-roll--sm {
+      padding: 6px 6px 6px 18px;
+      font-size: 13.5px;
+    }
+    .btn-roll--sm .btn-roll__chip {
+      width: 28px;
+      height: 28px;
+    }
+
+    .btn-glass {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      height: 48px;
+      padding: 0 22px;
+      border-radius: 999px;
+      font-size: 14.5px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      color: rgb(var(--fg) / 0.9);
+      cursor: pointer;
+      transition: transform 0.25s var(--ease-out-quint), background-color 0.25s ease, color 0.25s ease;
+    }
+    .btn-glass:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+    .btn-glass:active {
+      transform: scale(0.98);
+    }
+    .btn-glass svg {
+      transition: transform 0.25s var(--ease-standard);
+    }
+    .btn-glass:hover svg {
+      transform: translateY(2px);
+    }
+
+    /* =========================================================================
+       FLOATING SPLIT NAVBAR
+       ========================================================================= */
+    .topbar {
+      position: fixed;
+      top: 16px;
+      left: 0;
+      right: 0;
+      z-index: 80;
+      pointer-events: none;
+    }
+    .topbar__inner {
+      width: var(--container);
+      margin-inline: auto;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 12px;
+    }
+    .topbar__inner > * {
+      pointer-events: auto;
+    }
+
+    .brand-pill {
+      justify-self: start;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      height: 44px;
+      padding: 0 16px 0 12px;
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      transition: transform 0.2s ease, background-color 0.25s ease;
+    }
+    .brand-pill:hover {
+      background: rgba(255, 255, 255, 0.07);
+    }
+    .brand-pill__mark {
+      width: 20px;
+      height: 20px;
+      flex: none;
+    }
+    .brand-pill__tm {
+      font-size: 9px;
+      font-weight: 500;
+      color: rgb(var(--fg) / 0.45);
+      margin-left: -6px;
+      vertical-align: super;
+    }
+
+    .nav-pill {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding: 5px;
+      border-radius: 999px;
+    }
+    .nav-pill a {
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13.5px;
+      font-weight: 500;
+      line-height: 1;
+      color: rgb(var(--fg) / 0.76);
+      transition: color 0.2s ease, background-color 0.2s ease;
+    }
+    .nav-pill a:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .topbar__actions {
+      justify-self: end;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .burger {
+      display: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 0;
+      cursor: pointer;
+      place-items: center;
+      padding: 0;
+      z-index: 85;
+    }
+    .burger__bars {
+      position: relative;
+      width: 18px;
+      height: 12px;
+      display: block;
+    }
+    .burger__bars i {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 1.5px;
+      border-radius: 2px;
+      background: #ffffff;
+      transition: transform 0.3s var(--ease-out-quint), opacity 0.2s ease;
+    }
+    .burger__bars i:nth-child(1) { top: 0; }
+    .burger__bars i:nth-child(2) { top: 5.25px; }
+    .burger__bars i:nth-child(3) { bottom: 0; }
+    .burger[aria-expanded="true"] .burger__bars i:nth-child(1) {
+      transform: translateY(5.25px) rotate(45deg);
+    }
+    .burger[aria-expanded="true"] .burger__bars i:nth-child(2) {
+      opacity: 0;
+    }
+    .burger[aria-expanded="true"] .burger__bars i:nth-child(3) {
+      transform: translateY(-5.25px) rotate(-45deg);
+    }
+
+    /* Mobile full-screen glass menu */
+    .mobile-menu {
+      position: fixed;
+      inset: 0;
+      z-index: 75;
+      background: rgba(2, 4, 8, 0.92);
+      -webkit-backdrop-filter: blur(26px);
+      backdrop-filter: blur(26px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 96px 24px max(36px, env(safe-area-inset-bottom));
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.32s var(--ease-out-quint), visibility 0s 0.32s;
+    }
+    .mobile-menu.is-open {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.32s var(--ease-out-quint), visibility 0s;
+    }
+    .mobile-menu__nav {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .mobile-menu__nav a {
+      font-size: 32px;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      color: rgb(var(--fg) / 0.9);
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.35s var(--ease-out-expo), transform 0.35s var(--ease-out-expo), color 0.2s;
+    }
+    .mobile-menu.is-open .mobile-menu__nav a {
+      opacity: 1;
+      transform: none;
+      transition-delay: calc(80ms + var(--i, 0) * 65ms);
+    }
+    .mobile-menu__foot {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+    }
+    .mobile-menu__note {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--subtle);
+    }
+
+    @media (max-width: 880px) {
+      .topbar__inner {
+        grid-template-columns: 1fr auto;
+      }
+      .nav-pill,
+      .topbar__cta-desktop {
+        display: none;
+      }
+      .burger {
+        display: grid;
+      }
+    }
+
+    /* =========================================================================
+       HERO STAGE (100dvh, ONE CLEAR COMPOSITION)
+       ========================================================================= */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      overflow: hidden;
+      background: #000000;
+      isolation: isolate;
+    }
+
+    .hero-plate {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      background: #000000;
+      pointer-events: none;
+    }
+
+    /* Shift the cobalt ribbon to the right half so the left typography column sits in pure calm black */
+    .hero-plate__poster,
+    .hero-plate__video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 66% center;
+      transform: translateX(22%) scale(1.06);
+      transform-origin: center center;
+    }
+
+    .hero-plate__poster {
+      opacity: 0.92;
+    }
+
+    .hero-plate__video {
+      opacity: 0; /* controlled by rAF seamless fade loop */
+    }
+
+    .hero-plate::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        /* Protective dark cushion behind lower-left copy & subhead */
+        radial-gradient(ellipse 56% 62% at 24% 62%, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.52) 56%, rgba(0, 0, 0, 0) 100%),
+        /* Feather shifted left video edge (at 22%) seamlessly into #000 */
+        linear-gradient(90deg, #000000 0%, #000000 23%, rgba(0, 0, 0, 0.78) 41%, rgba(0, 0, 0, 0) 60%),
+        /* Multi-stop eased bottom dissolve into #000 */
+        linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.35) 0%,
+          rgba(0, 0, 0, 0) 18%,
+          rgba(0, 0, 0, 0) 72%,
+          rgba(0, 0, 0, 0.32) 80%,
+          rgba(0, 0, 0, 0.68) 88%,
+          rgba(0, 0, 0, 0.92) 95%,
+          #000000 100%
+        );
+    }
+
+    @media (max-width: 900px) {
+      .hero-plate__poster,
+      .hero-plate__video {
+        transform: scale(1.05);
+        object-position: 68% 34%;
+      }
+      .hero-plate::after {
+        background:
+          radial-gradient(ellipse 85% 55% at 35% 58%, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.25) 70%, rgba(0, 0, 0, 0) 100%),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.86) 0%, rgba(0, 0, 0, 0.58) 54%, rgba(0, 0, 0, 0.22) 100%),
+          linear-gradient(180deg, rgba(0, 0, 0, 0.52) 0%, rgba(0, 0, 0, 0.18) 30%, rgba(0, 0, 0, 0.72) 74%, #000000 100%);
+      }
+    }
+
+    .hero__inner {
+      position: relative;
+      z-index: 10;
+      width: var(--container);
+      margin-inline: auto;
+      padding: 124px 0 max(30px, env(safe-area-inset-bottom));
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      flex: 1;
+    }
+
+    .hero__copy {
+      max-width: 920px;
+      margin-top: auto;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      max-width: 100%;
+      padding: 4px 14px 4px 5px;
+      border-radius: 999px;
+      margin-bottom: 24px;
+    }
+    .hero-badge__chip {
+      background: #ffffff;
+      color: #000000;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      padding: 5px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .hero-badge__text {
+      font-size: 13px;
+      font-weight: 500;
+      color: rgb(var(--fg) / 0.86);
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+    @media (max-width: 520px) {
+      .hero-badge {
+        gap: 8px;
+        padding: 4px 12px 4px 4px;
+      }
+      .hero-badge__text {
+        font-size: 12px;
+      }
+      .hide-xs {
+        display: none;
+      }
+    }
+
+    .hero__h1 {
+      margin: 0;
+      font-family: var(--font-sans);
+      font-size: clamp(40px, 5.7vw, 84px);
+      font-weight: 500;
+      line-height: 0.96;
+      letter-spacing: -0.04em;
+      color: #ffffff;
+    }
+    .hero__line {
+      display: block;
+      overflow: hidden;
+      padding: 0.04em 0.08em 0.13em 0;
+      margin: -0.04em 0 -0.13em 0;
+    }
+    @media (min-width: 901px) {
+      .hero__line {
+        white-space: nowrap;
+      }
+    }
+    .hero__line > span {
+      display: block;
+    }
+    .hero__h1 .serif-accent {
+      font-size: 1.08em;
+      letter-spacing: -0.022em;
+    }
+
+    .hero__sub {
+      margin: 22px 0 0;
+      max-width: 34rem;
+      font-size: clamp(15.5px, 1.22vw, 18px);
+      line-height: 1.56;
+      color: rgb(var(--fg) / 0.68);
+      text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
+    }
+
+    .hero__actions {
+      margin-top: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .hero__strip {
+      margin: clamp(36px, 5vh, 56px) 0 0;
+      padding: 20px 0 0;
+      border-top: 1px solid var(--line);
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 20px;
+    }
+    .hero__strip li {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      font-size: 13px;
+      color: rgb(var(--fg) / 0.62);
+    }
+    .hero__strip b {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      color: var(--accent-soft);
+    }
+
+    @media (min-width: 901px) and (max-height: 760px) {
+      .hero__inner { padding-top: 92px; padding-bottom: 22px; }
+      .hero__h1 { font-size: clamp(40px, 5.4vw, 72px); }
+      .hero-badge { margin-bottom: 16px; }
+      .hero__sub { margin-top: 16px; font-size: 15.5px; }
+      .hero__actions { margin-top: 22px; }
+      .hero__strip { margin-top: 28px; padding-top: 14px; }
+    }
+
+    @media (max-width: 860px) {
+      .hero__strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px 18px;
+      }
+    }
+    @media (max-width: 560px) {
+      .hero__actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .hero__actions .btn-roll,
+      .hero__actions .btn-glass {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .hero__actions .btn-glass {
+        justify-content: center;
+      }
+      .hero__strip {
+        grid-template-columns: 1fr 1fr;
+        font-size: 12px;
+      }
+    }
+
+    /* =========================================================================
+       ENTRANCE CHOREOGRAPHY & REVEALS (FAIL-SAFE)
+       ========================================================================= */
+    .appear {
+      animation-duration: 0.78s;
+      animation-fill-mode: both;
+      animation-timing-function: var(--ease-out-expo);
+      animation-delay: var(--d, 0s);
+    }
+    .appear--down { animation-name: in-down; animation-duration: 0.68s; }
+    .appear--pop  { animation-name: in-pop; animation-duration: 0.72s; }
+    .appear--mask { animation-name: in-mask; animation-duration: 0.82s; }
+    .appear--soft { animation-name: in-soft; }
+    .appear--btn  { animation-name: in-btn; }
+    .appear--side { animation-name: in-side; }
+    .appear.is-in {
+      animation: none;
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+
+    @keyframes in-down {
+      from { opacity: 0; transform: translateY(-14px); }
+    }
+    @keyframes in-pop {
+      0%   { opacity: 0; transform: scale(0.92) translateY(10px); }
+      70%  { opacity: 1; transform: scale(1.02) translateY(0); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes in-mask {
+      from { opacity: 0; transform: translateY(105%); filter: blur(6px); }
+      to   { opacity: 1; transform: translateY(0); filter: blur(0); }
+    }
+    @keyframes in-soft {
+      from { opacity: 0; transform: translateY(18px); }
+    }
+    @keyframes in-btn {
+      from { opacity: 0; transform: translateY(18px) scale(0.96); }
+    }
+    @keyframes in-side {
+      from { opacity: 0; transform: translateX(18px); }
+    }
+
+    .js [data-reveal] {
+      opacity: 0;
+      transform: translate3d(0, var(--y, 28px), 0);
+      transition:
+        opacity 0.72s var(--ease-standard) var(--d, 0ms),
+        transform 0.72s var(--ease-standard) var(--d, 0ms);
+    }
+    .js [data-reveal].is-in {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* =========================================================================
+       SECTION 01 · INTERACTIVE LIVE WORKBENCH
+       ========================================================================= */
+    .section {
+      position: relative;
+      z-index: 10;
+      padding: clamp(92px, 11vw, 156px) 0;
+    }
+    .section--bordered {
+      border-top: 1px solid var(--line-soft);
+    }
+
+    .sec-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 28px;
+      margin-bottom: clamp(36px, 4.5vw, 56px);
+    }
+
+    .wb-tabs {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 5px;
+      border-radius: 999px;
+    }
+    .wb-tab {
+      padding: 8px 15px;
+      border-radius: 999px;
+      border: 0;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgb(var(--fg) / 0.66);
+      cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .wb-tab:hover {
+      color: #ffffff;
+    }
+    .wb-tab[aria-selected="true"] {
+      background: #ffffff;
+      color: #000000;
+      font-weight: 600;
+    }
+
+    .workbench {
+      border-radius: 26px;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      min-height: 620px;
+    }
+
+    /* Left Google Docs / Markdown / ZIP stage */
+    .wb-stage {
+      display: flex;
+      flex-direction: column;
+      background: rgba(12, 15, 22, 0.72);
+      border-right: 1px solid var(--line);
+      min-width: 0;
+    }
+
+    .wb-chrome {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(5, 7, 11, 0.65);
+    }
+    .wb-dots {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .wb-dots span {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+    .wb-docbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12.5px;
+      color: rgb(var(--fg) / 0.78);
+      min-width: 0;
+    }
+    .wb-docbar__title {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .wb-docbar__menus {
+      display: flex;
+      gap: 10px;
+      color: rgb(var(--fg) / 0.42);
+      font-size: 12px;
+    }
+    .wb-docbar__ext {
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(0, 98, 251, 0.18);
+      color: var(--accent-soft);
+      border: 1px solid rgba(0, 98, 251, 0.38);
+      font-weight: 500;
+    }
+    .wb-status {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: rgb(var(--fg) / 0.48);
+      white-space: nowrap;
+    }
+
+    .wb-canvas {
+      flex: 1;
+      padding: clamp(18px, 2.6vw, 30px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .wb-pane {
+      display: none;
+      flex: 1;
+    }
+    .wb-pane.is-active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Realistic Google Doc sheet */
+    .doc-paper {
+      background: #f8f9fb;
+      color: #1c1f26;
+      border-radius: 14px;
+      padding: clamp(20px, 2.8vw, 32px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+      flex: 1;
+    }
+    .doc-paper__kicker {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #5f6775;
+      margin-bottom: 8px;
+    }
+    .doc-paper h3 {
+      margin: 0;
+      font-size: clamp(20px, 2.1vw, 26px);
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      color: #111318;
+    }
+    .doc-paper p {
+      margin: 8px 0 20px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: #49505e;
+      max-width: 58ch;
+    }
+
+    .doc-photos {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .doc-photo {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #dfe3ec;
+      border: 2px solid transparent;
+      cursor: pointer;
+      padding: 0;
+      text-align: left;
+      transition: transform 0.3s var(--ease-out-quint), border-color 0.2s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+    }
+    .doc-photo:hover {
+      transform: translateY(-2px);
+    }
+    .doc-photo.is-selected {
+      border-color: var(--accent);
+      box-shadow: 0 8px 22px rgba(0, 98, 251, 0.22);
+    }
+    .doc-photo:not(.is-selected) {
+      opacity: 0.52;
+      filter: grayscale(0.35);
+    }
+    .doc-photo.is-plucking {
+      animation: pluckPulse 0.62s var(--ease-out-expo);
+    }
+    @keyframes pluckPulse {
+      0%   { transform: scale(1); }
+      38%  { transform: scale(0.93) translateX(10px); box-shadow: 0 0 0 4px rgba(0, 98, 251, 0.45); }
+      100% { transform: scale(1); }
+    }
+    .doc-photo__img-wrap {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      overflow: hidden;
+      background: #cbd2df;
+      transition: aspect-ratio 0.3s ease;
+    }
+    .doc-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s var(--ease-out-quint);
+    }
+    .doc-photo:hover img {
+      transform: scale(1.04);
+    }
+    .doc-photo__check {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: rgba(15, 18, 25, 0.65);
+      border: 1.5px solid rgba(255, 255, 255, 0.8);
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+    .doc-photo.is-selected .doc-photo__check {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .doc-photo__meta {
+      padding: 9px 10px;
+      background: #ffffff;
+      color: #1c1f26;
+      border-top: 1px solid #ebedf2;
+    }
+    .doc-photo__raw {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #697282;
+    }
+    .doc-photo__out {
+      margin-top: 3px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--accent);
+    }
+    .doc-photo__fn {
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .doc-photo__kb {
+      flex: none;
+      font-weight: 600;
+      color: #0052d6;
+    }
+
+    .doc-paper__hint {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid #e5e8f0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
+      color: #5b6372;
+    }
+
+    /* Markdown & ZIP code panes */
+    .code-view {
+      background: #06080d;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 22px 24px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.75;
+      color: rgb(var(--fg) / 0.86);
+      flex: 1;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .code-view .tok-h { color: #ffffff; font-weight: 500; }
+    .code-view .tok-p { color: var(--accent-soft); }
+    .code-view .tok-m { color: rgb(var(--fg) / 0.45); }
+    .code-view .tok-ok { color: #5eead4; }
+
+    /* Right Authentic Pluckr 360px Sidebar */
+    .psidebar {
+      background: #05070b;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .psidebar__top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .psidebar__brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .psidebar__count {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: rgb(var(--fg) / 0.78);
+    }
+
+    .pctrl {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--line-soft);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .pctrl__label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgb(var(--fg) / 0.48);
+      margin-bottom: 8px;
+    }
+    .pctrl__pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .ppill {
+      flex: 1;
+      min-width: 56px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.02);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 500;
+      color: rgb(var(--fg) / 0.72);
+      cursor: pointer;
+      text-align: center;
+      transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+    .ppill:hover {
+      border-color: rgba(255, 255, 255, 0.26);
+      color: #ffffff;
+    }
+    .ppill[aria-pressed="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+
+    .pinput-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 7px;
+    }
+    .pinput {
+      width: 100%;
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #020306;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #ffffff;
+    }
+    .pinput:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .plist {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .pitem {
+      display: grid;
+      grid-template-columns: 46px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      padding: 9px 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--line-soft);
+      transition: opacity 0.2s ease, border-color 0.2s ease;
+    }
+    .pitem.is-off {
+      opacity: 0.38;
+    }
+    .pitem__thumb {
+      width: 46px;
+      height: 36px;
+      border-radius: 6px;
+      object-fit: cover;
+    }
+    .pitem__name {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 500;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pitem__sub {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: rgb(var(--fg) / 0.5);
+      margin-top: 2px;
+    }
+    .pitem__save {
+      color: #5eead4;
+    }
+
+    .palt-box {
+      grid-column: 1 / -1;
+      margin-top: 4px;
+      padding-top: 7px;
+      border-top: 1px solid var(--line-soft);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .palt-box span {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--subtle);
+      text-transform: uppercase;
+    }
+    .palt-box input {
+      flex: 1;
+      min-width: 0;
+      background: transparent;
+      border: 0;
+      font-size: 11.5px;
+      color: rgb(var(--fg) / 0.85);
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    .palt-box input:focus {
+      background: rgba(255, 255, 255, 0.06);
+      outline: none;
+    }
+
+    .pdownload {
+      margin-top: auto;
+      width: 100%;
+      padding: 13px 16px;
+      border-radius: 999px;
+      border: 0;
+      background: var(--accent);
+      color: #ffffff;
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.18s ease;
+    }
+    .pdownload:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+    .pdownload:active {
+      transform: scale(0.98);
+    }
+
+    .ptoast {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.4;
+      color: #7cb3ff;
+      text-align: center;
+      min-height: 16px;
+    }
+
+    @media (max-width: 980px) {
+      .workbench {
+        grid-template-columns: 1fr;
+      }
+      .wb-stage {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .wb-docbar__menus {
+        display: none;
+      }
+    }
+    @media (max-width: 640px) {
+      .doc-photos {
+        grid-template-columns: 1fr;
+      }
+      .doc-photo {
+        display: grid;
+        grid-template-columns: 108px minmax(0, 1fr);
+        align-items: stretch;
+      }
+      .doc-photo__img-wrap {
+        aspect-ratio: auto;
+        height: 100%;
+        min-height: 68px;
+      }
+      .doc-photo__meta {
+        border-top: 0;
+        border-left: 1px solid #ebedf2;
+        background: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 10px 12px;
+      }
+      .wb-status {
+        display: none;
+      }
+    }
+
+    /* =========================================================================
+       SECTION 02 · THEN VS. NOW + MEASURED COMPRESSION CHART
+       ========================================================================= */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 5fr 7fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .cmp-card {
+      border-radius: 26px;
+      padding: clamp(24px, 3.2vw, 38px);
+      display: flex;
+      flex-direction: column;
+    }
+    .cmp-card--then {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--line);
+    }
+    .cmp-card__tag {
+      display: inline-flex;
+      align-self: flex-start;
+      padding: 4px 11px;
+      border-radius: 999px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .cmp-card--then .cmp-card__tag {
+      background: rgba(255, 255, 255, 0.06);
+      color: rgb(var(--fg) / 0.55);
+    }
+    .cmp-card--now .cmp-card__tag {
+      background: rgba(0, 98, 251, 0.2);
+      color: var(--accent-soft);
+      border: 1px solid rgba(0, 98, 251, 0.35);
+    }
+
+    .cmp-card h3 {
+      margin: 0;
+      font-size: 19px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+    }
+    .cmp-card--then h3 {
+      color: rgb(var(--fg) / 0.72);
+    }
+
+    .file-table {
+      margin: 22px 0;
+      padding: 0;
+      list-style: none;
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      border-top: 1px solid var(--line-soft);
+    }
+    .file-table li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .cmp-card--then .file-table {
+      color: rgb(var(--fg) / 0.44);
+    }
+    .file-table__badge {
+      font-size: 11.5px;
+      color: var(--accent-soft);
+      white-space: nowrap;
+    }
+    .cmp-card--then .file-table__badge {
+      color: rgb(var(--fg) / 0.32);
+    }
+
+    .cmp-card__foot {
+      margin: auto 0 0;
+      font-size: 13.5px;
+      line-height: 1.55;
+      color: var(--subtle);
+    }
+
+    .detour-box {
+      margin-top: 22px;
+      padding-top: 22px;
+      border-top: 1px solid var(--line-soft);
+    }
+    .detour-box__title {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: rgb(var(--fg) / 0.72);
+      margin-bottom: 13px;
+    }
+    .detour-steps {
+      margin: 0 0 16px;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 9px;
+      font-size: 13px;
+      color: rgb(var(--fg) / 0.52);
+    }
+    .detour-steps li {
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr);
+      align-items: baseline;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.022);
+      border: 1px solid rgba(255, 255, 255, 0.045);
+    }
+    .detour-steps b {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: rgb(var(--fg) / 0.35);
+    }
+
+    /* Measured format bars inside right card */
+    .chart-box {
+      margin-top: 26px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+    }
+    .chart-box__title {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+    .chart-box__title span:last-child {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--subtle);
+    }
+
+    .bars {
+      display: grid;
+      gap: 11px;
+    }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 64px 1fr 74px;
+      align-items: center;
+      gap: 14px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+    }
+    .bar-row__fmt {
+      color: rgb(var(--fg) / 0.72);
+    }
+    .bar-row__track {
+      height: 28px;
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.04);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+    .bar-row__fill {
+      display: block;
+      height: 100%;
+      width: var(--w, 100%);
+      min-width: 6px;
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.22);
+      transform-origin: left center;
+      transition: transform 0.95s var(--ease-out-expo);
+    }
+    .js .bars:not(.is-in) .bar-row__fill {
+      transform: scaleX(0.04);
+    }
+    .bar-row--webp .bar-row__fill {
+      background: var(--accent);
+    }
+    .bar-row--avif .bar-row__fill {
+      background: linear-gradient(90deg, var(--accent), var(--accent-soft));
+    }
+    .bar-row__size {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: rgb(var(--fg) / 0.88);
+    }
+    .chart-box__note {
+      margin: 14px 0 0;
+      font-size: 12px;
+      color: var(--subtle);
+      line-height: 1.5;
+    }
+
+    @media (max-width: 920px) {
+      .compare-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* =========================================================================
+       SECTION 03 · REAL SIDEBAR CAPABILITIES STRIP
+       ========================================================================= */
+    .rail-controls {
+      display: flex;
+      gap: 10px;
+    }
+    .rail-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 0;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      color: #ffffff;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+    .rail-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: scale(1.04);
+    }
+    .rail-btn:active {
+      transform: scale(0.96);
+    }
+
+    .shots-rail {
+      --rail-gutter: max(24px, calc((100vw - 1280px) / 2));
+      display: flex;
+      gap: 22px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--rail-gutter);
+      overscroll-behavior-x: contain;
+      padding: 6px var(--rail-gutter) 28px;
+      scrollbar-width: none;
+    }
+    .shots-rail::-webkit-scrollbar {
+      display: none;
+    }
+
+    .shot-card {
+      flex: 0 0 308px;
+      scroll-snap-align: start;
+      border-radius: 24px;
+      padding: 16px 16px 22px;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.45s var(--ease-out-quint);
+    }
+    @media (hover: hover) {
+      .shot-card:hover {
+        transform: translateY(-6px);
+      }
+    }
+    .shot-card__frame {
+      border-radius: 14px;
+      overflow: hidden;
+      background: #050608;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      aspect-ratio: 300 / 680;
+    }
+    .shot-card__frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .shot-card__meta {
+      margin-top: 18px;
+      padding: 0 4px;
+    }
+    .shot-card__idx {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      color: var(--accent-soft);
+    }
+    .shot-card__title {
+      margin: 6px 0 6px;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+    }
+    .shot-card__desc {
+      margin: 0;
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    /* =========================================================================
+       SECTION 04 · ARCHITECTURAL $5 PRICING & PRIVACY
+       ========================================================================= */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: clamp(32px, 6vw, 84px);
+      align-items: center;
+    }
+
+    .price-monument {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .price-monument__num {
+      font-family: var(--font-serif);
+      font-size: clamp(148px, 21vw, 290px);
+      font-weight: 400;
+      line-height: 0.78;
+      letter-spacing: -0.04em;
+      background: linear-gradient(180deg, #ffffff 0%, #dbe8ff 58%, #6d9be0 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      padding: 0.04em 0.04em 0.08em 0;
+    }
+    .price-monument__caption {
+      margin-top: 18px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgb(var(--fg) / 0.56);
+    }
+    .price-monument__sub {
+      margin: 12px 0 0;
+      max-width: 34ch;
+      font-size: 15.5px;
+      color: var(--muted);
+    }
+
+    .license-card {
+      border-radius: 32px;
+      padding: clamp(28px, 4vw, 48px);
+    }
+    .license-card h3 {
+      margin: 0;
+      font-size: clamp(24px, 2.8vw, 34px);
+      font-weight: 500;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+    }
+    .license-list {
+      margin: 28px 0 32px;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 18px;
+    }
+    .license-list li {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+      font-size: 15px;
+      line-height: 1.5;
+      color: rgb(var(--fg) / 0.78);
+    }
+    .license-list strong {
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .license-check {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(0, 98, 251, 0.18);
+      border: 1px solid rgba(0, 98, 251, 0.45);
+      color: var(--accent-soft);
+      display: grid;
+      place-items: center;
+      margin-top: 1px;
+    }
+    .license-card__foot {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 18px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+    }
+    .license-card__fine {
+      font-size: 12.5px;
+      color: var(--subtle);
+      max-width: 28ch;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 900px) {
+      .pricing-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* =========================================================================
+       SECTION 05 · FAQ ACCORDION
+       ========================================================================= */
+    .faq-grid {
+      display: grid;
+      grid-template-columns: 0.82fr 1.18fr;
+      gap: clamp(32px, 6vw, 88px);
+      align-items: start;
+    }
+    .faq-intro {
+      position: sticky;
+      top: 96px;
+    }
+    .faq-contact {
+      margin-top: 22px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent-soft);
+    }
+    .faq-contact:hover {
+      text-decoration: underline;
+    }
+
+    .faq-list {
+      border-top: 1px solid var(--line);
+    }
+    .faq-item {
+      border-bottom: 1px solid var(--line);
+    }
+    .faq-btn {
+      width: 100%;
+      padding: 22px 0;
+      border: 0;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      text-align: left;
+      font-size: clamp(16.5px, 1.5vw, 19px);
+      font-weight: 500;
+      letter-spacing: -0.015em;
+      color: #ffffff;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+    .faq-btn:hover {
+      color: #dce9ff;
+    }
+    .faq-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      flex: none;
+      transition: transform 0.3s var(--ease-material), background-color 0.2s ease;
+    }
+    .faq-btn[aria-expanded="true"] .faq-icon {
+      transform: rotate(45deg);
+      background: rgba(0, 98, 251, 0.24);
+      border-color: rgba(0, 98, 251, 0.5);
+    }
+    .faq-panel {
+      overflow: hidden;
+    }
+    .faq-panel__inner {
+      padding: 0 42px 24px 0;
+      font-size: 15px;
+      line-height: 1.62;
+      color: var(--muted);
+    }
+    .faq-panel__inner code {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.07);
+      color: #dce9ff;
+    }
+
+    @media (max-width: 880px) {
+      .faq-grid {
+        grid-template-columns: 1fr;
+      }
+      .faq-intro {
+        position: static;
+      }
+      .faq-panel__inner {
+        padding-right: 0;
+      }
+    }
+
+    /* =========================================================================
+       SECTION 06 · CLOSING FLIPPED-VIDEO CTA & FOOTER
+       ========================================================================= */
+    .closing {
+      position: relative;
+      z-index: 10;
+      padding: clamp(24px, 4vw, 48px) 0 0;
+    }
+    .closing-stage {
+      position: relative;
+      border-radius: 36px;
+      overflow: hidden;
+      padding: clamp(68px, 9vw, 128px) 24px;
+      text-align: center;
+      isolation: isolate;
+      background: #03060d;
+    }
+    .closing-stage__video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleY(-1) scale(1.06);
+      filter: brightness(0.5) saturate(1.12);
+      z-index: -2;
+      pointer-events: none;
+    }
+    .closing-stage::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background: radial-gradient(ellipse 62% 68% at 50% 48%, rgba(3, 6, 13, 0.72) 0%, rgba(3, 6, 13, 0.56) 52%, rgba(0, 0, 0, 0.86) 100%);
+    }
+    .closing-stage__content {
+      position: relative;
+      z-index: 5;
+      max-width: 780px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .closing-stage h2 {
+      margin: 0;
+      font-size: clamp(38px, 5.6vw, 80px);
+      font-weight: 500;
+      line-height: 1.14;
+      letter-spacing: -0.038em;
+    }
+    .closing-stage p {
+      margin: 20px 0 32px;
+      max-width: 30rem;
+      font-size: clamp(15.5px, 1.25vw, 18px);
+      color: rgb(var(--fg) / 0.72);
+    }
+
+    .footer {
+      position: relative;
+      z-index: 10;
+      padding: 56px 0 max(36px, env(safe-area-inset-bottom));
+    }
+    .footer__top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .footer__links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 22px;
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+    .footer__links a:hover {
+      color: #ffffff;
+    }
+    .footer__bottom {
+      padding-top: 22px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--subtle);
+    }
+
+    /* =========================================================================
+       REDUCED MOTION
+       ========================================================================= */
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .appear,
+      .mobile-menu__nav a,
+      .doc-photo.is-plucking {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+        filter: none !important;
+        transition: none !important;
+      }
+      .js [data-reveal] {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+      }
+      .js .bars:not(.is-in) .bar-row__fill {
+        transform: none !important;
+      }
+      .btn-roll__inner,
+      .btn-roll__chip svg,
+      .shot-card {
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="guide-rails" aria-hidden="true"></div>
+  <div class="page-grain" aria-hidden="true"></div>
+
+  <!-- Shared SVG symbol for Pluckr's official mark -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="pluckr-mark" viewBox="0 0 18 18" fill="none">
+      <path d="M15.8049 1.42683H2.19512C1.77081 1.42683 1.42683 1.77081 1.42683 2.19512V15.8049C1.42683 16.2292 1.77081 16.5732 2.19512 16.5732H15.8049C16.2292 16.5732 16.5732 16.2292 16.5732 15.8049V2.19512C16.5732 1.77081 16.2292 1.42683 15.8049 1.42683Z" fill="#0062FB"/>
+      <path d="M7.90244 9.71341H4.39024C4.17808 9.71341 4.0061 9.8854 4.0061 10.0976V13.6098C4.0061 13.8219 4.17808 13.9939 4.39024 13.9939H7.90244C8.1146 13.9939 8.28658 13.8219 8.28658 13.6098V10.0976C8.28658 9.8854 8.1146 9.71341 7.90244 9.71341Z" fill="#ffffff"/>
+      <path d="M13.6098 9.71341H10.0976C9.8854 9.71341 9.71341 9.8854 9.71341 10.0976V13.6098C9.71341 13.8219 9.8854 13.9939 10.0976 13.9939H13.6098C13.8219 13.9939 13.9939 13.8219 13.9939 13.6098V10.0976C13.9939 9.8854 13.8219 9.71341 13.6098 9.71341Z" fill="#ffffff"/>
+      <path d="M7.90244 4.0061H4.39024C4.17808 4.0061 4.0061 4.17808 4.0061 4.39024V7.90244C4.0061 8.1146 4.17808 8.28658 4.39024 8.28658H7.90244C8.1146 8.28658 8.28658 8.1146 8.28658 7.90244V4.39024C8.28658 4.17808 8.1146 4.0061 7.90244 4.0061Z" fill="#ffffff"/>
+      <rect x="9.78" y="4.06" width="4.15" height="4.15" rx="0.35" stroke="#ffffff" stroke-width="0.45" stroke-dasharray="0.85 0.65"/>
+      <path d="M17.6094 0.940386L14.2059 0.0734948C13.9709 0.0136485 13.7319 0.15561 13.6721 0.390575L12.8052 3.7941C12.7453 4.02907 12.8873 4.26806 13.1223 4.32791L16.5258 5.1948C16.7607 5.25464 16.9997 5.11268 17.0596 4.87772L17.9265 1.47419C17.9863 1.23922 17.8444 1.00023 17.6094 0.940386Z" fill="#ffffff"/>
+    </symbol>
+  </svg>
+
+  <!-- Floating Split Navigation -->
+  <header class="topbar appear appear--down" style="--d:0.06s">
+    <div class="topbar__inner">
+      <a class="brand-pill liquid-glass liquid-glass--nav" href="#" aria-label="Pluckr home">
+        <svg class="brand-pill__mark" aria-hidden="true"><use href="#pluckr-mark"/></svg>
+        <span>Pluckr</span>
+      </a>
+
+      <nav class="nav-pill liquid-glass liquid-glass--nav" aria-label="Primary">
+        <a href="#workbench">Workbench</a>
+        <a href="#compare">Compare</a>
+        <a href="#capabilities">Sidebar</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faqs">FAQ</a>
+      </nav>
+
+      <div class="topbar__actions">
+        <a class="btn-roll btn-roll--sm topbar__cta-desktop"
+           href="https://workspace.google.com/marketplace/app/pluckr/315157378382"
+           target="_blank" rel="noopener">
+          <span class="btn-roll__label"><span class="btn-roll__inner">
+            <span>Add to Docs</span><span aria-hidden="true">Add to Docs</span>
+          </span></span>
+          <span class="btn-roll__chip" aria-hidden="true">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </span>
+        </a>
+
+        <button class="burger liquid-glass liquid-glass--nav" id="burger-btn"
+                type="button" aria-controls="mobile-menu" aria-expanded="false" aria-label="Open menu">
+          <span class="burger__bars" aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Overlay Menu -->
+  <div class="mobile-menu" id="mobile-menu" inert>
+    <nav class="mobile-menu__nav" aria-label="Mobile">
+      <a href="#workbench" style="--i:0">Live Workbench</a>
+      <a href="#compare" style="--i:1">Then vs. Now</a>
+      <a href="#capabilities" style="--i:2">Sidebar Tour</a>
+      <a href="#pricing" style="--i:3">$5 License</a>
+      <a href="#faqs" style="--i:4">FAQ</a>
+    </nav>
+    <div class="mobile-menu__foot">
+      <a class="btn-roll" href="https://workspace.google.com/marketplace/app/pluckr/315157378382" target="_blank" rel="noopener">
+        <span class="btn-roll__label"><span class="btn-roll__inner">
+          <span>Add to Google Docs</span><span aria-hidden="true">Add to Google Docs</span>
+        </span></span>
+        <span class="btn-roll__chip" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </span>
+      </a>
+      <span class="mobile-menu__note">One-time $5 · Docs &amp; Slides · 100% browser-local</span>
+    </div>
+  </div>
+
+  <main>
+    <!-- =======================================================================
+         HERO (100dvh)
+         ======================================================================= -->
+    <section class="hero" aria-label="Introduction">
+      <div class="hero-plate" aria-hidden="true">
+        <img class="hero-plate__poster" src="assets/poster-hero.webp" alt="">
+        <video class="hero-plate__video" id="hero-video"
+               muted playsinline autoplay preload="auto" poster="assets/poster-hero.webp"
+               src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260508_064122_c4750c0e-7476-4b44-94a2-a85a65c63bf2.mp4"></video>
+      </div>
+
+      <div class="hero__inner">
+        <div class="hero__copy">
+          <div class="hero-badge liquid-glass appear appear--pop" style="--d:0.06s">
+            <span class="hero-badge__chip">Docs &amp; Slides</span>
+            <span class="hero-badge__text">$5 once · Zero subscriptions<span class="hide-xs"> · Runs in your browser</span></span>
+          </div>
+
+          <h1 class="hero__h1">
+            <span class="hero__line"><span class="appear appear--mask" style="--d:0.12s">Every image in your Doc,</span></span>
+            <span class="hero__line"><span class="appear appear--mask" style="--d:0.22s"><em class="serif-accent">plucked clean.</em></span></span>
+          </h1>
+
+          <p class="hero__sub appear appear--soft" style="--d:0.34s">
+            Preview, bulk rename, and convert embedded photos to WebP or AVIF right inside Google Docs™ and Slides™. Keep alt text intact and export clean Markdown—without uploading a byte.
+          </p>
+
+          <div class="hero__actions">
+            <a class="btn-roll appear appear--btn" style="--d:0.44s"
+               href="https://workspace.google.com/marketplace/app/pluckr/315157378382"
+               target="_blank" rel="noopener">
+              <span class="btn-roll__label"><span class="btn-roll__inner">
+                <span>Add to Google Docs</span><span aria-hidden="true">Add to Google Docs</span>
+              </span></span>
+              <span class="btn-roll__chip" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </span>
+            </a>
+
+            <a class="btn-glass liquid-glass appear appear--side" style="--d:0.52s" href="#workbench">
+              <span>Try live workbench</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <ul class="hero__strip appear appear--soft" style="--d:0.62s" aria-label="Key capabilities">
+          <li><b>01</b><span>WebP, AVIF, JPEG &amp; PNG in-browser</span></li>
+          <li><b>02</b><span>Bulk rename with live <code>{doc}-{n}</code> preview</span></li>
+          <li><b>03</b><span>Alt text audit, edit &amp; CSV/JSON export</span></li>
+          <li><b>04</b><span>Clean Markdown + <code>images/</code> ZIP</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         01 · INTERACTIVE LIVE WORKBENCH
+         ======================================================================= -->
+    <section class="section" id="workbench">
+      <div class="wrap">
+        <div class="sec-head" data-reveal>
+          <div>
+            <div class="eyebrow">01 // Interactive Workbench</div>
+            <h2 class="sec-title">Try the sidebar <br class="br-desk"><em class="serif-accent">before you install it.</em></h2>
+            <p class="sec-lede">Click photos in the document, switch formats, or edit the naming pattern. Every filename, byte count, and Markdown link updates live.</p>
+          </div>
+
+          <div class="wb-tabs liquid-glass" role="tablist" aria-label="Workbench view">
+            <button class="wb-tab" role="tab" aria-selected="true" data-wb-view="doc" type="button">Google Doc</button>
+            <button class="wb-tab" role="tab" aria-selected="false" data-wb-view="md" type="button">content.md</button>
+            <button class="wb-tab" role="tab" aria-selected="false" data-wb-view="zip" type="button">ZIP Manifest</button>
+          </div>
+        </div>
+
+        <div class="workbench liquid-glass liquid-glass--panel" data-reveal style="--d:100ms">
+          <!-- Left Stage -->
+          <div class="wb-stage">
+            <div class="wb-chrome">
+              <div class="wb-dots" aria-hidden="true">
+                <span style="background:#ff5f57"></span>
+                <span style="background:#febc2e"></span>
+                <span style="background:#28c840"></span>
+              </div>
+              <div class="wb-docbar">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#3b82f6" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8" fill="#93c5fd"/></svg>
+                <span class="wb-docbar__title">Coastal Trip</span>
+                <div class="wb-docbar__menus" aria-hidden="true">
+                  <span>File</span><span>Edit</span><span>Insert</span>
+                  <span class="wb-docbar__ext">Extensions → Pluckr</span>
+                </div>
+              </div>
+              <span class="wb-status" id="wb-savings-pill">Saved 89% locally</span>
+            </div>
+
+            <div class="wb-canvas">
+              <!-- Pane 1: Simulated Google Doc -->
+              <div class="wb-pane is-active" id="pane-doc">
+                <div class="doc-paper">
+                  <div class="doc-paper__kicker">Google Docs™ · Body &amp; inline images</div>
+                  <h3>Coastal Trip: Field Notes</h3>
+                  <p>Seventy-two hours, four people, and three high-resolution photos pasted straight into the draft. Click any image below to toggle selection in Pluckr.</p>
+
+                  <div class="doc-photos" id="doc-photos-grid">
+                    <button type="button" class="doc-photo is-selected" data-idx="0" aria-pressed="true">
+                      <div class="doc-photo__img-wrap">
+                        <img src="assets/lake.jpg" alt="Loch shore with snow-capped mountain">
+                      </div>
+                      <span class="doc-photo__check" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      </span>
+                      <div class="doc-photo__meta">
+                        <div class="doc-photo__raw"><span>image1.png</span><span>796 KB</span></div>
+                        <div class="doc-photo__out" data-out-label="0"><span class="doc-photo__fn">coastal-trip-01.webp</span><span class="doc-photo__kb">83 KB</span></div>
+                      </div>
+                    </button>
+
+                    <button type="button" class="doc-photo is-selected" data-idx="1" aria-pressed="true">
+                      <div class="doc-photo__img-wrap">
+                        <img src="assets/building.jpg" alt="Sunlit sandstone facade at dusk">
+                      </div>
+                      <span class="doc-photo__check" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      </span>
+                      <div class="doc-photo__meta">
+                        <div class="doc-photo__raw"><span>image2.png</span><span>1,140 KB</span></div>
+                        <div class="doc-photo__out" data-out-label="1"><span class="doc-photo__fn">coastal-trip-02.webp</span><span class="doc-photo__kb">96 KB</span></div>
+                      </div>
+                    </button>
+
+                    <button type="button" class="doc-photo is-selected" data-idx="2" aria-pressed="true">
+                      <div class="doc-photo__img-wrap">
+                        <img src="assets/library.jpg" alt="Timber reading room with arched windows">
+                      </div>
+                      <span class="doc-photo__check" aria-hidden="true">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      </span>
+                      <div class="doc-photo__meta">
+                        <div class="doc-photo__raw"><span>image3.png</span><span>684 KB</span></div>
+                        <div class="doc-photo__out" data-out-label="2"><span class="doc-photo__fn">coastal-trip-03.webp</span><span class="doc-photo__kb">64 KB</span></div>
+                      </div>
+                    </button>
+                  </div>
+
+                  <div class="doc-paper__hint">
+                    <span>Click a photo to include or exclude it from the batch.</span>
+                    <span>Original total: <strong>2,620 KB</strong></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pane 2: Live Markdown Output -->
+              <div class="wb-pane" id="pane-md">
+                <pre class="code-view" id="md-code-output" aria-live="polite"></pre>
+              </div>
+
+              <!-- Pane 3: Live ZIP Archive Tree -->
+              <div class="wb-pane" id="pane-zip">
+                <pre class="code-view" id="zip-code-output" aria-live="polite"></pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Authentic Pluckr Sidebar -->
+          <aside class="psidebar" aria-label="Simulated Pluckr sidebar">
+            <div class="psidebar__top">
+              <div class="psidebar__brand">
+                <svg width="16" height="16" aria-hidden="true"><use href="#pluckr-mark"/></svg>
+                <span>Pluckr</span>
+              </div>
+              <span class="psidebar__count" id="sb-selected-count">3 of 3 selected</span>
+            </div>
+
+            <div class="pctrl">
+              <div class="pctrl__label">
+                <span>Bulk Rename Pattern</span>
+                <span>Live</span>
+              </div>
+              <div class="pinput-row">
+                <input class="pinput" id="pattern-input" type="text" value="{doc}-{n}" aria-label="Rename pattern">
+              </div>
+              <div class="pctrl__pills" role="group" aria-label="Pattern presets">
+                <button type="button" class="ppill" data-preset="{doc}-{n}" aria-pressed="true">{doc}-{n}</button>
+                <button type="button" class="ppill" data-preset="hero-{n}" aria-pressed="false">hero-{n}</button>
+                <button type="button" class="ppill" data-preset="{alt}" aria-pressed="false">{alt}</button>
+              </div>
+            </div>
+
+            <div class="pctrl">
+              <div class="pctrl__label">
+                <span>Output Format</span>
+                <span id="sb-quality-lbl">Quality 80%</span>
+              </div>
+              <div class="pctrl__pills" role="group" aria-label="Image format">
+                <button type="button" class="ppill" data-fmt="webp" aria-pressed="true">WebP</button>
+                <button type="button" class="ppill" data-fmt="avif" aria-pressed="false">AVIF</button>
+                <button type="button" class="ppill" data-fmt="jpg" aria-pressed="false">JPEG</button>
+                <button type="button" class="ppill" data-fmt="png" aria-pressed="false">PNG</button>
+              </div>
+            </div>
+
+            <div class="plist" id="sb-items-list">
+              <div class="pitem" data-sb-item="0">
+                <img class="pitem__thumb" src="assets/lake.jpg" alt="">
+                <div style="min-width:0">
+                  <div class="pitem__name" data-sb-name="0">coastal-trip-01.webp</div>
+                  <div class="pitem__sub">
+                    <span>1600 × 1000</span>
+                    <span class="pitem__save" data-sb-size="0">796 KB → 83 KB</span>
+                  </div>
+                </div>
+                <div class="palt-box">
+                  <span>Alt</span>
+                  <input type="text" id="alt-input-0" value="Loch shore with snow-capped mountain" aria-label="Edit alt text for first image">
+                </div>
+              </div>
+
+              <div class="pitem" data-sb-item="1">
+                <img class="pitem__thumb" src="assets/building.jpg" alt="">
+                <div style="min-width:0">
+                  <div class="pitem__name" data-sb-name="1">coastal-trip-02.webp</div>
+                  <div class="pitem__sub">
+                    <span>1600 × 1067</span>
+                    <span class="pitem__save" data-sb-size="1">1,140 KB → 96 KB</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pitem" data-sb-item="2">
+                <img class="pitem__thumb" src="assets/library.jpg" alt="">
+                <div style="min-width:0">
+                  <div class="pitem__name" data-sb-name="2">coastal-trip-03.webp</div>
+                  <div class="pitem__sub">
+                    <span>1600 × 1067</span>
+                    <span class="pitem__save" data-sb-size="2">684 KB → 64 KB</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" class="pdownload" id="sb-download-btn">
+              Pluck 3 as WebP (243 KB)
+            </button>
+            <div class="ptoast" id="sb-toast" aria-live="polite">
+              Runs locally in your browser · Nothing uploaded
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         02 · THEN VS. NOW + MEASURED COMPRESSION
+         ======================================================================= -->
+    <section class="section section--bordered" id="compare">
+      <div class="wrap">
+        <div class="sec-head" data-reveal>
+          <div>
+            <div class="eyebrow">02 // The Detour, Ended</div>
+            <h2 class="sec-title">Stop opening <code>image7.png</code> <br class="br-desk"><em class="serif-accent">to see what it is.</em></h2>
+            <p class="sec-lede">Google Docs has no native button to save your images. The old workaround dumps an HTML file and mystery PNGs with all alt text stripped.</p>
+          </div>
+        </div>
+
+        <div class="compare-grid" data-stagger="120">
+          <!-- Left: Manual detour -->
+          <article class="cmp-card cmp-card--then" data-reveal>
+            <span class="cmp-card__tag">Without Pluckr</span>
+            <h3>File → Download → Web page (.html, zipped)</h3>
+            <ul class="file-table" aria-label="Default Google Docs export files">
+              <li><span>CoastalTrip.html</span><span class="file-table__badge">unwanted</span></li>
+              <li><span>images/image1.png</span><span class="file-table__badge">796 KB</span></li>
+              <li><span>images/image2.png</span><span class="file-table__badge">1,140 KB</span></li>
+              <li><span>images/image3.png</span><span class="file-table__badge">684 KB</span></li>
+              <li><span>images/image4.png</span><span class="file-table__badge">no alt text</span></li>
+              <li><span>images/image5.png … image12.png</span><span class="file-table__badge">out of order</span></li>
+            </ul>
+
+            <div class="detour-box">
+              <div class="detour-box__title">Every publish turns into a manual 4-step detour</div>
+              <ol class="detour-steps">
+                <li><b>01</b><span>Download the full <code>.html.zip</code> archive and unzip on your desktop</span></li>
+                <li><b>02</b><span>Open numbered PNGs one by one just to tell which photo is which</span></li>
+                <li><b>03</b><span>Run a separate compressor to get WebP, AVIF, or 16:9 crops</span></li>
+                <li><b>04</b><span>Re-write every missing alt description inside your CMS</span></li>
+              </ol>
+              <p class="cmp-card__foot">No thumbnails before downloading, bloated PNGs that hurt Largest Contentful Paint, and every alt description lost.</p>
+            </div>
+          </article>
+
+          <!-- Right: Pluckr + Measured Format Bars -->
+          <article class="cmp-card cmp-card--now liquid-glass liquid-glass--panel" data-reveal>
+            <span class="cmp-card__tag">Extensions → Pluckr</span>
+            <h3>Named, converted, alt-text indexed, ready to publish</h3>
+            <ul class="file-table" aria-label="Pluckr export bundle">
+              <li><span>images/coastal-trip-01.webp</span><span class="file-table__badge">83 KB</span></li>
+              <li><span>images/coastal-trip-02.webp</span><span class="file-table__badge">96 KB</span></li>
+              <li><span>images/coastal-trip-03.webp</span><span class="file-table__badge">64 KB</span></li>
+              <li><span>images-metadata.csv &amp; .json</span><span class="file-table__badge">alt text kept</span></li>
+              <li><span>content.md</span><span class="file-table__badge">clean Markdown</span></li>
+            </ul>
+
+            <div class="chart-box">
+              <div class="chart-box__title">
+                <span>Measured on one sample photo: 796 KB shrinks to 83 KB</span>
+                <span>1000 × 562 px · 16:9</span>
+              </div>
+              <div class="bars" id="format-bars" role="img" aria-label="Measured file sizes of the same photo: PNG 796 KB, JPEG 104 KB, WebP 83 KB, AVIF 61 KB">
+                <div class="bar-row">
+                  <span class="bar-row__fmt">PNG</span>
+                  <div class="bar-row__track"><i class="bar-row__fill" style="--w:100%"></i></div>
+                  <span class="bar-row__size">796 KB</span>
+                </div>
+                <div class="bar-row">
+                  <span class="bar-row__fmt">JPEG</span>
+                  <div class="bar-row__track"><i class="bar-row__fill" style="--w:13.1%"></i></div>
+                  <span class="bar-row__size">104 KB</span>
+                </div>
+                <div class="bar-row bar-row--webp">
+                  <span class="bar-row__fmt">WebP</span>
+                  <div class="bar-row__track"><i class="bar-row__fill" style="--w:10.4%"></i></div>
+                  <span class="bar-row__size">83 KB</span>
+                </div>
+                <div class="bar-row bar-row--avif">
+                  <span class="bar-row__fmt">AVIF</span>
+                  <div class="bar-row__track"><i class="bar-row__fill" style="--w:7.7%"></i></div>
+                  <span class="bar-row__size">61 KB</span>
+                </div>
+              </div>
+              <p class="chart-box__note">Example measured on a real high-resolution photo cropped to 16:9 at 80% quality in Chrome. Test your own images live inside the sidebar before exporting.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         03 · SIX REAL SIDEBAR SCREENS
+         ======================================================================= -->
+    <section class="section section--bordered" id="capabilities">
+      <div class="wrap">
+        <div class="sec-head" data-reveal>
+          <div>
+            <div class="eyebrow">03 // Inside the Add-on</div>
+            <h2 class="sec-title">Six jobs. One <em class="serif-accent">300-pixel sidebar.</em></h2>
+            <p class="sec-lede">Actual captures from the Pluckr sidebar in Google Docs™ and Google Slides™—lightweight, native to your document, with both dark and system themes.</p>
+          </div>
+
+          <div class="rail-controls" aria-label="Scroll sidebar screenshots">
+            <button type="button" class="rail-btn liquid-glass" id="rail-prev" aria-label="Previous screenshot">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
+            <button type="button" class="rail-btn liquid-glass" id="rail-next" aria-label="Next screenshot">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="shots-rail" id="shots-rail" data-reveal>
+        <article class="shot-card liquid-glass liquid-glass--panel">
+          <div class="shot-card__frame">
+            <img src="assets/sidebar-list-alt-edit.webp" width="300" height="680" loading="lazy" alt="Pluckr sidebar showing missing alt text filter and inline alt text editor">
+          </div>
+          <div class="shot-card__meta">
+            <span class="shot-card__idx">01 // ALT TEXT AUDIT</span>
+            <h3 class="shot-card__title">Spot &amp; write alt text</h3>
+            <p class="shot-card__desc">See missing descriptions immediately, edit alt text in the sidebar, save back to the file, or export CSV and JSON.</p>
+          </div>
+        </article>
+
+        <article class="shot-card liquid-glass liquid-glass--panel">
+          <div class="shot-card__frame">
+            <img src="assets/sidebar-selection-filter.webp" width="300" height="680" loading="lazy" alt="Pluckr sidebar showing selective image checkboxes across a document">
+          </div>
+          <div class="shot-card__meta">
+            <span class="shot-card__idx">02 // SELECTIVE PLUCK</span>
+            <h3 class="shot-card__title">Tick only what you need</h3>
+            <p class="shot-card__desc">Reads every inline image—including tables and every document tab—with real pixel dimensions and byte sizes.</p>
+          </div>
+        </article>
+
+        <article class="shot-card liquid-glass liquid-glass--panel">
+          <div class="shot-card__frame">
+            <img src="assets/sidebar-rename-pattern.webp" width="300" height="680" loading="lazy" alt="Pluckr bulk rename panel with live slug pattern preview">
+          </div>
+          <div class="shot-card__meta">
+            <span class="shot-card__idx">03 // BULK RENAME</span>
+            <h3 class="shot-card__title">Pattern slugs in one click</h3>
+            <p class="shot-card__desc">Rename one by one or apply patterns like <code>{doc}-{n}</code> across the whole batch with an instant live preview.</p>
+          </div>
+        </article>
+
+        <article class="shot-card liquid-glass liquid-glass--panel">
+          <div class="shot-card__frame">
+            <img src="assets/sidebar-output-webp.webp" width="300" height="680" loading="lazy" alt="Pluckr output settings showing WebP, AVIF, 16:9 crop, and Markdown options">
+          </div>
+          <div class="shot-card__meta">
+            <span class="shot-card__idx">04 // FORMAT &amp; CROP</span>
+            <h3 class="shot-card__title">WebP, AVIF &amp; fixed ratios</h3>
+            <p class="shot-card__desc">Set target quality, crop to 1:1, 4:3, 3:2, or 16:9, and cap maximum width. Small images are never enlarged.</p>
+          </div>
+        </article>
+
+        <article class="shot-card liquid-glass liquid-glass--panel">
+          <div class="shot-card__frame">
+            <img src="assets/sidebar-optimize-done.webp" width="300" height="680" loading="lazy" alt="Pluckr in-place optimization summary shrinking document size">
+          </div>
+          <div class="shot-card__meta">
+            <span class="shot-card__idx">05 // IN-PLACE SHRINK</span>
+            <h3 class="shot-card__title">Optimize heavy Docs</h3>
+            <p class="shot-card__desc">Shrink bloated images right inside slow Docs and Slides while preserving page size, links, and alt text.</p>
+          </div>
+        </article>
+
+        <article class="shot-card liquid-glass liquid-glass--panel">
+          <div class="shot-card__frame">
+            <img src="assets/sidebar-slides-list.webp" width="300" height="680" loading="lazy" alt="Pluckr sidebar listing images across a Google Slides presentation">
+          </div>
+          <div class="shot-card__meta">
+            <span class="shot-card__idx">06 // GOOGLE SLIDES™</span>
+            <h3 class="shot-card__title">Every slide &amp; group</h3>
+            <p class="shot-card__desc">Works in Google Slides™ too—pulling every picture on every slide, including images nested inside groups.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         04 · ONE-TIME PRICING & PRIVACY BY DESIGN
+         ======================================================================= -->
+    <section class="section section--bordered" id="pricing">
+      <div class="wrap">
+        <div class="pricing-grid">
+          <div class="price-monument" data-reveal>
+            <div class="eyebrow">04 // One-Time License</div>
+            <div class="price-monument__num" aria-label="5 dollars">$5</div>
+            <div class="price-monument__caption">USD · One Google Account™ · Forever</div>
+            <p class="price-monument__sub">No monthly SaaS tax for a utility you reach for every week. Pay once via Polar and keep it for both Docs and Slides.</p>
+          </div>
+
+          <div class="license-card liquid-glass liquid-glass--panel" data-reveal style="--d:120ms">
+            <h3>Private by architecture. <em class="serif-accent">Yours for good.</em></h3>
+
+            <ul class="license-list">
+              <li>
+                <span class="license-check" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                <span><strong>Zero image servers.</strong> WebP, AVIF, cropping, and resizing happen locally in your browser. Your photos and text never touch Pluckr's servers.</span>
+              </li>
+              <li>
+                <span class="license-check" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                <span><strong>Google Docs™ + Google Slides™ included.</strong> One $5 purchase unlocks every feature across both apps on your Google Account™.</span>
+              </li>
+              <li>
+                <span class="license-check" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                <span><strong>Narrowest OAuth permissions.</strong> Requests <code>currentonly</code> access to the active file you open it in—never your wider Google Drive.</span>
+              </li>
+              <li>
+                <span class="license-check" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                <span><strong>14-day refund policy.</strong> If Pluckr doesn't save you time on your first draft, email <code>support@docpluckr.com</code> within 14 days for a full refund.</span>
+              </li>
+            </ul>
+
+            <div class="license-card__foot">
+              <a class="btn-roll"
+                 href="https://workspace.google.com/marketplace/app/pluckr/315157378382"
+                 target="_blank" rel="noopener">
+                <span class="btn-roll__label"><span class="btn-roll__inner">
+                  <span>Add to Google Docs</span><span aria-hidden="true">Add to Google Docs</span>
+                </span></span>
+                <span class="btn-roll__chip" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </span>
+              </a>
+              <span class="license-card__fine">Install from Google Workspace Marketplace, then choose “Buy Pluckr” in the sidebar.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         05 · FREQUENTLY ASKED QUESTIONS
+         ======================================================================= -->
+    <section class="section section--bordered" id="faqs">
+      <div class="wrap">
+        <div class="faq-grid">
+          <div class="faq-intro" data-reveal>
+            <div class="eyebrow">05 // Questions</div>
+            <h2 class="sec-title">Plain answers <em class="serif-accent">before you buy.</em></h2>
+            <p class="sec-lede">Everything about how Pluckr reads your file, converts formats in the browser, and handles your license.</p>
+            <a class="faq-contact" href="mailto:support@docpluckr.com">
+              <span>support@docpluckr.com</span>
+              <span aria-hidden="true">→</span>
+            </a>
+          </div>
+
+          <div class="faq-list" id="faq-list" data-reveal style="--d:100ms">
+            <div class="faq-item">
+              <button class="faq-btn" type="button" aria-expanded="true">
+                <span>How do I download all images from a Google Doc?</span>
+                <span class="faq-icon" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                </span>
+              </button>
+              <div class="faq-panel">
+                <div class="faq-panel__inner">
+                  Open your document, choose <code>Extensions → Pluckr</code>, and click <strong>Download originals</strong> (or pick WebP/AVIF under Output settings) to get every image in one clean ZIP—without the “Download as web page” detour or mystery <code>image1.png</code> filenames.
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button class="faq-btn" type="button" aria-expanded="false">
+                <span>Are my images or documents uploaded to your servers?</span>
+                <span class="faq-icon" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                </span>
+              </button>
+              <div class="faq-panel" hidden>
+                <div class="faq-panel__inner">
+                  No. Google Apps Script reads the images inside your active document session, and all conversion (WebP, AVIF, cropping, resizing) runs locally inside your browser. To check your license, Pluckr sends only your Google Account™ identity token to its license service—nothing from your document is ever included.
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button class="faq-btn" type="button" aria-expanded="false">
+                <span>Does Pluckr work with Google Slides™ as well?</span>
+                <span class="faq-icon" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                </span>
+              </button>
+              <div class="faq-panel" hidden>
+                <div class="faq-panel__inner">
+                  Yes. One $5 license covers both Google Docs™ and Google Slides™. Open Pluckr in any presentation to list every picture across every slide—including grouped images—and rename, convert, edit alt text, or optimize them in place. (Markdown export is specific to Docs.)
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button class="faq-btn" type="button" aria-expanded="false">
+                <span>Can I export a Google Doc as Markdown with an images folder?</span>
+                <span class="faq-icon" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                </span>
+              </button>
+              <div class="faq-panel" hidden>
+                <div class="faq-panel__inner">
+                  Yes. Tick <strong>Add the Doc as Markdown</strong> in Output settings and your downloaded ZIP will include a clean <code>content.md</code> file plus an <code>images/</code> folder with your renamed, converted images and alt text already wired up—ready for Obsidian, Astro, Hugo, Ghost, or static sites.
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button class="faq-btn" type="button" aria-expanded="false">
+                <span>Does Pluckr modify my original document or presentation?</span>
+                <span class="faq-icon" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                </span>
+              </button>
+              <div class="faq-panel" hidden>
+                <div class="faq-panel__inner">
+                  Never unless you ask it to. Scanning, renaming, converting, and downloading leave your file untouched. Pluckr writes back to your file only when you explicitly press <strong>Save</strong> on edited alt text or confirm <strong>Optimize</strong> (and it reminds you to make a copy first).
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button class="faq-btn" type="button" aria-expanded="false">
+                <span>What image types aren’t supported yet?</span>
+                <span class="faq-icon" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                </span>
+              </button>
+              <div class="faq-panel" hidden>
+                <div class="faq-panel__inner">
+                  Pluckr extracts all inline body images (including images inside tables and document tabs) in Docs, and all slide pictures (including grouped ones) in Slides. Due to Google Apps Script API limits, floating wrap/break-text images and header/footer/footnote images in Docs, slide background/shape fills and master layouts in Slides, and Google Sheets™ are not supported yet.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         06 · CLOSING STAGE
+         ======================================================================= -->
+    <section class="closing" id="closing" aria-label="Get Pluckr">
+      <div class="wrap">
+        <div class="closing-stage liquid-glass" data-reveal>
+          <video class="closing-stage__video" id="closing-video"
+                 muted playsinline autoplay loop preload="metadata" poster="assets/poster-hero.webp"
+                 src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260508_064122_c4750c0e-7476-4b44-94a2-a85a65c63bf2.mp4"
+                 aria-hidden="true"></video>
+
+          <div class="closing-stage__content">
+            <div class="eyebrow">Ready in 30 seconds</div>
+            <h2>Leave <code>image1.png</code> <br class="br-desk"><em class="serif-accent">behind.</em></h2>
+            <p>Install Pluckr from the Google Workspace Marketplace. One $5 purchase, zero subscriptions, and every image stays in your browser.</p>
+            <a class="btn-roll"
+               href="https://workspace.google.com/marketplace/app/pluckr/315157378382"
+               target="_blank" rel="noopener">
+              <span class="btn-roll__label"><span class="btn-roll__inner">
+                <span>Install Pluckr — $5 once</span><span aria-hidden="true">Install Pluckr — $5 once</span>
+              </span></span>
+              <span class="btn-roll__chip" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="wrap">
+      <div class="footer__top">
+        <a class="brand-pill liquid-glass" href="#" aria-label="Pluckr home">
+          <svg class="brand-pill__mark" aria-hidden="true"><use href="#pluckr-mark"/></svg>
+          <span>Pluckr</span>
+        </a>
+
+        <nav class="footer__links" aria-label="Footer">
+          <a href="#workbench">Workbench</a>
+          <a href="#compare">Compare</a>
+          <a href="#capabilities">Sidebar</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#faqs">FAQ</a>
+          <a href="https://docpluckr.com/privacy">Privacy</a>
+          <a href="https://docpluckr.com/terms">Terms</a>
+          <a href="mailto:support@docpluckr.com">support@docpluckr.com</a>
+        </nav>
+      </div>
+
+      <div class="footer__bottom">
+        <span>© 2026 Pluckr. All rights reserved.</span>
+        <span>Google Docs™, Google Slides™, and Google Account™ are trademarks of Google LLC. Pluckr is not affiliated with or endorsed by Google.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+      /* -----------------------------------------------------------------------
+         1. Fail-safe entrance release (unlocks hover transforms after animation)
+         ----------------------------------------------------------------------- */
+      const appearEls = document.querySelectorAll('.appear');
+      appearEls.forEach((el) => {
+        el.addEventListener('animationend', (e) => {
+          if (e.target === el) el.classList.add('is-in');
+        });
+      });
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const anyActive = [...appearEls].some((el) =>
+          (el.getAnimations ? el.getAnimations() : []).some((a) => a.playState === 'running' || a.playState === 'finished')
+        );
+        if (!anyActive) appearEls.forEach((el) => el.classList.add('is-in'));
+      }));
+
+      /* -----------------------------------------------------------------------
+         2. Seamless rAF fade-loop hero video + off-screen pause
+         ----------------------------------------------------------------------- */
+      const heroVideo = document.getElementById('hero-video');
+      const closingVideo = document.getElementById('closing-video');
+
+      function initHeroFadeLoop(video) {
+        if (!video) return;
+        if (reduceMotion.matches) {
+          video.removeAttribute('autoplay');
+          video.pause();
+          video.style.opacity = '0';
+          return;
+        }
+        let raf = 0, timer = 0, fadingOut = false;
+        const fadeTo = (target, ms = 520) => {
+          cancelAnimationFrame(raf);
+          const from = parseFloat(video.style.opacity) || 0;
+          const t0 = performance.now();
+          const tick = (now) => {
+            const p = Math.min((now - t0) / ms, 1);
+            video.style.opacity = String(from + (target - from) * p);
+            if (p < 1) raf = requestAnimationFrame(tick);
+          };
+          raf = requestAnimationFrame(tick);
+        };
+        const startPlayback = () => {
+          fadingOut = false;
+          video.play().catch(() => {});
+          fadeTo(1, 650);
+        };
+        video.loop = false;
+        video.muted = true;
+        video.playsInline = true;
+        video.addEventListener('loadeddata', startPlayback);
+        video.addEventListener('timeupdate', () => {
+          const left = video.duration - video.currentTime;
+          if (!fadingOut && left > 0 && left <= 0.55) {
+            fadingOut = true;
+            fadeTo(0, 500);
+          }
+        });
+        video.addEventListener('ended', () => {
+          cancelAnimationFrame(raf);
+          video.style.opacity = '0';
+          timer = setTimeout(() => {
+            video.currentTime = 0;
+            startPlayback();
+          }, 90);
+        });
+        if (video.readyState >= 2) startPlayback();
+
+        const io = new IntersectionObserver(([entry]) => {
+          if (!entry.isIntersecting) {
+            clearTimeout(timer);
+            video.pause();
+          } else if (!reduceMotion.matches) {
+            video.play().catch(() => {});
+          }
+        }, { threshold: 0.05 });
+        io.observe(video);
+      }
+
+      initHeroFadeLoop(heroVideo);
+
+      if (closingVideo) {
+        closingVideo.muted = true;
+        if (reduceMotion.matches) {
+          closingVideo.removeAttribute('autoplay');
+          closingVideo.pause();
+        } else {
+          const closeIO = new IntersectionObserver(([entry]) => {
+            entry.isIntersecting ? closingVideo.play().catch(() => {}) : closingVideo.pause();
+          }, { threshold: 0.05 });
+          closeIO.observe(closingVideo);
+        }
+      }
+
+      /* -----------------------------------------------------------------------
+         3. Mobile burger menu (focus-safe, Esc / link / resize close)
+         ----------------------------------------------------------------------- */
+      const burger = document.getElementById('burger-btn');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const setMenu = (open) => {
+        if (!burger || !mobileMenu) return;
+        burger.setAttribute('aria-expanded', String(open));
+        burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+        mobileMenu.classList.toggle('is-open', open);
+        mobileMenu.inert = !open;
+        document.body.classList.toggle('menu-locked', open);
+      };
+      if (burger && mobileMenu) {
+        burger.addEventListener('click', () => setMenu(burger.getAttribute('aria-expanded') !== 'true'));
+        mobileMenu.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setMenu(false)));
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && mobileMenu.classList.contains('is-open')) {
+            setMenu(false);
+            burger.focus();
+          }
+        });
+        window.addEventListener('resize', () => {
+          if (window.innerWidth > 880 && mobileMenu.classList.contains('is-open')) setMenu(false);
+        });
+      }
+
+      /* -----------------------------------------------------------------------
+         4. Below-the-fold scroll reveals + measured format bars trigger
+         ----------------------------------------------------------------------- */
+      document.querySelectorAll('[data-stagger]').forEach((group) => {
+        const step = Number(group.dataset.stagger) || 100;
+        group.querySelectorAll('[data-reveal]').forEach((el, i) => {
+          el.style.setProperty('--d', `${i * step}ms`);
+        });
+      });
+
+      const revealIO = new IntersectionObserver((entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add('is-in');
+            revealIO.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+
+      document.querySelectorAll('[data-reveal]').forEach((el) => revealIO.observe(el));
+
+      const formatBars = document.getElementById('format-bars');
+      if (formatBars) {
+        const barIO = new IntersectionObserver(([e]) => {
+          if (e.isIntersecting) {
+            formatBars.classList.add('is-in');
+            barIO.disconnect();
+          }
+        }, { threshold: 0.25 });
+        barIO.observe(formatBars);
+      }
+
+      /* -----------------------------------------------------------------------
+         5. Interactive Live Workbench (Doc <-> Pluckr Sidebar <-> Markdown/ZIP)
+         ----------------------------------------------------------------------- */
+      const PHOTOS = [
+        { raw: 'image1.png', origKb: 796, sizes: { webp: 83, avif: 61, jpg: 104, png: 796 }, defaultAlt: 'Loch shore with snow-capped mountain' },
+        { raw: 'image2.png', origKb: 1140, sizes: { webp: 96, avif: 71, jpg: 128, png: 1140 }, defaultAlt: 'Sunlit sandstone facade at dusk' },
+        { raw: 'image3.png', origKb: 684, sizes: { webp: 64, avif: 48, jpg: 89, png: 684 }, defaultAlt: 'Timber reading room with arched windows' }
+      ];
+
+      const wbState = {
+        view: 'doc',
+        fmt: 'webp',
+        pattern: '{doc}-{n}',
+        selected: [true, true, true],
+        alts: PHOTOS.map((p) => p.defaultAlt)
+      };
+
+      const slugify = (str) =>
+        (str || 'image')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 34) || 'image';
+
+      const computeFilename = (idx) => {
+        const num = String(idx + 1).padStart(2, '0');
+        const altSlug = slugify(wbState.alts[idx]);
+        let stem = (wbState.pattern || '{doc}-{n}')
+          .replace(/\{doc\}/gi, 'coastal-trip')
+          .replace(/\{alt\}/gi, altSlug)
+          .replace(/\{n\}/gi, num);
+        if (!wbState.pattern.includes('{n}') && !wbState.pattern.includes('{alt}')) {
+          stem = `${slugify(stem)}-${num}`;
+        } else {
+          stem = stem.replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        }
+        return `${stem || 'image-' + num}.${wbState.fmt}`;
+      };
+
+      const escHtml = (s) =>
+        s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+      const patternInput = document.getElementById('pattern-input');
+      const altInput0 = document.getElementById('alt-input-0');
+      const sbSelectedCount = document.getElementById('sb-selected-count');
+      const sbQualityLbl = document.getElementById('sb-quality-lbl');
+      const sbDownloadBtn = document.getElementById('sb-download-btn');
+      const sbToast = document.getElementById('sb-toast');
+      const wbSavingsPill = document.getElementById('wb-savings-pill');
+      const mdOutput = document.getElementById('md-code-output');
+      const zipOutput = document.getElementById('zip-code-output');
+
+      function renderWorkbench() {
+        let totalOrig = 0;
+        let totalNew = 0;
+        let selCount = 0;
+
+        PHOTOS.forEach((p, i) => {
+          const isSel = wbState.selected[i];
+          const fname = computeFilename(i);
+          const outKb = p.sizes[wbState.fmt];
+          if (isSel) {
+            selCount++;
+            totalOrig += p.origKb;
+            totalNew += outKb;
+          }
+
+          const cardBtn = document.querySelector(`.doc-photo[data-idx="${i}"]`);
+          if (cardBtn) {
+            cardBtn.classList.toggle('is-selected', isSel);
+            cardBtn.setAttribute('aria-pressed', String(isSel));
+          }
+          const outLbl = document.querySelector(`[data-out-label="${i}"]`);
+          if (outLbl) {
+            if (isSel) {
+              outLbl.innerHTML = `<span class="doc-photo__fn">${escHtml(fname)}</span><span class="doc-photo__kb">${outKb} KB</span>`;
+            } else {
+              outLbl.innerHTML = `<span class="doc-photo__fn">Skipped</span><span class="doc-photo__kb">—</span>`;
+            }
+          }
+          const sbItem = document.querySelector(`[data-sb-item="${i}"]`);
+          if (sbItem) sbItem.classList.toggle('is-off', !isSel);
+          const sbName = document.querySelector(`[data-sb-name="${i}"]`);
+          if (sbName) sbName.textContent = fname;
+          const sbSize = document.querySelector(`[data-sb-size="${i}"]`);
+          if (sbSize) {
+            sbSize.textContent = wbState.fmt === 'png'
+              ? `${p.origKb.toLocaleString()} KB (original)`
+              : `${p.origKb.toLocaleString()} KB → ${outKb} KB`;
+          }
+        });
+
+        if (sbSelectedCount) sbSelectedCount.textContent = `${selCount} of 3 selected`;
+        if (sbQualityLbl) {
+          sbQualityLbl.textContent = wbState.fmt === 'png' ? 'Lossless' : wbState.fmt === 'avif' ? 'Quality 75%' : 'Quality 80%';
+        }
+
+        const savedPct = totalOrig > 0 ? Math.max(0, Math.round((1 - totalNew / totalOrig) * 100)) : 0;
+        if (wbSavingsPill) {
+          wbSavingsPill.textContent = selCount === 0
+            ? '0 images selected'
+            : wbState.fmt === 'png'
+              ? `${totalNew.toLocaleString()} KB · Lossless PNG`
+              : `Saved ${savedPct}% (${totalOrig.toLocaleString()} KB → ${totalNew} KB)`;
+        }
+
+        if (sbDownloadBtn) {
+          sbDownloadBtn.disabled = selCount === 0;
+          sbDownloadBtn.style.opacity = selCount === 0 ? '0.45' : '1';
+          sbDownloadBtn.textContent = selCount === 0
+            ? 'Select at least 1 image'
+            : `Pluck ${selCount} as ${wbState.fmt.toUpperCase()} (${totalNew.toLocaleString()} KB)`;
+        }
+
+        // Update Markdown view
+        if (mdOutput) {
+          const mdLines = [
+            `<span class="tok-h"># Coastal Trip: Field Notes</span>`,
+            ``,
+            `Seventy-two hours, four people, and three high-resolution photos pasted straight into the draft.`,
+            ``
+          ];
+          PHOTOS.forEach((_, i) => {
+            if (!wbState.selected[i]) return;
+            const fn = escHtml(computeFilename(i));
+            const alt = escHtml(wbState.alts[i] || '');
+            mdLines.push(`![<span class="tok-ok">${alt}</span>](<span class="tok-p">./images/${fn}</span>)`);
+            mdLines.push(``);
+          });
+          if (selCount === 0) {
+            mdLines.push(`<span class="tok-m">&lt;!-- Tick at least one image in the Google Doc tab to include it --&gt;</span>`);
+          }
+          mdOutput.innerHTML = mdLines.join('\n');
+        }
+
+        // Update ZIP manifest view
+        if (zipOutput) {
+          const zLines = [
+            `<span class="tok-m"># Generated locally in your browser — 0 bytes sent to any server</span>`,
+            `<span class="tok-h">coastal-trip-pluckr.zip</span>`,
+            `├── content.md                  <span class="tok-m">clean Markdown + relative links</span>`,
+            `├── images-metadata.csv         <span class="tok-m">filenames, dimensions &amp; alt text</span>`,
+            `├── images-metadata.json        <span class="tok-m">structured manifest</span>`,
+            `└── <span class="tok-h">images/</span>`
+          ];
+          const activeIndices = [0, 1, 2].filter((i) => wbState.selected[i]);
+          activeIndices.forEach((idx, pos) => {
+            const branch = pos === activeIndices.length - 1 ? '    └── ' : '    ├── ';
+            const fn = escHtml(computeFilename(idx)).padEnd(34, ' ');
+            const kb = PHOTOS[idx].sizes[wbState.fmt];
+            zLines.push(`${branch}<span class="tok-p">${fn}</span> <span class="tok-ok">${kb} KB</span>`);
+          });
+          if (activeIndices.length === 0) {
+            zLines.push(`    └── <span class="tok-m">(no images ticked)</span>`);
+          }
+          zipOutput.innerHTML = zLines.join('\n');
+        }
+      }
+
+      // View tabs
+      document.querySelectorAll('[data-wb-view]').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          wbState.view = tab.dataset.wbView;
+          document.querySelectorAll('[data-wb-view]').forEach((t) =>
+            t.setAttribute('aria-selected', String(t === tab))
+          );
+          document.getElementById('pane-doc')?.classList.toggle('is-active', wbState.view === 'doc');
+          document.getElementById('pane-md')?.classList.toggle('is-active', wbState.view === 'md');
+          document.getElementById('pane-zip')?.classList.toggle('is-active', wbState.view === 'zip');
+        });
+      });
+
+      // Photo selection toggle
+      document.querySelectorAll('.doc-photo').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.dataset.idx);
+          wbState.selected[idx] = !wbState.selected[idx];
+          renderWorkbench();
+        });
+      });
+
+      // Format buttons
+      document.querySelectorAll('[data-fmt]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          wbState.fmt = btn.dataset.fmt;
+          document.querySelectorAll('[data-fmt]').forEach((b) =>
+            b.setAttribute('aria-pressed', String(b === btn))
+          );
+          renderWorkbench();
+        });
+      });
+
+      // Pattern presets & input
+      document.querySelectorAll('[data-preset]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          wbState.pattern = btn.dataset.preset;
+          if (patternInput) patternInput.value = wbState.pattern;
+          document.querySelectorAll('[data-preset]').forEach((b) =>
+            b.setAttribute('aria-pressed', String(b === btn))
+          );
+          renderWorkbench();
+        });
+      });
+      if (patternInput) {
+        patternInput.addEventListener('input', () => {
+          wbState.pattern = patternInput.value.trim() || '{doc}-{n}';
+          document.querySelectorAll('[data-preset]').forEach((b) =>
+            b.setAttribute('aria-pressed', String(b.dataset.preset === wbState.pattern))
+          );
+          renderWorkbench();
+        });
+      }
+      if (altInput0) {
+        altInput0.addEventListener('input', () => {
+          wbState.alts[0] = altInput0.value;
+          renderWorkbench();
+        });
+      }
+
+      // Simulated Pluck action with tactile pulse
+      if (sbDownloadBtn) {
+        sbDownloadBtn.addEventListener('click', () => {
+          const cards = document.querySelectorAll('.doc-photo.is-selected');
+          cards.forEach((c, k) => {
+            c.classList.remove('is-plucking');
+            void c.offsetWidth;
+            setTimeout(() => c.classList.add('is-plucking'), k * 90);
+          });
+          if (sbToast) {
+            sbToast.textContent = `✓ Demo bundle ready (${wbState.fmt.toUpperCase()} + content.md + CSV) — install add-on to run on your Docs`;
+          }
+        });
+      }
+
+      renderWorkbench();
+
+      /* -----------------------------------------------------------------------
+         6. Horizontal Sidebar Screenshots Rail Prev/Next
+         ----------------------------------------------------------------------- */
+      const rail = document.getElementById('shots-rail');
+      const prevBtn = document.getElementById('rail-prev');
+      const nextBtn = document.getElementById('rail-next');
+      if (rail && prevBtn && nextBtn) {
+        prevBtn.addEventListener('click', () => rail.scrollBy({ left: -330, behavior: reduceMotion.matches ? 'auto' : 'smooth' }));
+        nextBtn.addEventListener('click', () => rail.scrollBy({ left: 330, behavior: reduceMotion.matches ? 'auto' : 'smooth' }));
+      }
+
+      /* -----------------------------------------------------------------------
+         7. Accessible Smooth FAQ Accordion
+         ----------------------------------------------------------------------- */
+      const faqItems = document.querySelectorAll('#faq-list .faq-item');
+      faqItems.forEach((item, idx) => {
+        const btn = item.querySelector('.faq-btn');
+        const panel = item.querySelector('.faq-panel');
+        if (!btn || !panel) return;
+        const panelId = `faq-panel-${idx}`;
+        const btnId = `faq-btn-${idx}`;
+        btn.id = btnId;
+        panel.id = panelId;
+        btn.setAttribute('aria-controls', panelId);
+        panel.setAttribute('aria-labelledby', btnId);
+
+        let anim = null;
+        btn.addEventListener('click', () => {
+          const expanded = btn.getAttribute('aria-expanded') === 'true';
+          if (anim) anim.cancel();
+
+          if (expanded) {
+            btn.setAttribute('aria-expanded', 'false');
+            if (reduceMotion.matches) {
+              panel.hidden = true;
+              return;
+            }
+            const startH = panel.offsetHeight;
+            anim = panel.animate([{ height: `${startH}px`, opacity: 1 }, { height: '0px', opacity: 0 }], {
+              duration: 260,
+              easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+            });
+            anim.onfinish = () => { panel.hidden = true; anim = null; };
+          } else {
+            btn.setAttribute('aria-expanded', 'true');
+            panel.hidden = false;
+            if (reduceMotion.matches) return;
+            const endH = panel.scrollHeight;
+            anim = panel.animate([{ height: '0px', opacity: 0 }, { height: `${endH}px`, opacity: 1 }], {
+              duration: 300,
+              easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+            });
+            anim.onfinish = () => { anim = null; };
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
+

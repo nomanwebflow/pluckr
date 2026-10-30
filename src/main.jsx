@@ -1,6 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ASPECTS, FORMATS, cancelEncoding, detectSupportedFormats, exportName, prefetchAvifCodec, processImage, zipBlobs } from './process.js';
+import { ASPECTS, FORMATS, cancelEncoding, compressForDoc, detectSupportedFormats, exportName, prefetchAvifCodec, processImage } from './process.js';
+import { zipBundle } from './bundle.js';
+import { bulkNames } from './rename.js';
 import { PAYWALL_ENABLED, PRICE_LABEL, createCheckout, fetchLicence } from './licence.js';
 import './styles.css';
 
@@ -13,6 +15,7 @@ const DEMO_IMAGES = [
     width: 688,
     height: 1031,
     src: '/assets/demo-photo.png',
+    altDescription: 'A portrait photo used as the demo image',
   },
   {
     id: 'demo-2',
@@ -29,6 +32,21 @@ function Asset({ name, className = '', alt = '' }) {
   const sources = window.PLUCKR_ASSETS || {};
   return <img className={className} src={sources[name] || `/assets/${name}.svg`} alt={alt} />;
 }
+
+// Dev preview only: the URL hash can force a screen, e.g. #licence=unpaid or #host=slides&view=optimize.
+// It is ignored inside Docs and Slides, and scripts/sidebar-states.mjs uses it to photograph every state.
+const devFlags = window.google?.script?.run ? new URLSearchParams() : new URLSearchParams(window.location.hash.slice(1));
+const devState = devFlags.get('state');
+
+const lacksAlt = (image) => !(image.altDescription || image.altTitle);
+// Pluckr runs in Docs and in Slides. The wording follows the editor it was opened in.
+const HostContext = createContext('docs');
+function useWords() {
+  const slides = useContext(HostContext) === 'slides';
+  return { noun: slides ? 'deck' : 'Doc', file: slides ? 'deck' : 'document' };
+}
+
+const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
 function formatSize(bytes) {
   if (!bytes) return '0 KB';
@@ -52,10 +70,6 @@ function naturalSize(image) {
     probe.src = imageUrl(image);
   });
 }
-
-// Images fetched per server call, and how many such calls run at once.
-const SCAN_BATCH_SIZE = 8;
-const SCAN_CONCURRENCY = 4;
 
 // Blob URLs created for the current scan; a rescan releases the previous scan's so a long session does not keep them all.
 const blobUrls = new Set();
@@ -96,6 +110,24 @@ function saveBlob(blob, fileName) {
   anchor.click();
   anchor.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function originalBlob(image) {
+  prepareOriginal(image);
+  return image.blob || (await fetch(image.src)).blob();
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1]);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+function slug(name) {
+  return String(name || 'document').replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'document';
 }
 
 function downloadImage(image) {
@@ -141,11 +173,18 @@ function withExtension(name, original) {
   return clean.includes('.') || !extension ? clean : clean + extension;
 }
 
-function ImageRow({ image, result, thumbAspect, onRename, onDownload }) {
+function ImageRow({ image, result, thumbAspect, selected, onSelect, onRename, onDownload, onSaveAlt }) {
+  const { noun } = useWords();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(image.name);
   const [copyLabel, setCopyLabel] = useState('Copy');
   const [downloadLabel, setDownloadLabel] = useState('Download');
+  const [altLabel, setAltLabel] = useState('Copy alt');
+  const [altEditing, setAltEditing] = useState(false);
+  const [altDraft, setAltDraft] = useState('');
+  const [altSaving, setAltSaving] = useState(false);
+  const [altError, setAltError] = useState('');
+  const alt = image.altDescription || image.altTitle || '';
   const shrunk = result?.blob;
   const dims = shrunk ? [result.width, result.height] : [image.width, image.height];
   const meta = [
@@ -169,6 +208,23 @@ function ImageRow({ image, result, thumbAspect, onRename, onDownload }) {
     ).finally(() => window.setTimeout(() => setCopyLabel('Copy'), 1500));
   };
 
+  const copyAlt = () => {
+    navigator.clipboard.writeText(alt).then(() => setAltLabel('Copied'), () => setAltLabel('Copy failed'))
+      .finally(() => window.setTimeout(() => setAltLabel('Copy alt'), 1500));
+  };
+
+  const saveAltText = async () => {
+    setAltSaving(true);
+    setAltError('');
+    try {
+      await onSaveAlt(image.id, altDraft.trim());
+      setAltEditing(false);
+    } catch (failure) {
+      setAltError(failure?.message || 'Could not save the alt text.');
+    }
+    setAltSaving(false);
+  };
+
   const download = () => {
     setDownloadLabel('Starting…');
     onDownload(image, result);
@@ -176,8 +232,11 @@ function ImageRow({ image, result, thumbAspect, onRename, onDownload }) {
   };
 
   return (
-    <article className="image-row" aria-label={`Extracted image ${image.name}`}>
-      <img className="thumb" src={imageUrl(image)} alt="" style={{ aspectRatio: thumbAspect }} />
+    <article className={`image-row${selected ? '' : ' is-off'}`} aria-label={`Extracted image ${image.name}`}>
+      <div className="thumb-wrap">
+        <img className="thumb" src={imageUrl(image)} alt="" style={{ aspectRatio: thumbAspect }} />
+        <input className="row-check" type="checkbox" checked={selected} aria-label={`Include ${image.name}`} onChange={(event) => onSelect(image.id, event.target.checked)} />
+      </div>
       <div className="image-body">
         <div className="image-info">
           <div className="name-row">
@@ -211,6 +270,34 @@ function ImageRow({ image, result, thumbAspect, onRename, onDownload }) {
             {meta.map((item) => <p className="trim" key={item}>{item}</p>)}
           </div>
           {result?.note && <p className="meta-note">{result.note}</p>}
+          {altEditing ? (
+            <div className="alt-edit">
+              <textarea
+                className="alt-input"
+                rows={3}
+                autoFocus
+                value={altDraft}
+                aria-label={`Alt text for ${image.name}`}
+                placeholder="Describe the image"
+                onChange={(event) => setAltDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Escape') setAltEditing(false);
+                  if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) saveAltText();
+                }}
+              />
+              <div className="alt-edit-actions">
+                <button className="mini-button" type="button" disabled={altSaving} onClick={() => setAltEditing(false)}>Cancel</button>
+                <button className="mini-button" type="button" disabled={altSaving} onClick={saveAltText}>{altSaving ? 'Saving…' : `Save to ${noun}`}</button>
+              </div>
+              {altError && <p className="meta-note is-error" role="alert">{altError}</p>}
+            </div>
+          ) : (
+            <div className="alt-row">
+              <p className={`meta-note alt-text${alt ? '' : ' is-missing'}`} title={alt}>{alt ? `Alt: ${alt}` : 'No alt text'}</p>
+              {alt && <button className="mini-button" type="button" onClick={copyAlt}>{altLabel}</button>}
+              <button className="mini-button" type="button" onClick={() => { setAltDraft(alt); setAltError(''); setAltEditing(true); }}>{alt ? 'Edit' : 'Add alt'}</button>
+            </div>
+          )}
         </div>
         <div className="actions">
           <button className="action-button" type="button" onClick={copy}><span className="trim">{copyLabel}</span></button>
@@ -228,17 +315,18 @@ function useImageExtractor() {
   // 'ready' also covers "paywall off". Otherwise: checking | unpaid | waiting (payment in progress) | error.
   // PLUCKR_BOOT is filled in by the add-on's server code when it still holds a valid entitlement.
   const boot = window.PLUCKR_BOOT;
-  const [licence, setLicence] = useState(paywall && !boot?.entitlement ? 'checking' : 'ready');
-  const [licenceError, setLicenceError] = useState('');
-  const [checkoutUrl, setCheckoutUrl] = useState('');
+  const [licence, setLicence] = useState(devFlags.get('licence') || (paywall && !boot?.entitlement ? 'checking' : 'ready'));
+  const [licenceError, setLicenceError] = useState(devFlags.get('licenceError') || '');
+  const [checkoutUrl, setCheckoutUrl] = useState(devFlags.has('licence') ? '#' : '');
   const entitlementRef = useRef({ token: boot?.entitlement || '', expiresAt: boot?.expiresAt || 0 });
-  const [images, setImages] = useState(isAppsScript ? [] : DEMO_IMAGES);
+  const [images, setImages] = useState(isAppsScript || devState ? [] : DEMO_IMAGES);
   // Starts true in the add-on so the panel never paints an empty "no images" frame before the first scan begins.
-  const [loading, setLoading] = useState(isAppsScript);
+  const [loading, setLoading] = useState(isAppsScript || devState === 'loading');
   const [downloading, setDownloading] = useState(false);
-  const [error, setError] = useState('');
-  // Identifies the latest scan, so a rescan makes batches still in flight from the previous one stop publishing.
-  const scanRef = useRef(0);
+  const [error, setError] = useState(devState === 'error' ? 'Could not read images from this file. Try again.' : '');
+  const [documentName, setDocumentName] = useState('');
+  // The server code says which editor this is. In the dev preview, #slides shows the Slides wording.
+  const [host, setHost] = useState(boot?.host || (!isAppsScript && (devFlags.get('host') === 'slides' || devFlags.has('slides')) ? 'slides' : 'docs'));
 
   /** Ask the licence service. `silent` keeps the current screen unless the licence turns out to be missing. */
   const checkLicence = useCallback(async ({ silent = false } = {}) => {
@@ -281,6 +369,11 @@ function useImageExtractor() {
       setLicence('unpaid');
       return;
     }
+    // A scope was added since the user last approved Pluckr: Google refuses the call until they approve again.
+    if (/do not have permission to call|Authorization is required/i.test(String(failure?.message || ''))) {
+      setError('Pluckr needs a new permission for this file type. Open the menu, choose Log out, then open Pluckr again and allow access.');
+      return;
+    }
     if (String(failure?.message || '').includes('GATE_UNCONFIGURED')) {
       setError('Pluckr is temporarily unavailable. Please try again later or contact support@docpluckr.com.');
       return;
@@ -308,50 +401,44 @@ function useImageExtractor() {
       scriptRun.withSuccessHandler(resolve).withFailureHandler(reject)[method](...args);
     });
 
-    const scan = scanRef.current + 1;
-    scanRef.current = scan;
-    const batches = [];
-    const publish = () => setImages(batches.flat());
-
     try {
-      // The first batch also reports the total, so no separate count call is needed.
-      const first = await call('getDocumentImages', 0, SCAN_BATCH_SIZE, entitlement);
+      const info = await call('getDocumentInfo', entitlement);
+      setDocumentName(info.documentName || '');
+      if (info.host) setHost(info.host);
+      // Every image is requested at once; Apps Script serves them in parallel.
+      const found = await Promise.all(Array.from({ length: info.count }, (_, index) => call('getDocumentImage', index, entitlement)));
       const stale = takeBlobUrls();
-      batches[0] = first.images;
-      first.images.forEach(prepareOriginal);
-      publish();
+      found.forEach(prepareOriginal);
+      setImages(found);
+      setDeselected(new Set());
       window.setTimeout(() => stale.forEach((url) => URL.revokeObjectURL(url)), 1000);
-      // The first images are on screen; the rest fill in as their batches arrive.
-      setLoading(false);
-
-      // Not awaited: sizes correct themselves a moment after their images appear.
-      const correctSizes = (batch) => Promise.all(batch.map(naturalSize)).then((sizes) => {
-        if (scanRef.current !== scan) return;
-        const byId = new Map(batch.map((image, index) => [image.id, sizes[index]]));
-        setImages((current) => current.map((image) => ({ ...image, ...(byId.get(image.id)?.width ? byId.get(image.id) : {}) })));
+      // Not awaited: the list shows at once and the sizes correct themselves a moment later.
+      Promise.all(found.map(naturalSize)).then((sizes) => {
+        setImages((current) => current.map((image, index) => ({ ...image, ...(sizes[index]?.width ? sizes[index] : {}) })));
       });
-      correctSizes(first.images);
-
-      // A few batches in flight at once: each call walks the document, and Apps Script limits concurrent calls.
-      let next = SCAN_BATCH_SIZE;
-      const worker = async () => {
-        while (next < first.total && scanRef.current === scan) {
-          const start = next;
-          next += SCAN_BATCH_SIZE;
-          const { images: batch } = await call('getDocumentImages', start, SCAN_BATCH_SIZE, entitlement);
-          if (scanRef.current !== scan) return;
-          batch.forEach(prepareOriginal);
-          batches[start / SCAN_BATCH_SIZE] = batch;
-          publish();
-          correctSizes(batch);
-        }
-      };
-      await Promise.all(Array.from({ length: SCAN_CONCURRENCY }, worker));
     } catch (failure) {
-      handleServerFailure(failure, 'Could not read images from this document. Try again.');
+      handleServerFailure(failure, 'Could not read images from this file. Try again.');
     }
     setLoading(false);
   }, [isAppsScript, scriptRun, ensureEntitlement, handleServerFailure]);
+
+  /** One server call that needs a licence: the entitlement is appended as the last argument. */
+  const serverCall = useCallback(async (method, ...args) => {
+    // The dev preview has no Doc to write to: pretend the call took a moment.
+    if (!isAppsScript) { await new Promise((resolve) => window.setTimeout(resolve, 600)); return true; }
+    const entitlement = await ensureEntitlement();
+    if (entitlement === null) throw new Error('Unlock Pluckr to use this.');
+    return new Promise((resolve, reject) => {
+      scriptRun.withSuccessHandler(resolve).withFailureHandler((failure) => {
+        if (String(failure?.message || '').includes('LICENCE_REQUIRED')) handleServerFailure(failure);
+        reject(failure);
+      })[method](...args, entitlement);
+    });
+  }, [isAppsScript, scriptRun, ensureEntitlement, handleServerFailure]);
+
+  const fetchMarkdown = useCallback(() => (isAppsScript
+    ? serverCall('getDocumentMarkdown')
+    : Promise.resolve({ markdown: '# Demo\n\n![Demo](pluckr-image:0)\n\n![Demo](pluckr-image:1)\n', imageCount: DEMO_IMAGES.length })), [isAppsScript, serverCall]);
 
   const startCheckout = useCallback(async () => {
     setLicenceError('');
@@ -373,12 +460,37 @@ function useImageExtractor() {
     setImages((current) => current.map((image) => (image.id === id ? { ...image, name } : image)));
   }, []);
 
-  const downloadAll = useCallback(async () => {
-    if (images.length === 0) return;
+  /** names: { [image id]: new name }. */
+  const renameMany = useCallback((names) => {
+    setImages((current) => current.map((image) => (names[image.id] ? { ...image, name: names[image.id] } : image)));
+  }, []);
+
+  /** Writes the alt text into the Doc, then updates the list. Clearing the text clears the title too. */
+  const saveAlt = useCallback(async (id, text) => {
+    const image = images.find((item) => item.id === id);
+    if (!image) return;
+    const title = text ? image.altTitle || '' : '';
+    if (isAppsScript) await serverCall('setImageAlt', image.sourceIndex, title, text);
+    setImages((current) => current.map((item) => (item.id === id ? { ...item, altTitle: title, altDescription: text } : item)));
+  }, [images, isAppsScript, serverCall]);
+
+  // Every image is ticked after a scan; the user unticks the ones to leave out.
+  const [deselected, setDeselected] = useState(() => new Set());
+  const chosen = useMemo(() => images.filter((image) => !deselected.has(image.id)), [images, deselected]);
+  const setSelected = useCallback((id, on) => {
+    setDeselected((current) => { const next = new Set(current); if (on) next.delete(id); else next.add(id); return next; });
+  }, []);
+  /** Ticks or unticks these images and leaves the rest as they are. */
+  const setMany = useCallback((ids, on) => {
+    setDeselected((current) => { const next = new Set(current); ids.forEach((id) => (on ? next.delete(id) : next.add(id))); return next; });
+  }, []);
+
+  const downloadAll = useCallback(async (list = images) => {
+    if (list.length === 0) return;
     setError('');
 
     if (!isAppsScript) {
-      images.forEach((image, index) => window.setTimeout(() => downloadImage(image), index * 250));
+      list.forEach((image, index) => window.setTimeout(() => downloadImage(image), index * 250));
       return;
     }
 
@@ -386,7 +498,7 @@ function useImageExtractor() {
     if (entitlement === null) return;
 
     const names = {};
-    images.forEach((image) => { names[image.sourceIndex] = image.name; });
+    list.forEach((image) => { names[image.sourceIndex] = image.name; });
     setDownloading(true);
     scriptRun
       .withSuccessHandler((archive) => {
@@ -397,7 +509,7 @@ function useImageExtractor() {
         setDownloading(false);
         handleServerFailure(failure, 'Could not prepare the image download. Try again.');
       })
-      .getImagesArchive(images.map((image) => image.sourceIndex), names, entitlement);
+      .getImagesArchive(list.map((image) => image.sourceIndex), names, entitlement);
   }, [images, isAppsScript, scriptRun, ensureEntitlement, handleServerFailure]);
 
   const closeSidebar = useCallback(() => {
@@ -452,12 +564,13 @@ function useImageExtractor() {
   const ready = licence === 'ready';
 
   return {
-    images, loading, downloading, error, ready, licence, licenceError, checkoutUrl,
-    checkLicence, startCheckout, extractImages, renameImage, downloadAll, closeSidebar, logout,
+    images, loading, downloading, error, ready, licence, licenceError, checkoutUrl, documentName, host, isAppsScript, serverCall, fetchMarkdown,
+    checkLicence, startCheckout, extractImages, renameImage, renameMany, saveAlt, chosen, deselected, setSelected, setMany, downloadAll, closeSidebar, logout,
   };
 }
 
-function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, toggleTheme }) {
+function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, toggleTheme, onOptimize }) {
+  const { noun } = useWords();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -485,6 +598,7 @@ function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, 
       {menuOpen && (
         <div className="menu" role="menu">
           <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); toggleTheme(); }}>{theme === 'light' ? 'Dark mode' : 'Light mode'}</button>
+          {onOptimize && <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); onOptimize(); }}>Optimize {noun} images</button>}
           <button className="menu-item" type="button" role="menuitem" onClick={closeSidebar}>Close sidebar</button>
           <button className="menu-item" type="button" role="menuitem" onClick={() => { setMenuOpen(false); logout(); }}>Log out</button>
           <a className="menu-item" role="menuitem" href="https://docpluckr.com/privacy" target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>Privacy policy</a>
@@ -495,15 +609,19 @@ function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, 
   );
 }
 
-function Panel({ images, results, thumbAspect, loading, error, onRename, onDownload }) {
+function Panel({ images, results, thumbAspect, loading, error, deselected, missingOnly, onSelect, onRename, onDownload, onSaveAlt }) {
+  const { file } = useWords();
+  const hasAlt = (image) => Boolean(image.altDescription || image.altTitle);
+  const visible = missingOnly ? images.filter((image) => !hasAlt(image)) : images;
   return (
     <section className="panel" aria-label="Extracted images" aria-live="polite">
       <div className="panel-texture" aria-hidden="true" />
-      {loading && <p className="panel-message is-delayed"><span className="loading-indicator" />Scanning your document…</p>}
+      {loading && <p className="panel-message is-delayed"><span className="loading-indicator" />Scanning your {file}…</p>}
       {!loading && error && <p className="panel-message is-error" role="alert">{error}</p>}
-      {!loading && !error && images.length === 0 && <p className="panel-message">No images found in this document.</p>}
-      {!loading && !error && images.map((image) => (
-        <ImageRow key={image.id} image={image} result={results[image.id]} thumbAspect={thumbAspect} onRename={onRename} onDownload={onDownload} />
+      {!loading && !error && images.length === 0 && <p className="panel-message">No images found in this {file}.</p>}
+      {!loading && !error && images.length > 0 && visible.length === 0 && <p className="panel-message">Every image has alt text.</p>}
+      {!loading && !error && visible.map((image) => (
+        <ImageRow key={image.id} image={image} result={results[image.id]} thumbAspect={thumbAspect} selected={!deselected.has(image.id)} onSelect={onSelect} onRename={onRename} onDownload={onDownload} onSaveAlt={onSaveAlt} />
       ))}
     </section>
   );
@@ -614,18 +732,68 @@ function Select({ value, options, onChange, label, disabled = false, isAvailable
   );
 }
 
-function ExportPanel({ settings, onChange, supported, open, onToggle }) {
-  const lossy = FORMATS.find((item) => item.id === settings.format)?.lossy;
+/** An info icon beside a label. The note shows on hover or keyboard focus, and toggles on tap. */
+function InfoTip({ label, children }) {
+  const [open, setOpen] = useState(false);
+  const id = useId();
+  return (
+    <span className="info-tip" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+      <button
+        className="info-button"
+        type="button"
+        aria-label={label}
+        aria-describedby={id}
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+        onFocus={(event) => { if (event.target.matches(':focus-visible')) setOpen(true); }}
+        onBlur={() => setOpen(false)}
+        onKeyDown={(event) => { if (event.key === 'Escape') setOpen(false); }}
+      >
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9.5" />
+          <path d="M12 11v5.5" />
+          <path d="M12 7.6v.01" />
+        </svg>
+      </button>
+      <span className={`info-note${open ? ' is-open' : ''}`} id={id} role="tooltip">{children}</span>
+    </span>
+  );
+}
+
+/** A titled section that slides open and shut, shared by Bulk rename and Output settings. */
+function Disclosure({ title, open, onToggle, children }) {
+  // The dropdown lists need to overflow the panel, so clipping applies only while it is sliding. Closing clips at once.
+  const [settled, setSettled] = useState(open);
+  useEffect(() => {
+    if (!open) setSettled(false);
+    else if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) setSettled(true);
+  }, [open]);
 
   return (
-    <section className="export" aria-label="Output settings">
+    <section className="export" aria-label={title}>
       <div className="panel-texture" aria-hidden="true" />
       <button className="export-toggle" type="button" aria-expanded={open} onClick={onToggle}>
-        <span className="trim">Output settings</span>
+        <span className="trim">{title}</span>
         <Asset name="chevron-down" className={`chevron${open ? '' : ' is-closed'}`} />
       </button>
-      {open && (
-        <>
+      <div
+        className={`export-body${open ? ' is-open' : ''}${settled ? ' is-settled' : ''}`}
+        inert={!open}
+        onTransitionEnd={(event) => { if (open && event.target === event.currentTarget && event.propertyName === 'grid-template-rows') setSettled(true); }}
+      >
+        <div className="export-clip">
+          <div className="export-fields">{children}</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ExportPanel({ settings, onChange, supported, open, onToggle, extras, onExtras }) {
+  const host = useContext(HostContext);
+  const lossy = FORMATS.find((item) => item.id === settings.format)?.lossy;
+  return (
+    <Disclosure title="Output settings" open={open} onToggle={onToggle}>
           <div className="field">
             <span className="field-label" id="format-label">Format</span>
             <Select
@@ -655,7 +823,10 @@ function ExportPanel({ settings, onChange, supported, open, onToggle }) {
             />
           </div>
           <div className={`field${settings.format ? '' : ' is-off'}`}>
-            <span className="field-label">Aspect ratio</span>
+            <div className="field-label-row">
+              <span className="field-label">Aspect ratio</span>
+              <InfoTip label="About aspect ratio">A fixed aspect ratio crops each image from the centre.</InfoTip>
+            </div>
             <Select
               label="Aspect ratio"
               value={settings.aspect}
@@ -665,7 +836,10 @@ function ExportPanel({ settings, onChange, supported, open, onToggle }) {
             />
           </div>
           <div className={`field${settings.format ? '' : ' is-off'}`}>
-            <label className="field-label" htmlFor="max-width">Max width (px)</label>
+            <div className="field-label-row">
+              <label className="field-label" htmlFor="max-width">Max width (px)</label>
+              <InfoTip label="About max width">Leave the width empty to keep the original size. Images are never enlarged.</InfoTip>
+            </div>
             <input
               id="max-width"
               className="field-input"
@@ -678,9 +852,169 @@ function ExportPanel({ settings, onChange, supported, open, onToggle }) {
               onChange={(event) => onChange({ maxWidth: event.target.value })}
             />
           </div>
-          <p className="export-hint">A fixed aspect ratio crops from the centre. Leave the width empty to keep the original size; images are never enlarged.</p>
+          <label className="notice-agree">
+            <input type="checkbox" checked={extras.metadata} onChange={(event) => onExtras({ metadata: event.target.checked })} />
+            <span>Add alt text files (CSV and JSON)</span>
+          </label>
+          {host === 'docs' && (
+            <label className="notice-agree">
+              <input type="checkbox" checked={extras.markdown} onChange={(event) => onExtras({ markdown: event.target.checked })} />
+              <span>Add the Doc as Markdown (content.md)</span>
+            </label>
+          )}
+    </Disclosure>
+  );
+}
+
+/** Which images the exports, renames and optimizing apply to. The buttons act on the images currently listed. */
+function SelectionBar({ images, visible, chosenCount, allVisibleChosen, noAltCount, noAltOnly, onToggleAll, onNoAltOnly }) {
+  return (
+    <section className="export selection-bar" aria-label="Selection">
+      <div className="panel-texture" aria-hidden="true" />
+      <span className="selection-count" aria-live="polite">{chosenCount} of {images.length} selected</span>
+      <div className="selection-actions">
+        <button className="mini-button" type="button" disabled={visible.length === 0} onClick={onToggleAll}>{allVisibleChosen ? 'Clear' : 'Select all'}</button>
+        <button className="mini-button" type="button" aria-pressed={noAltOnly} disabled={noAltCount === 0 && !noAltOnly} title="Show only images that have no alt text" onClick={onNoAltOnly}>No alt text ({noAltCount})</button>
+      </div>
+    </section>
+  );
+}
+
+/** One pattern for every file name, with a live preview. Renames the list in the sidebar, not the Doc. */
+function RenamePanel({ images, docName, open, onToggle, onApply }) {
+  const [pattern, setPattern] = useState('{doc}-{n}');
+  const [start, setStart] = useState(1);
+  const [clean, setClean] = useState(true);
+  const [applied, setApplied] = useState(false);
+  const names = useMemo(
+    () => bulkNames(images, { pattern, start: Number.isFinite(start) ? start : 1, clean, docName: docName || 'image' }),
+    [images, pattern, start, clean, docName],
+  );
+  const shown = names.slice(0, 3);
+
+  const apply = () => {
+    onApply(Object.fromEntries(images.map((image, index) => [image.id, names[index]])));
+    setApplied(true);
+    window.setTimeout(() => setApplied(false), 1500);
+  };
+
+  return (
+    <Disclosure title="Bulk rename" open={open} onToggle={onToggle}>
+      <div className="field">
+        <div className="field-label-row">
+          <label className="field-label" htmlFor="rename-pattern">Name pattern</label>
+          <InfoTip label="About name patterns">{'{n}'} is the number, {'{name}'} the current name, {'{doc}'} the file name and {'{alt}'} the alt text. The file type stays as it is.</InfoTip>
+        </div>
+        <input id="rename-pattern" className="field-input" value={pattern} spellCheck="false" onChange={(event) => setPattern(event.target.value)} />
+      </div>
+      <div className="field">
+        <label className="field-label" htmlFor="rename-start">Start numbering at</label>
+        <input id="rename-start" className="field-input" type="number" min="0" inputMode="numeric" value={start} onChange={(event) => setStart(event.target.value === '' ? NaN : Number(event.target.value))} />
+      </div>
+      <label className="notice-agree">
+        <input type="checkbox" checked={clean} onChange={(event) => setClean(event.target.checked)} />
+        <span>Lowercase with hyphens</span>
+      </label>
+      <div className="field">
+        <span className="field-label">Preview</span>
+        <ul className="rename-preview" aria-label="Preview">
+          {shown.map((name, index) => (
+            <li key={images[index].id}>
+              <span className="rename-old" title={images[index].name}>{images[index].name}</span>
+              <span className="rename-new" title={name}>
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 5v6a3 3 0 0 0 3 3h11" /><path d="m15 10 4 4-4 4" /></svg>
+                <span>{name}</span>
+              </span>
+            </li>
+          ))}
+          {names.length > shown.length && <li className="rename-more">and {names.length - shown.length} more</li>}
+        </ul>
+      </div>
+      <button className="secondary-button" type="button" disabled={!pattern.trim() || images.length === 0} onClick={apply}>
+        {applied ? 'Renamed' : `Rename ${count(images.length, 'image')}`}
+      </button>
+    </Disclosure>
+  );
+}
+
+const PRESETS = [
+  { id: 'web', label: 'Web friendly (1600 px, 82%)', maxWidth: 1600, quality: 82 },
+  { id: 'light', label: 'Ultra light (1200 px, 75%)', maxWidth: 1200, quality: 75 },
+];
+const OPTIMIZABLE = ['image/jpeg', 'image/png', 'image/bmp'];
+
+/** Shrinks the file's own images in place. It gets JPEG or PNG back; the size each image is drawn at does not change. */
+function OptimizePanel({ images, serverCall, rescan, onBack }) {
+  const { noun, file } = useWords();
+  const [presetId, setPresetId] = useState('web');
+  const [agreed, setAgreed] = useState(false);
+  const [running, setRunning] = useState(false);
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
+  const [summary, setSummary] = useState(null);
+  const [error, setError] = useState('');
+  const preset = PRESETS.find((item) => item.id === presetId);
+  const candidates = images.filter((image) => OPTIMIZABLE.includes(image.mimeType)).length;
+
+  const run = async () => {
+    setRunning(true);
+    setError('');
+    setSummary(null);
+    let before = 0;
+    let after = 0;
+    let replaced = 0;
+    // One at a time and in order: each replacement keeps the image where it was, so the scan indexes stay valid.
+    for (const [position, image] of images.entries()) {
+      setProgress({ done: position, total: images.length });
+      try {
+        const smaller = await compressForDoc(image, preset);
+        if (!smaller) continue;
+        await serverCall('replaceDocumentImage', image.sourceIndex, await blobToBase64(smaller.blob), smaller.mimeType);
+        before += image.size;
+        after += smaller.blob.size;
+        replaced += 1;
+      } catch (failure) {
+        setError(`Stopped at image ${position + 1}: ${failure.message}`);
+        break;
+      }
+    }
+    setProgress({ done: images.length, total: images.length });
+    setSummary({ replaced, before, after });
+    setRunning(false);
+    await rescan();
+  };
+
+  return (
+    <section className="privacy-notice" aria-labelledby="optimize-title" aria-live="polite">
+      <div className="panel-texture" aria-hidden="true" />
+      <Asset name="mark" className="notice-mark" />
+      <h1 id="optimize-title">Optimize {noun} images</h1>
+      <p>Shrinks the images inside this {file} so it opens and scrolls faster. Each image is redrawn at the size it already has on the page.</p>
+      <p>{candidates} of {images.length} selected images can be optimized (JPEG, PNG and BMP). Others are left alone, and so is any image that would save less than a tenth.</p>
+      <div className="field">
+        <span className="field-label">Preset</span>
+        <Select label="Preset" value={presetId} options={PRESETS} onChange={setPresetId} disabled={running} />
+      </div>
+      <p className="export-hint">This replaces images in your open {file}. Make a copy first (File &gt; Make a copy). You can also go back with File &gt; Version history. Cropping or rotation set in the editor may be lost.</p>
+      <label className="notice-agree">
+        <input type="checkbox" checked={agreed} disabled={running} onChange={(event) => setAgreed(event.target.checked)} />
+        <span>I have a copy, or I am happy to replace the images in this {file}.</span>
+      </label>
+      {running && (
+        <>
+          <p>Optimizing image {Math.min(progress.done + 1, progress.total)} of {progress.total}…</p>
+          <div className="progress"><span style={{ width: `${(progress.done / Math.max(progress.total, 1)) * 100}%` }} /></div>
         </>
       )}
+      {summary && !running && (
+        <p>{summary.replaced ? `Replaced ${count(summary.replaced, 'image')}. ${formatSize(summary.before)} became ${formatSize(summary.after)} (${Math.round((1 - summary.after / summary.before) * 100)}% smaller).` : 'Nothing needed replacing.'}</p>
+      )}
+      {error && <p className="notice-error" role="alert">{error}</p>}
+      <div className="notice-actions">
+        <button className="secondary-button" type="button" disabled={running} onClick={onBack}>Back</button>
+        <button className="primary-button" type="button" disabled={!agreed || running || candidates === 0} onClick={run}>
+          {running ? 'Optimizing…' : `Optimize ${count(candidates, 'image')}`}
+        </button>
+      </div>
     </section>
   );
 }
@@ -702,7 +1036,7 @@ function PaywallNotice({ state, error, price, checkoutUrl, onBuy, onCheck }) {
             <p>Finish checking out in the tab that just opened. This screen updates by itself when your payment goes through.</p>
           ) : (
             <>
-              <p>Pluckr is a one-time purchase of {price}. Pay once and use it on any Doc with this Google account.</p>
+              <p>Pluckr is a one-time purchase of {price}. Pay once and use it on any Doc or Slides deck with this Google account.</p>
               <p>You check out securely with Polar. Pluckr never sees your card details, and uses your Google email only to find your licence. Document images are never sent to Pluckr's servers.</p>
               {state !== 'error' && (
                 <label className="notice-agree">
@@ -757,13 +1091,23 @@ function App() {
     window.google?.script?.run?.withFailureHandler(() => {}).setTheme(next);
   };
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
-  const [exportOpen, setExportOpen] = useState(false);
+  // One section open at a time: opening one closes the other.
+  const [openSection, setOpenSection] = useState(null);
+  const [missingOnly, setMissingOnly] = useState(false);
+  const visibleImages = missingOnly ? extractor.images.filter(lacksAlt) : extractor.images;
+  const exportOpen = openSection === 'export';
+  const toggleSection = (name) => setOpenSection((current) => (current === name ? null : name));
   const [supported, setSupported] = useState({});
   const [zipping, setZipping] = useState(false);
   const [exportError, setExportError] = useState('');
+  const [extras, setExtras] = useState({ metadata: false, markdown: false });
+  // The hash lets the optimize screen be opened directly in the dev preview, where the menu item is hidden.
+  const [view, setView] = useState(() => devFlags.get('view') || (devFlags.has('optimize') ? 'optimize' : 'images'));
   // A collapsed export section means "no conversion"; the choices are kept for when it reopens.
   const activeSettings = exportOpen ? settings : { ...settings, format: null };
-  const { results, converted, busy, convert } = useConverter(extractor.images, activeSettings);
+  const bundle = exportOpen ? { ...extras, markdown: extras.markdown && extractor.host === 'docs' } : { metadata: false, markdown: false };
+  const wantsBundle = bundle.metadata || bundle.markdown;
+  const { results, converted, busy, convert } = useConverter(extractor.chosen, activeSettings);
   const { format } = activeSettings;
   // The thumbnail previews the centred crop a fixed aspect ratio will make; otherwise the design's square.
   const previewAspect = format && activeSettings.aspect !== 'original' ? activeSettings.aspect.replace(':', ' / ') : '1 / 1';
@@ -784,22 +1128,40 @@ function App() {
   };
 
   const downloadAll = async () => {
-    if (!format) {
-      extractor.downloadAll();
+    if (!format && !wantsBundle) {
+      extractor.downloadAll(extractor.chosen);
       return;
     }
-    if (!converted) {
+    if (format && !converted) {
       convert();
       return;
     }
     setExportError('');
     setZipping(true);
     try {
-      const entries = extractor.images
-        .filter((image) => results[image.id]?.blob)
-        .map((image) => ({ name: processedName(image, results[image.id]), blob: results[image.id].blob }));
+      const entries = [];
+      for (const [position, image] of extractor.chosen.entries()) {
+        const result = results[image.id];
+        if (format && !result?.blob) continue;
+        entries.push({
+          blob: format ? result.blob : await originalBlob(image),
+          name: format ? processedName(image, result) : image.name,
+          width: format ? result.width : image.width,
+          height: format ? result.height : image.height,
+          format: format ? target.ext : String(image.mimeType || '').replace('image/', ''),
+          original: { ...image, sourceIndex: image.sourceIndex ?? position },
+        });
+      }
       if (!entries.length) throw new Error('Nothing could be exported in this format.');
-      saveBlob(await zipBlobs(entries), `images-${target.ext}.zip`);
+      let markdown = null;
+      if (bundle.markdown) {
+        const doc = await extractor.fetchMarkdown();
+        if (doc.imageCount !== extractor.images.length) throw new Error('The Markdown and the scanned images do not line up. Scan again and retry.');
+        markdown = doc.markdown;
+      }
+      const base = slug(extractor.documentName);
+      const zipName = markdown ? `${base}-export.zip` : format ? `images-${target.ext}.zip` : `${base}-images.zip`;
+      saveBlob(await zipBundle(entries, { metadata: bundle.metadata, markdown }), zipName);
     } catch (failure) {
       setExportError(failure.message);
     }
@@ -808,19 +1170,42 @@ function App() {
 
   const label = (() => {
     if (extractor.downloading || zipping) return 'Preparing download…';
-    if (!format) return 'Download originals';
+    if (!format) {
+      const all = extractor.chosen.length === extractor.images.length;
+      if (wantsBundle) return all ? 'Download bundle' : `Download bundle of ${extractor.chosen.length}`;
+      return all ? 'Download originals' : `Download ${count(extractor.chosen.length, 'original')}`;
+    }
     if (busy) return 'Converting…';
     if (!converted) return 'Convert';
-    return `Download ${extractor.images.length} as ${target.label}`;
+    return `Download ${extractor.chosen.length} as ${target.label}`;
   })();
 
   return (
+    <HostContext.Provider value={extractor.host}>
     <main className="app-shell">
       <div className="sidebar">
-<TopBar theme={theme} toggleTheme={toggleTheme} loading={extractor.loading} canScan={extractor.ready} extractImages={extractor.extractImages} closeSidebar={extractor.closeSidebar} logout={extractor.logout} />
-        {extractor.ready ? (
+<TopBar theme={theme} toggleTheme={toggleTheme} loading={extractor.loading} canScan={extractor.ready} extractImages={extractor.extractImages} closeSidebar={extractor.closeSidebar} logout={extractor.logout} onOptimize={extractor.ready && view === 'images' ? () => setView('optimize') : undefined} />
+        {extractor.ready && view === 'images' && extractor.images.length > 0 && !extractor.loading && (
+          <SelectionBar
+            images={extractor.images}
+            visible={visibleImages}
+            chosenCount={extractor.chosen.length}
+            allVisibleChosen={visibleImages.length > 0 && visibleImages.every((image) => !extractor.deselected.has(image.id))}
+            noAltCount={extractor.images.filter(lacksAlt).length}
+            noAltOnly={missingOnly}
+            onToggleAll={() => extractor.setMany(visibleImages.map((image) => image.id), !visibleImages.every((image) => !extractor.deselected.has(image.id)))}
+            onNoAltOnly={() => setMissingOnly((value) => !value)}
+          />
+        )}
+        {extractor.ready && view === 'optimize' ? (
+          <OptimizePanel images={extractor.chosen} serverCall={extractor.serverCall} rescan={extractor.extractImages} onBack={() => setView('images')} />
+        ) : extractor.ready ? (
           <Panel
             images={extractor.images}
+            deselected={extractor.deselected}
+            missingOnly={missingOnly}
+            onSelect={extractor.setSelected}
+            onSaveAlt={extractor.saveAlt}
             results={results}
           thumbAspect={previewAspect}
             loading={extractor.loading}
@@ -838,14 +1223,17 @@ function App() {
             onCheck={() => extractor.checkLicence()}
           />
         )}
-        {extractor.ready && (
+        {extractor.ready && view === 'images' && (
           <>
-          <ExportPanel settings={settings} onChange={updateSettings} supported={supported} open={exportOpen} onToggle={() => setExportOpen((value) => !value)} />
+          {extractor.chosen.length > 0 && (
+            <RenamePanel images={extractor.chosen} docName={extractor.documentName} open={openSection === 'rename'} onToggle={() => toggleSection('rename')} onApply={extractor.renameMany} />
+          )}
+          <ExportPanel settings={settings} onChange={updateSettings} supported={supported} open={exportOpen} onToggle={() => toggleSection('export')} extras={extras} onExtras={(patch) => setExtras((current) => ({ ...current, ...patch }))} />
           <button
             className="primary-button"
             type="button"
             onClick={downloadAll}
-            disabled={extractor.images.length === 0 || extractor.loading || extractor.downloading || zipping || busy}
+            disabled={extractor.chosen.length === 0 || extractor.loading || extractor.downloading || zipping || busy}
           >
             <span className="trim">{label}</span>
           </button>
@@ -853,6 +1241,7 @@ function App() {
         )}
       </div>
     </main>
+    </HostContext.Provider>
   );
 }
 

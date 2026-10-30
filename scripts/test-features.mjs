@@ -1,0 +1,232 @@
+// Checks the alt-text/Markdown bundle (src/bundle.js) and the Doc-reading and Doc-writing code in apps-script/Code.gs
+// against a small mock of Google's DocumentApp. Run: node scripts/test-features.mjs
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
+import { unzipSync, strFromU8 } from 'fflate';
+import { bulkNames } from '../src/rename.js';
+import { linkMarkdownImages, metadataCsv, uniqueNames, zipBundle } from '../src/bundle.js';
+
+// ---- bundle.js ----
+assert.deepEqual(uniqueNames(['a.png', 'b.png', 'a.png', 'a.png']), ['a.png', 'b.png', '(1) a.png', '(2) a.png']);
+assert.equal(
+  metadataCsv([{ filename: 'a.webp', original_name: 'a.png', alt_title: 'Say "hi"', alt_description: 'one, two', width: 10, height: 5, format: 'webp', link_url: '' }]),
+  'filename,original_name,alt_title,alt_description,width,height,format,link_url'.split(',').map((c) => `"${c}"`).join(',') +
+  '\n"a.webp","a.png","Say ""hi""","one, two","10","5","webp",""\n',
+);
+assert.equal(linkMarkdownImages('![a](pluckr-image:0) ![b](pluckr-image:3)', { 0: './images/my pic.webp' }), '![a](./images/my%20pic.webp) ', 'an unticked image is dropped');
+assert.equal(linkMarkdownImages('x [![b \\] c](pluckr-image:3)](https://l.test) y', {}), 'x  y', 'its link goes with it');
+
+const entry = (name, sourceIndex, alt) => ({
+  blob: new Blob([new Uint8Array([1, 2, 3])]), name, width: 4, height: 3, format: 'png',
+  original: { name: `src-${name}`, sourceIndex, altTitle: 'T', altDescription: alt, linkUrl: '' },
+});
+const zip = unzipSync(new Uint8Array(await (await zipBundle([entry('a.png', 0, 'First'), entry('a.png', 1, 'Second')], { metadata: true, markdown: '![First](pluckr-image:0)\n![Second](pluckr-image:1)\n' })).arrayBuffer()));
+assert.deepEqual(Object.keys(zip).sort(), ['content.md', 'images-metadata.csv', 'images-metadata.json', 'images/(1) a.png', 'images/a.png']);
+assert.match(strFromU8(zip['content.md']), /\(\.\/images\/a\.png\)[\s\S]*\(\.\/images\/\(1\)%20a\.png\)/);
+assert.equal(JSON.parse(strFromU8(zip['images-metadata.json']))[1].filename, '(1) a.png');
+const flat = unzipSync(new Uint8Array(await (await zipBundle([entry('a.png', 0, '')])).arrayBuffer()));
+assert.deepEqual(Object.keys(flat), ['a.png'], 'no extras: a flat ZIP like before');
+
+// ---- rename.js ----
+const pics = [{ name: 'image-01.PNG', altDescription: 'A Chart: Q3!' }, { name: 'photo.jpg' }, { name: 'photo2.jpg' }];
+assert.deepEqual(bulkNames(pics, { pattern: '{doc}-{n}', docName: 'My Doc', clean: true }), ['my-doc-01.PNG', 'my-doc-02.jpg', 'my-doc-03.jpg']);
+assert.deepEqual(bulkNames(pics, { pattern: '{alt}', clean: true }), ['a-chart-q3.PNG', 'photo.jpg', 'photo2.jpg'], 'no alt text falls back to the name');
+assert.deepEqual(bulkNames(pics, { pattern: 'same', clean: false }), ['same.PNG', 'same.jpg', 'same-2.jpg'], 'clashes get a number');
+assert.deepEqual(bulkNames(pics, { pattern: 'x/{n}.png', start: 9 }).slice(0, 2), ['x-09.PNG', 'x-10.jpg'], 'path characters go, a typed extension is not doubled');
+assert.deepEqual(bulkNames([{ name: 'a.png' }], { pattern: '   ', clean: true }), ['a.png'], 'an empty pattern keeps the name');
+console.log('bundle.js and rename.js: all checks passed');
+
+// ---- Code.gs against a mock Doc ----
+const T = { PARAGRAPH: 'P', LIST_ITEM: 'L', TABLE: 'TABLE', HORIZONTAL_RULE: 'HR', TEXT: 'TEXT', INLINE_IMAGE: 'IMG' };
+const H = { TITLE: 'TITLE', HEADING1: 'H1', HEADING2: 'H2', HEADING3: 'H3', HEADING4: 'H4', HEADING5: 'H5', HEADING6: 'H6', NORMAL: 'N' };
+const node = (type, extra = {}, children = []) => {
+  const self = { getType: () => type, getNumChildren: () => children.length, getChild: (i) => children[i], ...extra };
+  Object.assign(self, { asParagraph: () => self, asListItem: () => self, asTable: () => self, asText: () => self, asInlineImage: () => self });
+  return self;
+};
+const run = (text, style = {}) => ({ text, ...style });
+const text = (runs) => {
+  const full = runs.map((r) => r.text).join('');
+  const starts = [];
+  let at = 0;
+  runs.forEach((r) => { starts.push(at); at += r.text.length; });
+  const at_ = (o) => runs[starts.filter((s) => s <= o).length - 1];
+  return node(T.TEXT, {
+    getText: () => full, getTextAttributeIndices: () => starts,
+    getFontFamily: (o) => at_(o).font || 'Arial', isBold: (o) => Boolean(at_(o).bold), isItalic: (o) => Boolean(at_(o).italic),
+    isStrikethrough: () => false, getLinkUrl: (o) => at_(o).link || null,
+  });
+};
+const image = (alt, link) => node(T.INLINE_IMAGE, { getAltDescription: () => alt, getAltTitle: () => null, getLinkUrl: () => link || null });
+const para = (heading, kids) => node(T.PARAGRAPH, { getHeading: () => heading }, kids);
+const item = (level, glyph, kids) => node(T.LIST_ITEM, { getNestingLevel: () => level, getGlyphType: () => glyph }, kids);
+const cell = (kids) => node('CELL', {}, kids);
+const table = (rows) => node(T.TABLE, { getNumRows: () => rows.length, getRow: (r) => node('ROW', { getNumCells: () => rows[r].length, getCell: (c) => rows[r][c] }) });
+
+const body = node('BODY', {}, [
+  para(H.HEADING1, [text([run('Title', { bold: true })])]),
+  para(H.NORMAL, [text([run('Hello '), run('world', { bold: true }), run(' and '), run('site', { link: 'https://x.test' }), run(' a_b', {})])]),
+  para(H.NORMAL, [image('A chart', null)]),
+  para(H.NORMAL, [image(null, null)]),
+  item(0, 'BULLET', [text([run('one')])]),
+  item(1, 'NUMBER', [text([run('nested')])]),
+  node(T.HORIZONTAL_RULE),
+  table([[cell([para(H.NORMAL, [text([run('H1')])])]), cell([para(H.NORMAL, [text([run('H2')])])])], [cell([para(H.NORMAL, [image('In cell', 'https://l.test')])]), cell([para(H.NORMAL, [text([run('x|y')])])])]]),
+]);
+const doc = { getName: () => 'Doc', getTabs: () => [{ getType: () => 'DOC', asDocumentTab: () => ({ getBody: () => body }), getChildTabs: () => [] }] };
+
+const calls = [];
+const sandbox = {
+  Date, Logger: { log() {} },
+  PropertiesService: { getScriptProperties: () => ({ getProperty: () => 'secret' }) },
+  ScriptApp: { getIdentityToken: () => 'h.' + Buffer.from('{"sub":"s"}').toString('base64url') + '.x' },
+  Utilities: {
+    computeHmacSha256Signature: () => [], base64EncodeWebSafe: () => 'sig',
+    base64DecodeWebSafe: (t) => [...Buffer.from(t, 'base64')], newBlob: (b, mime, name) => ({ b, mime, name, getDataAsString: () => Buffer.from(b).toString() }),
+    base64Decode: (t) => [...Buffer.from(t, 'base64')],
+  },
+  DocumentApp: { ElementType: { ...T, LIST_ITEM: T.LIST_ITEM }, ParagraphHeading: H, TabType: { DOCUMENT_TAB: 'DOC' }, getActiveDocument: () => doc, getUi: () => ({}) },
+};
+vm.createContext(sandbox);
+vm.runInContext(readFileSync('apps-script/Code.gs', 'utf8'), sandbox);
+
+// The menu is the add-on menu (Extensions > Pluckr), never a top-level one, in Docs too.
+const docsMenu = [];
+sandbox.DocumentApp.getUi = () => ({
+  createAddonMenu: () => ({ addItem(label, fn) { docsMenu.push([label, fn]); return this; }, addToUi() {} }),
+  createMenu: () => { throw new Error('a top-level menu is not allowed'); },
+});
+sandbox.onOpen();
+assert.deepEqual(docsMenu, [['Extract images (Google reads this Doc’s images)', 'openPluckrSidebar']]);
+
+// Both new calls sit behind the paywall.
+for (const call of [() => sandbox.getDocumentMarkdown('bad'), () => sandbox.replaceDocumentImage(0, '', 'image/jpeg', 'bad'), () => sandbox.setImageAlt(0, '', '', 'bad')]) {
+  assert.throws(call, /LICENCE_REQUIRED/);
+}
+
+// With the gate open, read the mock Doc.
+sandbox.requireEntitlement_ = () => {};
+const { markdown, imageCount } = sandbox.getDocumentMarkdown('ok');
+assert.equal(imageCount, 3);
+assert.equal(markdown, [
+  '# Title',
+  '',
+  'Hello **world** and [site](https://x.test) a\\_b',
+  '',
+  '![A chart](pluckr-image:0)',
+  '',
+  '![](pluckr-image:1)',
+  '',
+  '- one',
+  '    1. nested',
+  '',
+  '---',
+  '',
+  '| H1 | H2 |',
+  '| --- | --- |',
+  '| [![In cell](pluckr-image:2)](https://l.test) | x\\|y |',
+  '',
+].join('\n'));
+
+// Replacing an image keeps its displayed size, alt text and link, and removes the old one.
+const log = [];
+const made = { setWidth(w) { log.push(['w', w]); return this; }, setHeight(h) { log.push(['h', h]); return this; }, setAltTitle: (v) => log.push(['title', v]), setAltDescription: (v) => log.push(['alt', v]), setLinkUrl: (v) => log.push(['link', v]) };
+const parent = { getType: () => T.PARAGRAPH, getChildIndex: () => 2, asParagraph: () => ({ insertInlineImage: (at, blob) => { log.push(['insert', at, blob.mime]); return made; } }) };
+const old = { getParent: () => parent, getWidth: () => 300, getHeight: () => 200, getAltTitle: () => 'T', getAltDescription: () => 'D', getLinkUrl: () => 'https://l.test', removeFromParent: () => log.push(['removed']) };
+sandbox.collectDocumentImages_ = () => [old];
+sandbox.replaceDocumentImage(0, Buffer.from('x').toString('base64'), 'image/jpeg', 'ok');
+assert.deepEqual(log, [['insert', 2, 'image/jpeg'], ['w', 300], ['h', 200], ['title', 'T'], ['alt', 'D'], ['link', 'https://l.test'], ['removed']]);
+assert.throws(() => sandbox.replaceDocumentImage(0, '', 'image/webp', 'ok'), /Unsupported/);
+assert.throws(() => sandbox.replaceDocumentImage(5, '', 'image/png', 'ok'), /no longer/);
+
+// Saving alt text writes both fields and clears them when told to.
+const alts = [];
+const target = { setAltTitle: (v) => alts.push(['title', v]), setAltDescription: (v) => alts.push(['alt', v]) };
+sandbox.collectDocumentImages_ = () => [target];
+sandbox.setImageAlt(0, 'T', 'A chart', 'ok');
+sandbox.setImageAlt(0, null, null, 'ok');
+assert.deepEqual(alts, [['title', 'T'], ['alt', 'A chart'], ['title', ''], ['alt', '']]);
+assert.throws(() => sandbox.setImageAlt(3, '', '', 'ok'), /no longer/);
+console.log('Code.gs markdown, replace and alt text: all checks passed');
+
+// ---- Code.gs in Google Slides ----
+const slideImage = (name, { title = '', description = '', link = null, bytes = [1, 2, 3] } = {}) => {
+  const calls = [];
+  const image = {
+    calls,
+    getBlob: () => ({ getBytes: () => bytes, getContentType: () => 'image/png' }),
+    getWidth: () => 300, getHeight: () => 200,
+    getTitle: () => title, getDescription: () => description,
+    getLink: () => (link ? { getLinkType: () => 'URL', getUrl: () => link } : null),
+    setTitle: (v) => calls.push(['title', v]), setDescription: (v) => calls.push(['alt', v]), setLinkUrl: (v) => calls.push(['link', v]),
+    replace(blob, crop) { calls.push(['replace', blob.mime, crop]); return image; },
+  };
+  return { image, element: { getPageElementType: () => 'IMAGE', asImage: () => image } };
+};
+const first = slideImage('a', { title: 'T', description: 'A chart', link: 'https://l.test' });
+const nested = slideImage('b');
+const third = slideImage('c');
+const shape = { getPageElementType: () => 'SHAPE' };
+const group = { getPageElementType: () => 'GROUP', asGroup: () => ({ getChildren: () => [nested.element] }) };
+const deck = {
+  getName: () => 'My Deck',
+  getSlides: () => [{ getPageElements: () => [first.element, shape, group] }, { getPageElements: () => [] }, { getPageElements: () => [third.element] }],
+};
+const menu = [];
+const slidesLimited = { on: true };
+const slidesSandbox = {
+  Date, Logger: { log() {} },
+  PropertiesService: { getScriptProperties: () => ({ getProperty: () => 'secret' }) },
+  ScriptApp: { getIdentityToken: () => 'h.' + Buffer.from('{"sub":"s"}').toString('base64url') + '.x' },
+  Utilities: {
+    base64Encode: (bytes) => Buffer.from(bytes).toString('base64'), base64Decode: (text) => [...Buffer.from(text, 'base64')],
+    computeHmacSha256Signature: () => [], base64EncodeWebSafe: () => 'sig',
+    base64DecodeWebSafe: (text) => [...Buffer.from(text, 'base64')],
+    newBlob: (b, mime, name) => ({ b, mime, name, getDataAsString: () => Buffer.from(b).toString() }),
+  },
+  // Outside Docs, DocumentApp refuses getUi() like the real one does.
+  DocumentApp: { getActiveDocument: () => null, getUi: () => { throw new Error('Cannot call DocumentApp.getUi() from this context.'); } },
+  SlidesApp: {
+    PageElementType: { IMAGE: 'IMAGE', GROUP: 'GROUP' }, LinkType: { URL: 'URL' },
+    // Before authorization (onOpen), the real getActivePresentation() throws. Detection must not need it.
+    getActivePresentation: () => { if (slidesLimited.on) throw new Error('Authorization is required.'); return deck; },
+    getUi: () => ({ createAddonMenu: () => ({ addItem(label, fn) { menu.push(['addon', label, fn]); return this; }, addToUi() {} }) }),
+  },
+};
+vm.createContext(slidesSandbox);
+vm.runInContext(readFileSync('apps-script/Code.gs', 'utf8'), slidesSandbox);
+
+slidesSandbox.onOpen();
+assert.deepEqual(menu, [['addon', 'Extract images (Google reads this deck’s images)', 'openPluckrSidebar']], 'the menu appears even before the add-on is authorized');
+slidesLimited.on = false;
+assert.throws(() => slidesSandbox.getDocumentInfo('bad'), /LICENCE_REQUIRED/);
+slidesSandbox.requireEntitlement_ = () => {};
+assert.deepEqual({ ...slidesSandbox.getDocumentInfo('ok') }, { documentName: 'My Deck', host: 'slides', count: 3 });
+
+const img0 = slidesSandbox.getDocumentImage(0, 'ok');
+assert.equal(img0.name, 'slide-01-image-01.png');
+assert.equal(img0.altTitle, 'T');
+assert.equal(img0.altDescription, 'A chart');
+assert.equal(img0.linkUrl, 'https://l.test');
+assert.equal(slidesSandbox.getDocumentImage(1, 'ok').name, 'slide-01-image-02.png', 'images in a group are found');
+const img2 = slidesSandbox.getDocumentImage(2, 'ok');
+assert.equal(img2.name, 'slide-03-image-01.png');
+assert.deepEqual([img2.altTitle, img2.altDescription, img2.linkUrl], ['', '', ''], 'an image with no alt text or link');
+assert.throws(() => slidesSandbox.getDocumentImage(9, 'ok'), /no longer/);
+
+slidesSandbox.setImageAlt(0, 'New', 'Described', 'ok');
+assert.deepEqual(first.image.calls.splice(0), [['title', 'New'], ['alt', 'Described']]);
+
+slidesSandbox.replaceDocumentImage(0, Buffer.from('x').toString('base64'), 'image/jpeg', 'ok');
+assert.deepEqual(first.image.calls.splice(0), [['replace', 'image/jpeg', false], ['title', 'T'], ['alt', 'A chart'], ['link', 'https://l.test']], 'the swap keeps alt text and link');
+slidesSandbox.replaceDocumentImage(2, Buffer.from('x').toString('base64'), 'image/png', 'ok');
+assert.deepEqual(third.image.calls.splice(0), [['replace', 'image/png', false]], 'nothing to restore on a plain image');
+assert.throws(() => slidesSandbox.getDocumentMarkdown('ok'), /only available in Google Docs/);
+
+// Neither editor: a clear message instead of a crash.
+const nowhere = { ...slidesSandbox, SlidesApp: { getUi: () => { throw new Error('no'); } } };
+const lost = vm.createContext({ ...nowhere });
+vm.runInContext(readFileSync('apps-script/Code.gs', 'utf8'), lost);
+assert.throws(() => lost.host_(), /Google Doc or a Google Slides deck/);
+console.log('Code.gs in Slides: all checks passed');

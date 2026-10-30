@@ -1,0 +1,1504 @@
+<!DOCTYPE html><!--  This site was created in Webflow. https://webflow.com  --><!--  Last Published: Sun Sep 06 2026 09:21:15 GMT+0000 (Coordinated Universal Time)  -->
+<html data-wf-page="6a567b10e382ae0ed963a1b7" data-wf-site="6a567b0de382ae0ed963a110" lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Extract and Convert Images in Google Docs and Slides | Pluckr</title>
+  <meta content="Pull every image out of a Google Doc or Slides deck. Convert to WebP or AVIF, edit alt text, export Markdown. One-time $5, runs in your browser." name="description">
+  <meta content="Extract and Convert Images in Google Docs and Slides | Pluckr" property="og:title">
+  <meta content="Pull every image out of a Google Doc or Slides deck. Convert to WebP or AVIF, edit alt text, export Markdown. One-time $5, runs in your browser." property="og:description">
+  <meta content="Extract and Convert Images in Google Docs and Slides | Pluckr" name="twitter:title">
+  <meta content="Pull every image out of a Google Doc or Slides deck. Convert to WebP or AVIF, edit alt text, export Markdown. One-time $5, runs in your browser." name="twitter:description">
+  <meta property="og:type" content="website">
+  <meta content="summary_large_image" name="twitter:card">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <meta content="Webflow" name="generator">
+  <link href="css/normalize.css" rel="stylesheet" type="text/css">
+  <link href="css/webflow.css" rel="stylesheet" type="text/css">
+  <link href="css/pluckr.webflow.css" rel="stylesheet" type="text/css">
+  <script type="text/javascript">!function(o,c){var n=c.documentElement,t=" w-mod-";n.className+=t+"js",("ontouchstart"in o||o.DocumentTouch&&c instanceof DocumentTouch)&&(n.className+=t+"touch")}(window,document);</script>
+  <link href="images/favicon.png" rel="icon" type="image/png" sizes="32x32" media="(prefers-color-scheme: light)">
+  <link href="images/favicon-dark.png" rel="icon" type="image/png" sizes="32x32" media="(prefers-color-scheme: dark)">
+  <link href="images/favicon-48.png" rel="icon" type="image/png" sizes="48x48">
+  <link href="images/webclip-180.png" rel="apple-touch-icon" sizes="180x180">
+  <link href="images/webclip-192.png" rel="icon" type="image/png" sizes="192x192">
+  <link href="images/webclip.png" rel="icon" type="image/png" sizes="512x512">
+  <style>
+    @font-face {
+      font-family: "PP Neue Montreal";
+      src: url("fonts/PPNeueMontreal-Medium.ttf") format("truetype");
+      font-weight: 500; font-style: normal; font-display: swap;
+    }
+.hero3 {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows: auto 1fr auto;
+      min-height: max(640px, 100svh);
+      overflow: hidden;
+      background: #000;
+      --black: #000; --page: #0b0b0b; --panel: #0d0d0d; --edge: rgba(255, 255, 255, 0.05); --edge-card: rgba(255, 255, 255, 0.1);
+      --edge-card-strong: rgba(255, 255, 255, 0.12); --white: #fff; --muted: rgba(255, 255, 255, 0.6);
+      --blue: #0062fb; --blue-hover: #1a73ff;
+      color: var(--white);
+      font-family: "PP Neue Montreal", "Helvetica Neue", Arial, sans-serif;
+      font-weight: 500;
+      font-synthesis: none;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.hero3 .stage { background: #0a0a0a; grid-column: 2; grid-row: 1 / 4; position: relative; align-self: stretch; min-height: 0; overflow: hidden; --s: 0.9; }
+.hero3 .sidebar-wrap { position: absolute; left: 50%; top: 50%; width: 300px; height: 740px; transform: translate(-50%, -50%) scale(var(--s)); transform-origin: center center; }
+.hero3 .sidebar { display: flex; flex-direction: column; gap: 8px; width: 100%; height: 100%; padding: 8px; overflow: hidden; background: var(--black); border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.08); user-select: none; }
+.hero3 .top-bar { display: flex; flex: none; align-items: center; gap: 8px; padding: 8px; }
+.hero3 .top-bar .brand-mark, .hero3 .top-bar .icon-button img { display: block; width: 18px; height: 18px; flex: none; }
+.hero3 .brand { flex: 1 0 0; min-width: 1px; font-size: 18px; line-height: normal; text-transform: uppercase; }
+.hero3 .icon-button { display: grid; flex: none; place-items: center; width: 18px; height: 18px; border-radius: 4px; }
+.hero3 .panel { position: relative; display: flex; flex: 1 0 0; min-height: 1px; flex-direction: column; gap: 12px; padding: 4px; overflow: hidden; border: 1px solid var(--edge); border-radius: 16px; background: var(--panel); }
+.hero3 .panel > * { position: relative; z-index: 1; }
+.hero3 .image-row { display: flex; flex: none; flex-direction: column; gap: 4px; padding: 12px; border: 1px solid var(--edge-card); border-radius: 12px; background: var(--black); }
+.hero3 .thumb { display: block; width: 100%; aspect-ratio: 1 / 1; border-radius: 12px; object-fit: cover; background: var(--panel); }
+.hero3 .image-info { display: flex; flex-direction: column; gap: 8px; padding: 18px 12px; }
+.hero3 .name-row { display: flex; align-items: center; gap: 4px; }
+.hero3 .image-name { flex: 1 0 0; min-width: 1px; overflow: hidden; font-size: 16px; line-height: normal; text-overflow: ellipsis; white-space: nowrap; }
+.hero3 .image-name .caret { display: none; width: 1px; height: 1em; margin-left: 1px; vertical-align: -2px; background: var(--white); animation: blink 1s steps(1) infinite; }
+.hero3 .image-name.is-editing .caret { display: inline-block; }
+@keyframes blink { 50% { opacity: 0; } }
+.hero3 .edit-button { display: grid; flex: none; place-items: center; width: 18px; height: 18px; border-radius: 4px; }
+.hero3 .edit-button img { display: block; width: 18px; height: 18px; }
+.hero3 .meta-row { display: flex; gap: 8px; font-size: 12px; line-height: normal; white-space: nowrap; }
+.hero3 .actions { display: flex; align-items: flex-end; justify-content: center; gap: 4px; }
+.hero3 .action-button { display: flex; flex: 1 0 0; min-width: 1px; align-items: center; justify-content: center; padding: 12px; border: 1px solid var(--edge-card); border-radius: 12px; background: var(--panel); font-size: 12px; line-height: normal; text-transform: uppercase; white-space: nowrap; }
+.hero3 .action-button + .action-button { border-color: var(--edge-card-strong); }
+.hero3 .is-pressed.action-button, .hero3 .is-pressed.select-button, .hero3 .is-pressed.export-toggle { background: #171717; }
+.hero3 .primary-button { display: flex; flex: none; align-items: center; justify-content: center; width: 100%; padding: 16px; border-radius: 16px; background: var(--blue); color: var(--white); font-size: 12px; line-height: normal; text-transform: uppercase; white-space: nowrap; transition: background 0.12s ease; }
+.hero3 .primary-button.is-pressed { background: var(--blue-hover); }
+.hero3 .primary-button.is-busy { opacity: 0.55; }
+.hero3 .export { position: relative; display: flex; flex: none; flex-direction: column; gap: 16px; padding: 12px; border: 1px solid var(--edge); border-radius: 16px; background: var(--panel); }
+.hero3 .export-toggle { display: flex; align-items: center; justify-content: space-between; width: calc(100% + 24px); padding: 12px; margin: -12px; border-radius: 16px; font-size: 12px; line-height: normal; text-transform: uppercase; }
+.hero3 .chevron { display: block; flex: none; width: 15px; height: 15px; transition: transform 0.15s ease; }
+.hero3 .chevron.is-closed { transform: rotate(-90deg); }
+.hero3 .export-body { display: none; flex-direction: column; gap: 16px; }
+.hero3 .export.is-open .export-body { display: flex; }
+.hero3 .field { display: flex; flex-direction: column; gap: 8px; }
+.hero3 .field.is-off > :not(.field-label):not(.field-head) { opacity: 0.4; }
+.hero3 .field.is-off .field-value { opacity: 0.4; }
+.hero3 .field-label { color: var(--muted); font-size: 12px; line-height: normal; }
+.hero3 .field-head { display: flex; align-items: baseline; justify-content: space-between; }
+.hero3 .field-value { font-size: 12px; line-height: normal; }
+.hero3 .select { position: relative; }
+.hero3 .select-button { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 14px 16px; border: 1px solid var(--edge-card); border-radius: 12px; background: var(--panel); font-size: 12px; line-height: normal; }
+.hero3 .select-button.is-open { background: #171717; }
+.hero3 .select-list { position: absolute; left: 0; right: 0; bottom: calc(100% + 4px); z-index: 4; display: none; flex-direction: column; gap: 2px; max-height: 240px; overflow: hidden; padding: 4px; border: 1px solid var(--edge-card); border-radius: 8px; background: var(--panel); }
+.hero3 .select.is-open .select-list { display: flex; }
+.hero3 .select-option { display: block; width: 100%; padding: 12px; border-radius: 6px; font-size: 12px; line-height: normal; text-align: left; }
+.hero3 .select-option.is-selected { background: rgba(255, 255, 255, 0.12); }
+.hero3 .select-option.is-pressed { background: rgba(255, 255, 255, 0.2); }
+.hero3 .field-input { width: 100%; padding: 14px 16px; border: 1px solid var(--edge-card); border-radius: 12px; background: var(--panel); font-size: 12px; line-height: normal; color: var(--muted); }
+.hero3 .slider { position: relative; height: 6px; margin: 5px 0; border-radius: 6px; background: linear-gradient(to right, var(--blue) 80%, rgba(255, 255, 255, 0.12) 80%); }
+.hero3 .slider::after { content: ""; position: absolute; left: 80%; top: 50%; box-sizing: border-box; width: 16px; height: 16px; margin: -8px 0 0 -8px; border: 3px solid var(--panel); border-radius: 50%; background: var(--blue); }
+.hero3 .export-hint { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.hero3 .spin { display: inline-block; width: 12px; height: 12px; margin-right: 8px; vertical-align: -1px; border: 2px solid rgba(255, 255, 255, 0.25); border-top-color: var(--white); border-radius: 50%; animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.hero3 .cursor { position: absolute; left: 0; top: 0; z-index: 10; width: 26px; height: 26px; pointer-events: none; opacity: 0; will-change: transform; }
+.hero3 .cursor.is-on { opacity: 1; }
+.hero3 .cursor svg { display: block; width: 100%; height: 100%; transform-origin: 20% 12%; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45)); }
+@media (max-width: 520px) {
+
+}
+    .hero3 *, .hero3 *::before, .hero3 *::after { box-sizing: border-box; }
+    .hero3 .sidebar-wrap :is(h1, p)::before, .hero3 .sidebar-wrap :is(h1, p)::after { content: none !important; display: none !important; }
+    .hero3 img { max-width: none; vertical-align: baseline; }
+    .hero3 a { text-decoration: none; }
+    
+    .hero3 .cta, 
+  
+    /* Two columns: the live sidebar on the left, the logo, headline and button on the right. */
+    /* Same container as the sections below: max width and side margin come from the site's own variables. */
+    .hero3 { width: min(var(--max-width--main), 100% - var(--site--margin) * 2); margin-inline: auto; column-gap: var(--site--gutter); grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); grid-template-rows: 1fr; min-height: max(640px, 100svh); background: transparent; }
+    .hero3 .stage { grid-column: 1; grid-row: 1; background: none; }
+    .hero3 .hero_text { grid-column: 2; grid-row: 1; align-self: center; display: flex; flex-direction: column; gap: 32px; padding: 64px 0; }
+    .hero3 .hero_text .logo_wrap { flex: none; }
+    .hero3 .foot { grid-column: 2; grid-row: 1; align-self: end; padding: 0 0 24px; font-size: 12px; color: rgba(255, 255, 255, 0.58); }
+    .hero3 .foot a { text-decoration: underline; color: inherit; }
+    @media (max-width: 960px) {
+      .hero3 { grid-template-columns: 1fr; grid-template-rows: auto auto auto; height: auto; min-height: 0; overflow: visible; }
+      .hero3 .hero_text { grid-column: 1; grid-row: 1; padding: 48px 0 8px; }
+      .hero3 .stage { grid-column: 1; grid-row: 2; min-height: 760px; }
+      /* Full width on small screens: the sidebar fills the stage instead of a scaled 300px column. */
+      .hero3 .sidebar-wrap { left: 0; top: 0; width: 100%; height: 100%; transform: none; }
+      .hero3 .foot { grid-column: 1; grid-row: 3; padding: 0 0 24px; }
+    }
+  </style>
+  <link rel="canonical" href="https://docpluckr.com/">
+  <meta property="og:url" content="https://docpluckr.com/">
+  <meta property="og:site_name" content="Pluckr">
+  <meta property="og:image" content="https://docpluckr.com/images/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Pluckr sidebar listing the images in a Google Doc, with the headline Extract and convert Google Docs images">
+  <meta name="twitter:image" content="https://docpluckr.com/images/og-image.png">
+  <script type="application/ld+json">[{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Pluckr", "applicationCategory": "BrowserApplication", "operatingSystem": "Web (Google Docs and Google Slides add-on)", "description": "Pull every image out of a Google Doc or Slides deck. Convert to WebP or AVIF, edit alt text, export Markdown. One-time $5, runs in your browser.", "url": "https://docpluckr.com/", "image": "https://docpluckr.com/images/og-image.png", "offers": {"@type": "Offer", "price": "5.00", "priceCurrency": "USD"}, "featureList": ["Extract every image from a Google Doc or Google Slides deck", "Select the images to export", "Rename images in bulk with a pattern", "Convert images to WebP, AVIF, JPEG or PNG", "Crop to an aspect ratio and set a maximum width", "See, edit and export image alt text", "Export a Google Doc as Markdown with an images folder", "Shrink the images inside a Doc or deck in place"]}, {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How do I download all images from a Google Doc?", "acceptedAnswer": {"@type": "Answer", "text": "Open the Doc, choose Extensions → Pluckr → Extract images, then press Download originals to get every image in one ZIP. Google Docs has no built-in button for this. The manual routes are File → Download → Web page (.html, zipped), or renaming a downloaded .docx to .zip. Our step-by-step guide compares all four methods."}}, {"@type": "Question", "name": "Does Pluckr work with Google Slides?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Open Pluckr from a Slides deck to list every picture on every slide, including grouped ones, then select, rename, convert and download them. Markdown export is only available in Docs."}}, {"@type": "Question", "name": "Can I convert Google Docs images to WebP or AVIF?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Open Output settings, choose WebP, AVIF, JPEG or PNG, set the quality, an optional aspect ratio and a maximum width, then press Convert. Each image shows its new size before you download, and the conversion runs in your browser. See how to convert Google Docs images to WebP or AVIF."}}, {"@type": "Question", "name": "Can I export a Google Doc as Markdown with images?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, in Docs. Tick the Markdown option in Output settings and your download includes a content.md file and an images folder, with the images linked and their alt text kept. It suits blogs, static sites and Obsidian."}}, {"@type": "Question", "name": "Can Pluckr edit or export image alt text?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Pluckr shows each image’s alt text and counts the images that have none. Filter to those, write a description in the sidebar and save it to the file, or add alt text files (CSV and JSON) to your download."}}, {"@type": "Question", "name": "How much does Pluckr cost? Is there a subscription?", "acceptedAnswer": {"@type": "Answer", "text": "Pluckr costs $5 once for your Google account, for both Docs and Slides. There is no subscription, and refunds are available within 14 days. See the terms."}}, {"@type": "Question", "name": "Are my images uploaded anywhere?", "acceptedAnswer": {"@type": "Answer", "text": "Pluckr does not send images to a separate Pluckr server. Google Apps Script reads images from the current document and prepares original-image ZIP downloads; image conversion runs locally in your browser."}}, {"@type": "Question", "name": "Do I need a Google account?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Pluckr runs as a Google Docs and Google Slides add-on and asks for access to the current file so it can read and export its images."}}, {"@type": "Question", "name": "What image formats are supported?", "acceptedAnswer": {"@type": "Answer", "text": "Pluckr can convert images to AVIF, WebP, JPEG, or PNG. Choose one output format at a time; quality controls are available for lossy formats."}}, {"@type": "Question", "name": "Why are some images missing when I scan?", "acceptedAnswer": {"@type": "Answer", "text": "Pluckr extracts embedded inline images in the document body, including those in tables and nested document tabs. In Slides it finds pictures on slides, including grouped ones, but not images used as shape fills or backgrounds. It does not currently extract floating images or images in headers, footers, or footnotes in Docs."}}, {"@type": "Question", "name": "Does it support GIFs or BMPs?", "acceptedAnswer": {"@type": "Answer", "text": "Pluckr can extract these as originals when they are embedded inline. Converting a format depends on whether your browser can decode the image and supports the selected output format."}}, {"@type": "Question", "name": "Does Pluckr change my file?", "acceptedAnswer": {"@type": "Answer", "text": "Only when you ask. Reading, converting and downloading never touch your file. Saving alt text, or confirming Optimize, writes to the open Doc or deck, so make a copy first; version history can undo it."}}]}]</script>
+</head>
+<body>
+  <div class="page_wrap">
+    <div class="u-position-fixed">
+      <div class="w-embed">
+        <style>
+  html {
+  background-color: var(--_theme---background);
+  color: var(--_theme---text);
+  --_theme---background: var(--swatch--dark-900);
+  --_theme---background-2: var(--swatch--dark-800);
+  --_theme---background-skeleton: color-mix(in lab, currentcolor 10%, transparent);
+  --_theme---text: var(--swatch--light-100);
+  --_theme---heading-accent: var(--swatch--brand-500);
+  --_theme---border: hsla(0, 0.00%, 10.00%, 1.00);
+  --_theme---selection--background: var(--swatch--brand-300);
+  --_theme---selection--text: var(--swatch--brand-text);
+  --_theme---button-primary--background: var(--swatch--brand-500);
+  --_theme---button-primary--border: var(--_theme---button-primary--background);
+  --_theme---button-primary--text: var(--swatch--light-100);
+  --_theme---button-primary--background-hover: var(--_theme---text);
+  --_theme---button-primary--border-hover: var(--_theme---button-primary--background-hover);
+  --_theme---button-primary--text-hover: var(--_theme---background);
+  --_theme---button-secondary--background: var(--swatch--transparent);
+  --_theme---button-secondary--border: var(--_theme---border);
+  --_theme---button-secondary--text: var(--_theme---text);
+  --_theme---button-secondary--background-hover: var(--_theme---text);
+  --_theme---button-secondary--border-hover: var(--_theme---button-secondary--background-hover);
+  --_theme---button-secondary--text-hover: var(--_theme---background);
+  --_theme---text-link--text: var(--_theme---text);
+  --_theme---text-link--border: var(--_theme---border);
+  --_theme---text-link--text-hover: var(--_theme---text-link--text);
+  --_theme---text-link--border-hover: var(--swatch--brand-500);
+  --_theme---nav--background: var(--_theme---background-2);
+}
+::before, ::after {
+  box-sizing: border-box;
+}
+.w-embed:before, .w-embed:after,
+.w-richtext:before, .w-richtext:after {
+  content: unset;
+}
+html {
+  background-color: var(--_theme---background);
+}
+button {
+  background-color: unset;
+  padding: unset;
+  text-align: inherit;
+}
+button:not(:disabled) {
+  cursor: pointer;
+}
+video {
+  width: 100%;
+  object-fit: cover;
+}
+svg {
+  max-width: 100%;
+}
+@media (prefers-color-scheme: light) {
+  option { color: black; }
+}
+/* Typography */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+/* Clear Defaults */
+a:not([class]) {
+  text-decoration: underline;
+}
+label {
+  font-weight: inherit;
+  margin-bottom: 0;
+}
+select:has(option[value=""]:checked) {
+  color: color-mix(in lab, currentcolor 60%, transparent)
+}
+/* Selection Color */
+::selection {
+  background-color: var(--_theme---selection--background);
+  color: var(--_theme---selection--text);
+}
+/* Margin Trim */
+:is(.u-margin-trim,.w-richtext,.u-content-wrapper,[class*="u-container"],[class*="u-layout-column"]) > :not(:not(.w-condition-invisible,.u-cover-absolute,.u-ignore-trim) ~ :not(.w-condition-invisible,.u-cover-absolute,.u-ignore-trim)),
+:is(.u-margin-trim,.w-richtext,.u-content-wrapper,[class*="u-container"],[class*="u-layout-column"]) > .u-display-contents > :not(:not(.w-condition-invisible,.u-cover-absolute,.u-ignore-trim) ~ :not(.w-condition-invisible,.u-cover-absolute,.u-ignore-trim)) {
+  margin-top: 0;
+}
+:is(.u-margin-trim,.w-richtext,.u-content-wrapper,[class*="u-container"],[class*="u-layout-column"]) > :not(:has(~ :not(.w-condition-invisible,.u-cover-absolute,.u-ignore-trim))),
+:is(.u-margin-trim,.w-richtext,.u-content-wrapper,[class*="u-container"],[class*="u-layout-column"]) > .u-display-contents > :not(:has(~ :not(.w-condition-invisible,.u-cover-absolute,.u-ignore-trim))) {
+  margin-bottom: 0;
+}
+/* Line Height Trim */
+:not(.u-text-trim-off) > :is(h1,h2,h3,h4,h5,h6,p):not(.u-text-trim-off,:has([class*="u-text-style-"]))::before,
+[class*="u-text-style-"]:not(.u-text-trim-off,:has(h1,h2,h3,h4,h5,h6,p))::before {
+  content: "";
+  display: table;
+  margin-bottom: calc(-0.5lh + var(--_text-style---trim-top));
+}
+:not(.u-text-trim-off) > :is(h1,h2,h3,h4,h5,h6,p):not(.u-text-trim-off,:has([class*="u-text-style-"]))::after,
+[class*="u-text-style-"]:not(.u-text-trim-off,:has(h1,h2,h3,h4,h5,h6,p))::after {
+  content: "";
+  display: table;
+  margin-bottom: calc(-0.5lh + var(--_text-style---trim-bottom));
+}
+/* Rich Text Links */
+.w-richtext a {
+  position: relative;
+  z-index: 4;
+}
+/* Line Clamp */
+[class*="u-line-clamp"]:not(.w-richtext),
+[class*="u-line-clamp"].w-richtext > * {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+[class*="u-line-clamp"].w-richtext > :not(:first-child) { display: none; }
+.u-line-clamp-2:not(.w-richtext), .u-line-clamp-2.w-richtext > * { -webkit-line-clamp: 2; }
+.u-line-clamp-3:not(.w-richtext), .u-line-clamp-3.w-richtext > * { -webkit-line-clamp: 3; }
+.u-line-clamp-4:not(.w-richtext), .u-line-clamp-4.w-richtext > * { -webkit-line-clamp: 4; }
+/* Text Max Width */
+.u-heading > *,
+.u-text > * {
+  width: 100%;
+  max-width: inherit !important;
+  margin-inline: 0 !important;
+  margin-top: 0 !important;
+}
+/* Background Slot Children */
+.u-background-slot > * {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: unset;
+}
+/* Hide If Empty CMS */
+.u-hide-if-empty-cms:not(:has(.w-dyn-item)) {
+  display: none !important;
+}
+/* Focus State */
+a, button, :where([tabindex]), input, select, textarea {
+  outline-offset: var(--focus--offset-outer);
+}
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline-color: var(--_theme---text);
+  outline-width: var(--focus--width);
+  outline-style: solid;
+}
+/* Disabled */
+[data-button]:has(button:disabled) {
+  opacity: 0.5;
+  pointer-events: none;
+}
+/* Icon */
+.u-icon svg {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+}
+.u-icon path[stroke] {
+  stroke: currentColor !important;
+  stroke-width: var(--border-width--main);
+  vector-effect: non-scaling-stroke;
+}
+/* Global / Clickable Component */
+.wf-design-mode .clickable_wrap { z-index: 0; }
+/* Number Attributes */
+[data-number="-1"]{--number: initial;}[data-number="0"]{--number: 0;}[data-number="1"]{--number:1}[data-number="2"]{--number:2}[data-number="3"]{--number:3}[data-number="4"]{--number:4}[data-number="5"]{--number:5}[data-number="6"]{--number:6}[data-number="7"]{--number:7}[data-number="8"]{--number:8}[data-number="9"]{--number:9}
+[data-number="10"]{--number:10}[data-number="11"]{--number:11}[data-number="12"]{--number:12}[data-number="13"]{--number:13}[data-number="14"]{--number:14}[data-number="15"]{--number:15}[data-number="16"]{--number:16}[data-number="17"]{--number:17}[data-number="18"]{--number:18}[data-number="19"]{--number:19}
+[data-number="20"]{--number:20}[data-number="21"]{--number:21}[data-number="22"]{--number:22}[data-number="23"]{--number:23}[data-number="24"]{--number:24}[data-number="25"]{--number:25}[data-number="26"]{--number:26}[data-number="27"]{--number:27}[data-number="28"]{--number:28}[data-number="29"]{--number:29}
+[data-number="30"]{--number:30}[data-number="31"]{--number:31}[data-number="32"]{--number:32}[data-number="33"]{--number:33}[data-number="34"]{--number:34}[data-number="35"]{--number:35}[data-number="36"]{--number:36}[data-number="37"]{--number:37}[data-number="38"]{--number:38}[data-number="39"]{--number:39}
+[data-number="40"]{--number:40}[data-number="41"]{--number:41}[data-number="42"]{--number:42}[data-number="43"]{--number:43}[data-number="44"]{--number:44}[data-number="45"]{--number:45}[data-number="46"]{--number:46}[data-number="47"]{--number:47}[data-number="48"]{--number:48}[data-number="49"]{--number:49}
+[data-number="50"]{--number:50}[data-number="51"]{--number:51}[data-number="52"]{--number:52}[data-number="53"]{--number:53}[data-number="54"]{--number:54}[data-number="55"]{--number:55}[data-number="56"]{--number:56}[data-number="57"]{--number:57}[data-number="58"]{--number:58}[data-number="59"]{--number:59}
+[data-number="60"]{--number:60}[data-number="61"]{--number:61}[data-number="62"]{--number:62}[data-number="63"]{--number:63}[data-number="64"]{--number:64}[data-number="65"]{--number:65}[data-number="66"]{--number:66}[data-number="67"]{--number:67}[data-number="68"]{--number:68}[data-number="69"]{--number:69}
+[data-number="70"]{--number:70}[data-number="71"]{--number:71}[data-number="72"]{--number:72}[data-number="73"]{--number:73}[data-number="74"]{--number:74}[data-number="75"]{--number:75}[data-number="76"]{--number:76}[data-number="77"]{--number:77}[data-number="78"]{--number:78}[data-number="79"]{--number:79}
+[data-number="80"]{--number:80}[data-number="81"]{--number:81}[data-number="82"]{--number:82}[data-number="83"]{--number:83}[data-number="84"]{--number:84}[data-number="85"]{--number:85}[data-number="86"]{--number:86}[data-number="87"]{--number:87}[data-number="88"]{--number:88}[data-number="89"]{--number:89}
+[data-number="90"]{--number:90}[data-number="91"]{--number:91}[data-number="92"]{--number:92}[data-number="93"]{--number:93}[data-number="94"]{--number:94}[data-number="95"]{--number:95}[data-number="96"]{--number:96}[data-number="97"]{--number:97}[data-number="98"]{--number:98}[data-number="99"]{--number:99}[data-number="100"]{--number:100}
+/* State Manager */
+[data-state] { --_state---true: 1; --_state---false: 0; }
+.is-active,
+.wf-design-mode [data-preview="true"],
+.wf-design-mode [data-preview]:not(:has(> [data-w-instance-of])),
+[data-state~="checked"]:is(:checked, :has(:checked)),
+[data-state~="current"]:is(.w--current, :has(.w--current)),
+[data-state~="open"]:is(.w--open, :has(.w--open)),
+[data-state~="pressed"]:is([aria-pressed="true"], :has([aria-pressed="true"])),
+[data-state~="expanded"]:is([aria-expanded="true"], :has([aria-expanded="true"])),
+[data-state~="external"]:is([target="_blank"], :has([target="_blank"])) { 
+  --_state---true: 0; --_state---false: 1;
+}
+.wf-design-mode [data-trigger~="preview"],
+[data-trigger~="focus"]:is(:focus-visible, :has(:focus-visible)),
+[data-trigger~="group"]:has([data-trigger~="focus-other"]:focus-visible, [data-trigger~="focus-other"] :focus-visible)
+[data-trigger~="focus-other"]:not(:focus-visible, :has(:focus-visible)) {
+  --_trigger---on: 0; --_trigger---off: 1;
+}
+@media (hover: hover) {
+  [data-trigger~="hover"]:hover,
+  [data-trigger~="hover-if-clickable"]:has(.clickable_wrap:not(.w-condition-invisible)):hover,
+  [data-trigger~="group"]:has([data-trigger~="hover-other"]:hover) [data-trigger~="hover-other"]:not(:hover) { 
+    --_trigger---on: 0; --_trigger---off: 1;
+  }
+  [data-trigger~="hover-other"]:hover { --_trigger---on: 1 !important; --_trigger---off: 0 !important; }
+}
+@media (hover: none) {
+  [data-trigger~="mobile"] { --_trigger---on: 0; --_trigger---off: 1; }
+}
+/* Slot Styler */
+[data-slot] > .w-dyn-list,
+[data-slot] > .w-dyn-list > *,
+[data-slot] > .w-dyn-list > * > *,
+[data-slot] > .u-display-contents > .w-dyn-list,
+[data-slot] > .u-display-contents > .w-dyn-list > *,
+[data-slot] > .u-display-contents > .w-dyn-list > * > *,
+[data-slot] > .u-display-contents > .u-display-contents > .w-dyn-list,
+[data-slot] > .u-display-contents > .u-display-contents > .w-dyn-list > *,
+[data-slot] > .u-display-contents > .u-display-contents > .w-dyn-list > * > * {
+  display: contents;
+}
+/* Layout Slot */
+.u-layout-column-2:has(> :not(.u-image-wrapper,.u-video,.u-overlay)) {
+  aspect-ratio: auto;
+  border-radius: 0;
+  overflow: visible;
+}
+.u-layout-column-2:not(:has(> :not(.u-image-wrapper,.u-video,.u-overlay))) :is(.u-image-wrapper,.u-video,.u-overlay) {
+  position: absolute;
+  height: 100%;
+}
+/* Responsive Styles */
+[data-large-columns="1"] { display: flex; }
+[data-large-columns="2"] { display: grid; --_column-count---value: 2; }
+[data-large-columns="3"] { display: grid; --_column-count---value: 3; }
+[data-large-columns="4"] { display: grid; --_column-count---value: 4; }
+[data-large-columns="5"] { display: grid; --_column-count---value: 5; }
+[data-large-columns="6"] { display: grid; --_column-count---value: 6; }
+[data-large-columns="7"] { display: grid; --_column-count---value: 7; }
+[data-large-columns="8"] { display: grid; --_column-count---value: 8; }
+[data-large-columns="9"] { display: grid; --_column-count---value: 9; }
+[data-large-columns="10"] { display: grid; --_column-count---value: 10; }
+[data-large-columns="11"] { display: grid; --_column-count---value: 11; }
+[data-large-columns="12"] { display: grid; --_column-count---value: 12; }
+.slider_offset { --slide-count: var(--lg); --lg: 3; --md: var(--lg); --sm: var(--md); --xs: var(--sm); }
+@container (width < 53em) {
+  * {
+    --_responsive---large: 0;
+    --_responsive---medium: 1;
+    --flex-medium: flex;
+    --none-medium: none;
+    --column-medium: column;
+    --row-medium: row;
+    --start-medium: start;
+    --center-medium: center;
+    --end-medium: end;
+    --first-medium: -1;
+    --last-medium: 1;
+    --unset-medium: unset;
+    --relative-medium: relative;
+  }
+  [data-medium-columns="1"] { display: flex; }
+  [data-medium-columns="2"] { display: grid; --_column-count---value: 2; }
+  [data-medium-columns="3"] { display: grid; --_column-count---value: 3; }
+  [data-medium-columns="4"] { display: grid; --_column-count---value: 4; }
+  [data-medium-columns="5"] { display: grid; --_column-count---value: 5; }
+  [data-medium-columns="6"] { display: grid; --_column-count---value: 6; }
+  [data-medium-columns="7"] { display: grid; --_column-count---value: 7; }
+  [data-medium-columns="8"] { display: grid; --_column-count---value: 8; }
+  [data-medium-columns="9"] { display: grid; --_column-count---value: 9; }
+  [data-medium-columns="10"] { display: grid; --_column-count---value: 10; }
+  [data-medium-columns="11"] { display: grid; --_column-count---value: 11; }
+  [data-medium-columns="12"] { display: grid; --_column-count---value: 12; }
+  .slider_offset { --slide-count: var(--md); }
+  .card_step_wrap {padding: var(--_spacing---space--6)}
+  .card_step_num_text {font-size: var(--_typography---font-size--h6); position: absolute; top: var(--_spacing---space--6); right: 2rem}
+}
+@container (width < 42em) {
+  * {
+    --_responsive---medium: 0;
+    --_responsive---small: 1;
+    --flex-small: flex;
+    --none-small: none;
+    --column-small: column;
+    --row-small: row;
+    --start-small: start;
+    --center-small: center;
+    --end-small: end;
+    --first-small: -1;
+    --last-small: 1;
+    --unset-small: unset;
+    --relative-small: relative;
+  }
+  [data-small-columns="1"] { display: flex; }
+  [data-small-columns="2"] { display: grid; --_column-count---value: 2; }
+  [data-small-columns="3"] { display: grid; --_column-count---value: 3; }
+  [data-small-columns="4"] { display: grid; --_column-count---value: 4; }
+  [data-small-columns="5"] { display: grid; --_column-count---value: 5; }
+  [data-small-columns="6"] { display: grid; --_column-count---value: 6; }
+  [data-small-columns="7"] { display: grid; --_column-count---value: 7; }
+  [data-small-columns="8"] { display: grid; --_column-count---value: 8; }
+  [data-small-columns="9"] { display: grid; --_column-count---value: 9; }
+  [data-small-columns="10"] { display: grid; --_column-count---value: 10; }
+  [data-small-columns="11"] { display: grid; --_column-count---value: 11; }
+  [data-small-columns="12"] { display: grid; --_column-count---value: 12; }
+  .slider_offset { --slide-count: var(--sm); }
+}
+@container (width < 27em) {
+  * {
+    --_responsive---small: 0;
+    --_responsive---xsmall: 1;
+    --flex-xsmall: flex;
+    --none-xsmall: none;
+    --column-xsmall: column;
+    --row-xsmall: row;
+    --start-xsmall: start;
+    --center-xsmall: center;
+    --end-xsmall: end;
+    --first-xsmall: -1;
+    --last-xsmall: 1;
+    --unset-xsmall: unset;
+    --relative-xsmall: relative;
+  }
+  [data-xsmall-columns="1"] { display: flex; }
+  [data-xsmall-columns="2"] { display: grid; --_column-count---value: 2; }
+  [data-xsmall-columns="3"] { display: grid; --_column-count---value: 3; }
+  [data-xsmall-columns="4"] { display: grid; --_column-count---value: 4; }
+  [data-xsmall-columns="5"] { display: grid; --_column-count---value: 5; }
+  [data-xsmall-columns="6"] { display: grid; --_column-count---value: 6; }
+  [data-xsmall-columns="7"] { display: grid; --_column-count---value: 7; }
+  [data-xsmall-columns="8"] { display: grid; --_column-count---value: 8; }
+  [data-xsmall-columns="9"] { display: grid; --_column-count---value: 9; }
+  [data-xsmall-columns="10"] { display: grid; --_column-count---value: 10; }
+  [data-xsmall-columns="11"] { display: grid; --_column-count---value: 11; }
+  [data-xsmall-columns="12"] { display: grid; --_column-count---value: 12; }
+  .slider_offset { --slide-count: var(--xs); }
+}
+</style>
+      </div>
+    </div>
+    <div class="guide_wrap">
+      <div class="w-embed">
+        <style>
+html.wf-design-mode .guide_wrap {
+	display: block;
+}
+.guide_layout {
+	counter-reset: gridguides;
+}
+.guide_layout > div::before {
+  counter-increment: gridguides;
+  content: counter(gridguides);
+}
+</style>
+      </div>
+      <div data-padding-bottom="none" data-padding-top="none" class="guide_contain u-container">
+        <div class="guide_layout">
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+          <div class="guide_column"></div>
+        </div>
+      </div>
+    </div>
+    <main id="main" class="page_main">
+      <section class="hero3" aria-label="Pluckr">
+        <div class="stage" id="stage" role="group" aria-label="Pluckr sidebar, shown working on a Google Doc">
+
+      <div class="sidebar-wrap" id="wrap">
+        <div class="sidebar" id="sidebar">
+          <header class="top-bar">
+            <img class="brand-mark" src="images/v2/mark.svg" alt="">
+            <p class="brand">Pluckr</p>
+            <span class="icon-button"><img src="images/v2/more.svg" alt=""></span>
+          </header>
+
+          <section class="panel" id="panel" aria-label="Extracted images">
+
+            <article class="image-row" data-row="0">
+              <img class="thumb" src="images/v2/lake.jpg" alt="Loch shore with snow-capped mountain">
+              <div class="image-info">
+                <div class="name-row">
+                  <p class="image-name" data-name><span data-text>image-01.jpg</span><span class="caret"></span></p>
+                  <span class="edit-button" data-edit><img src="images/v2/edit.svg" alt=""></span>
+                </div>
+                <div class="meta-row"><p>3000 × 3000</p><p>2.1 MB</p><p data-after></p></div>
+              </div>
+              <div class="actions">
+                <button class="action-button" type="button" data-copy tabindex="-1">Copy</button>
+                <button class="action-button" type="button" tabindex="-1">Download</button>
+              </div>
+            </article>
+
+            <article class="image-row" data-row="1">
+              <img class="thumb" src="images/v2/library.jpg" alt="Library atrium with crossing staircases">
+              <div class="image-info">
+                <div class="name-row">
+                  <p class="image-name"><span data-text>image-02.jpg</span></p>
+                  <span class="edit-button"><img src="images/v2/edit.svg" alt=""></span>
+                </div>
+                <div class="meta-row"><p>3000 × 3000</p><p>2.4 MB</p><p data-after></p></div>
+              </div>
+              <div class="actions">
+                <button class="action-button" type="button" tabindex="-1">Copy</button>
+                <button class="action-button" type="button" tabindex="-1">Download</button>
+              </div>
+            </article>
+
+            <article class="image-row" data-row="2">
+              <img class="thumb" src="images/v2/building.jpg" alt="White building with round windows">
+              <div class="image-info">
+                <div class="name-row">
+                  <p class="image-name"><span data-text>image-03.jpg</span></p>
+                  <span class="edit-button"><img src="images/v2/edit.svg" alt=""></span>
+                </div>
+                <div class="meta-row"><p>3000 × 3000</p><p>1.2 MB</p><p data-after></p></div>
+              </div>
+              <div class="actions">
+                <button class="action-button" type="button" tabindex="-1">Copy</button>
+                <button class="action-button" type="button" tabindex="-1">Download</button>
+              </div>
+            </article>
+          </section>
+
+          <section class="export" id="export">
+            <button class="export-toggle" type="button" id="toggle" tabindex="-1">
+              <span>Output settings</span>
+              <img class="chevron is-closed" id="chevron" src="images/v2/chevron-down.svg" alt="">
+            </button>
+            <div class="export-body">
+              <div class="field">
+                <span class="field-label">Format</span>
+                <div class="select" id="select">
+                  <button class="select-button" type="button" id="selectButton" tabindex="-1"><span id="selectValue">Original</span><img class="chevron" src="images/v2/chevron-down.svg" alt=""></button>
+                  <div class="select-list" role="listbox">
+                    <button class="select-option is-selected" type="button" data-format="Original" tabindex="-1">Original</button>
+                    <button class="select-option" type="button" data-format="AVIF" tabindex="-1">AVIF</button>
+                    <button class="select-option" type="button" data-format="WebP" tabindex="-1">WebP</button>
+                    <button class="select-option" type="button" data-format="PNG" tabindex="-1">PNG</button>
+                    <button class="select-option" type="button" data-format="JPEG" tabindex="-1">JPEG</button>
+                  </div>
+                </div>
+              </div>
+              <div class="field is-off" data-needs-format>
+                <div class="field-head"><span class="field-label">Quality</span><span class="field-value">80%</span></div>
+                <div class="slider"></div>
+              </div>
+              <div class="field is-off" data-needs-format>
+                <span class="field-label">Aspect ratio</span>
+                <div class="select" id="aspectSelect">
+                  <button class="select-button" type="button" id="aspectButton" tabindex="-1"><span id="aspectValue">Original</span><img class="chevron" src="images/v2/chevron-down.svg" alt=""></button>
+                  <div class="select-list" id="aspectList" role="listbox">
+                    <button class="select-option is-selected" type="button" data-aspect="Original" tabindex="-1">Original</button>
+                    <button class="select-option" type="button" data-aspect="1:1" tabindex="-1">1:1</button>
+                    <button class="select-option" type="button" data-aspect="4:3" tabindex="-1">4:3</button>
+                    <button class="select-option" type="button" data-aspect="3:4" tabindex="-1">3:4</button>
+                    <button class="select-option" type="button" data-aspect="3:2" tabindex="-1">3:2</button>
+                    <button class="select-option" type="button" data-aspect="2:3" tabindex="-1">2:3</button>
+                    <button class="select-option" type="button" data-aspect="16:9" tabindex="-1">16:9</button>
+                    <button class="select-option" type="button" data-aspect="9:16" tabindex="-1">9:16</button>
+                  </div>
+                </div>
+              </div>
+              <div class="field is-off" data-needs-format>
+                <span class="field-label">Max width (px)</span>
+                <div class="field-input">Auto</div>
+              </div>
+              <p class="export-hint">A fixed aspect ratio crops from the centre. Leave the width empty to keep the original size; images are never enlarged.</p>
+            </div>
+          </section>
+
+          <button class="primary-button" type="button" id="cta" tabindex="-1"><span id="ctaText">Download originals</span></button>
+        </div>
+      </div>
+
+      <div class="cursor" id="cursor" aria-hidden="true">
+        <svg viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg"><path d="M5 3.2 21.4 13.6 13.7 14.9 10.2 22.2Z" fill="#fff" stroke="#0b0b0b" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+        <div class="hero_text">
+          <div style="width: 5rem;" class="logo_wrap"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewbox="0 0 164 164" fill="none" class="logo_icon">
+              <rect x="13" y="13" width="138" height="138" rx="7" fill="currentcolor" stroke="currentcolor" stroke-width="2" class="logo_bg"></rect>
+              <rect x="36.5" y="88.5" width="39" height="39" rx="3.5" fill="white" stroke="white"></rect>
+              <rect x="88.5" y="88.5" width="39" height="39" rx="3.5" fill="white" stroke="white"></rect>
+              <rect x="36.5" y="36.5" width="39" height="39" rx="3.5" fill="white" stroke="white"></rect>
+              <rect x="89" y="37" width="38" height="38" rx="3" stroke="white" stroke-width="2" stroke-dasharray="6 6"></rect>
+              <rect x="125.555" y="-0.317688" width="40" height="40" rx="4" transform="rotate(14.2896 125.555 -0.317688)" fill="white"></rect>
+            </svg></div>
+          <div data-wf--content-wrapper--variant="left" style="" class="u-content-wrapper w-variant-e85a4315-14bc-e5ef-0d3e-2c8c9ed7d2f1">
+            <div class="u-display-contents">
+              <h1 data-wf--typography-plain--variant="h1" data-number="-1" class="u-text w-variant-83c598b0-8cc2-f955-1996-fcb8fb10bf70"><span>Pluck Every Image Out Of A Google Doc</span></h1>
+              <p data-wf--typography-plain--variant="inherit" data-number="50" class="u-text"><span>Extract every image from a Google Doc or Slides deck. Rename them in bulk, convert to WebP or AVIF, and keep the alt text. One-time $5, and your images never leave your browser.</span></p>
+              <div class="u-button-wrapper">
+                <div class="u-display-contents">
+                  <div data-wf--button-main--variant="primary" data-trigger="hover focus" class="button_main_wrap">
+                    <div data-wf--clickable--variant="focus-ring-outside" class="clickable_wrap u-cover-absolute"><a href="https://workspace.google.com/marketplace/app/pluckr/315157378382" target="_blank" rel="noopener" aria-label="Add Pluckr to Google Docs" class="clickable_btn"></a></div>
+                    <div data-button="" class="button_main_element">
+                      <div aria-hidden="true" class="button_main_text u-text-style-main u-text-transform-uppercase">Add to Google Docs</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        
+        </div>
+        <p class="foot">Photos by Ben Jessop, Gavin Allanwood and Elina Ayupova on <a href="https://unsplash.com">Unsplash</a>.</p>
+      </section>
+      <section class="u-section">
+        <div class="u-container  ">
+          <div data-wf--content-wrapper--variant="left" style="" class="u-content-wrapper w-variant-e85a4315-14bc-e5ef-0d3e-2c8c9ed7d2f1">
+            <div class="u-display-contents">
+              <h2 data-wf--typography-plain--variant="h2" data-number="-1" class="u-text w-variant-9af60b09-c3a1-8c2a-eb78-8e29460ca7a9"><span>Extract, rename and convert images in Google Docs and Slides<br></span></h2>
+              <p data-wf--typography-plain--variant="inherit" data-number="35" class="u-text"><span>Pluckr is a Google Docs and Google Slides add-on that pulls every image out of your file, lets you pick, rename, crop and convert them, and hands them back ready to publish.</span></p>
+            </div>
+          </div>
+          <div data-wf--grid--variant="default" data-number="12" class="u-grid-wrapper u-gap-0">
+            <div data-large-columns="2" data-medium-columns="2" data-small-columns="1" class="u-grid">
+              <div data-wf--card-primary--card-type="default" class="card_primary_wrap">
+                <div data-trigger="hover-if-clickable focus" class="card_primary_group">
+                  <div class="card_primary_element">
+                    <div class="card_primary_visual"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="card_primary_image"></div>
+                    <div class="card_primary_content">
+                      <div class="card_primary_icon">
+                        <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-down-to-line">
+                            <path d="M12 17V3"></path>
+                            <path d="m6 11 6 6 6-6"></path>
+                            <path d="M19 21H5"></path>
+                          </svg></div>
+                      </div>
+                      <div class="card_primary_header">
+                        <h3 class="card_primary_title u-text-style-h5">Extract every image</h3>
+                        <div class="card_primary_text u-text-style-small w-richtext">
+                          <p>Lists every image in your Google Doc, including images in tables and every tab, or every picture on your Slides deck, grouped ones too. <a href="/extract-images-from-google-docs">How to extract images from Google Docs</a>.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div data-wf--card-primary--card-type="default" class="card_primary_wrap">
+                <div data-trigger="hover-if-clickable focus" class="card_primary_group">
+                  <div class="card_primary_element">
+                    <div class="card_primary_visual"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="card_primary_image"></div>
+                    <div class="card_primary_content">
+                      <div class="card_primary_icon">
+                        <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-arrow-out-down-right">
+                            <path d="M21 11V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"></path>
+                            <path d="m21 21-9-9"></path>
+                            <path d="M21 15v6h-6"></path>
+                          </svg></div>
+                      </div>
+                      <div class="card_primary_header">
+                        <h3 class="card_primary_title u-text-style-h5">Crop &amp; resize</h3>
+                        <div class="card_primary_text u-text-style-small w-richtext">
+                          <p>Crop every image to 1:1, 4:3, 3:2, 16:9 or a portrait ratio, set a maximum width in pixels, and never enlarge a small image.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div data-wf--card-primary--card-type="default" class="card_primary_wrap">
+                <div data-trigger="hover-if-clickable focus" class="card_primary_group">
+                  <div class="card_primary_element">
+                    <div class="card_primary_visual"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="card_primary_image"></div>
+                    <div class="card_primary_content">
+                      <div class="card_primary_icon">
+                        <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw">
+                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                            <path d="M21 3v5h-5"></path>
+                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                            <path d="M8 16H3v5"></path>
+                          </svg></div>
+                      </div>
+                      <div class="card_primary_header">
+                        <h3 class="card_primary_title u-text-style-h5">Convert to WebP or AVIF</h3>
+                        <div class="card_primary_text u-text-style-small w-richtext">
+                          <p>Convert Google Docs images to WebP, AVIF, JPEG or PNG with a quality slider. The conversion runs in your browser. <a href="/convert-google-docs-images-to-webp">Convert Docs images to WebP</a>.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div data-wf--card-primary--card-type="default" class="card_primary_wrap">
+                <div data-trigger="hover-if-clickable focus" class="card_primary_group">
+                  <div class="card_primary_element">
+                    <div class="card_primary_visual"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="card_primary_image"></div>
+                    <div class="card_primary_content">
+                      <div class="card_primary_icon">
+                        <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pen-line">
+                            <path d="M12 20h9"></path><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"></path>
+                          </svg></div>
+                      </div>
+                      <div class="card_primary_header">
+                        <h3 class="card_primary_title u-text-style-h5">Pick &amp; rename in bulk</h3>
+                        <div class="card_primary_text u-text-style-small w-richtext">
+                          <p>Tick only the images you need. Rename them all at once with a pattern like {doc}-{n}, see the new names before you apply, then download a ZIP.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div data-wf--card-primary--card-type="default" class="card_primary_wrap">
+                <div data-trigger="hover-if-clickable focus" class="card_primary_group">
+                  <div class="card_primary_element">
+                    <div class="card_primary_visual"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="card_primary_image"></div>
+                    <div class="card_primary_content">
+                      <div class="card_primary_icon">
+                        <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock">
+                            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                          </svg></div>
+                      </div>
+                      <div class="card_primary_header">
+                        <h3 class="card_primary_title u-text-style-h5">Private by design</h3>
+                        <div class="card_primary_text u-text-style-small w-richtext">
+                          <p>Pluckr has no separate image server. Google Apps Script reads the images from the open Doc or deck, and conversions run in your browser.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div data-wf--card-primary--card-type="default" class="card_primary_wrap">
+                <div data-trigger="hover-if-clickable focus" class="card_primary_group">
+                  <div class="card_primary_element">
+                    <div class="card_primary_visual"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="card_primary_image"></div>
+                    <div class="card_primary_content">
+                      <div class="card_primary_icon">
+                        <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-captions">
+                            <rect width="18" height="14" x="3" y="5" rx="2" ry="2"></rect><path d="M7 15h4M15 15h2M7 11h2M13 11h4"></path>
+                          </svg></div>
+                      </div>
+                      <div class="card_primary_header">
+                        <h3 class="card_primary_title u-text-style-h5">Alt text, in one place</h3>
+                        <div class="card_primary_text u-text-style-small w-richtext">
+                          <p>See which images have no alt text, write it in the sidebar and save it back to the file, or export alt text as CSV and JSON with your images.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              <div data-wf--card-primary--card-type="default" class="card_primary_wrap">
+                <div data-trigger="hover-if-clickable focus" class="card_primary_group">
+                  <div class="card_primary_element">
+                    <div class="card_primary_visual"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="card_primary_image"></div>
+                    <div class="card_primary_content">
+                      <div class="card_primary_icon">
+                        <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text">
+                            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path>
+                          </svg></div>
+                      </div>
+                      <div class="card_primary_header">
+                        <h3 class="card_primary_title u-text-style-h5">Markdown with images</h3>
+                        <div class="card_primary_text u-text-style-small w-richtext">
+                          <p>Export a Google Doc as Markdown with an images folder, ready for a blog, a static site or Obsidian. Images are linked and alt text is kept.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              <div data-wf--card-primary--card-type="default" class="card_primary_wrap">
+                <div data-trigger="hover-if-clickable focus" class="card_primary_group">
+                  <div class="card_primary_element">
+                    <div class="card_primary_visual"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="card_primary_image"></div>
+                    <div class="card_primary_content">
+                      <div class="card_primary_icon">
+                        <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minimize-2">
+                            <polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" x2="21" y1="10" y2="3"></line><line x1="3" x2="10" y1="21" y2="14"></line>
+                          </svg></div>
+                      </div>
+                      <div class="card_primary_header">
+                        <h3 class="card_primary_title u-text-style-h5">Shrink images in place</h3>
+                        <div class="card_primary_text u-text-style-small w-richtext">
+                          <p>Optimize the Doc or deck itself: replace heavy pictures with smaller copies at the same size so the file opens faster. Alt text and links are kept.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="u-section" id="how-it-works">
+        <div class="u-container  ">
+          <div data-wf--content-wrapper--variant="left" style="" class="u-content-wrapper w-variant-e85a4315-14bc-e5ef-0d3e-2c8c9ed7d2f1">
+            <div class="u-display-contents">
+              <h2 data-wf--typography-plain--variant="h2" data-number="12" class="u-text w-variant-9af60b09-c3a1-8c2a-eb78-8e29460ca7a9"><span>How to extract images from a Google Doc<br></span></h2>
+              <p data-wf--typography-plain--variant="inherit" data-number="30" class="u-text"><span>Open Pluckr from a Google Doc or Slides deck, tick the images you want, rename and convert them, then download.</span></p>
+            </div>
+          </div>
+          <div data-wf--grid--variant="default" data-number="12" class="u-grid-wrapper u-gap-0">
+            <div data-large-columns="1" data-medium-columns="1" class="u-grid">
+              <div data-medium-columns="1" data-large-columns="12" class="card_step_wrap u-grid u-gap-gutter">
+                <div class="card_step_num_wrap">
+                  <div class="card_step_num_text u-text-style-h1">01</div>
+                </div>
+                <div class="card_step_content u-margin-trim">
+                  <div class="card_icon">
+                    <div class="card_svg">
+                      <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-left">
+                          <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+                          <path d="M9 3v18"></path>
+                        </svg></div>
+                    </div>
+                  </div>
+                  <h3 data-wf--typography-plain--variant="inherit" data-number="-1" class="u-text"><span>Open Pluckr in Docs or Slides</span></h3>
+                  <p data-wf--typography-plain--variant="inherit" data-number="60" class="u-text"><span>In a Google Doc or Slides deck, choose Extensions → Pluckr → Extract images. The sidebar opens beside your file.</span></p>
+                </div>
+              </div>
+              <div data-medium-columns="1" data-large-columns="12" class="card_step_wrap u-grid u-gap-gutter">
+                <div class="card_step_num_wrap">
+                  <div class="card_step_num_text u-text-style-h1">02</div>
+                </div>
+                <div class="card_step_content u-margin-trim">
+                  <div class="card_icon">
+                    <div class="card_svg">
+                      <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-in">
+                          <path d="m10 17 5-5-5-5"></path>
+                          <path d="M15 12H3"></path>
+                          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                        </svg></div>
+                    </div>
+                  </div>
+                  <h3 data-wf--typography-plain--variant="inherit" data-number="-1" class="u-text"><span>Authorize document access</span></h3>
+                  <p data-wf--typography-plain--variant="inherit" data-number="51" class="u-text"><span>Approve access when Google asks. Pluckr can only read the one Doc or deck you opened it in, and it checks your one-time licence with your Google account.</span></p>
+                </div>
+              </div>
+              <div data-medium-columns="1" data-large-columns="12" class="card_step_wrap u-grid u-gap-gutter">
+                <div class="card_step_num_wrap">
+                  <div class="card_step_num_text u-text-style-h1">03</div>
+                </div>
+                <div class="card_step_content u-margin-trim">
+                  <div class="card_icon">
+                    <div class="card_svg">
+                      <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-scan">
+                          <path d="M20 10V8a2.4 2.4 0 0 0-.706-1.704l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.35"></path>
+                          <path d="M14 2v5a1 1 0 0 0 1 1h5"></path>
+                          <path d="M16 14a2 2 0 0 0-2 2"></path>
+                          <path d="M16 22a2 2 0 0 1-2-2"></path>
+                          <path d="M20 14a2 2 0 0 1 2 2"></path>
+                          <path d="M20 22a2 2 0 0 0 2-2"></path>
+                        </svg></div>
+                    </div>
+                  </div>
+                  <h3 data-wf--typography-plain--variant="inherit" data-number="-1" class="u-text"><span>See every image</span></h3>
+                  <p data-wf--typography-plain--variant="inherit" data-number="46" class="u-text"><span>Every image appears with a preview, file name, dimensions, file size and alt text. Tick the ones you want, or filter to the images that have no alt text.</span></p>
+                </div>
+              </div>
+              <div data-medium-columns="1" data-large-columns="12" class="card_step_wrap u-grid u-gap-gutter">
+                <div class="card_step_num_wrap">
+                  <div class="card_step_num_text u-text-style-h1">04</div>
+                </div>
+                <div class="card_step_content u-margin-trim">
+                  <div class="card_icon">
+                    <div class="card_svg">
+                      <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mouse-pointer-click">
+                          <path d="M14 4.1 12 6"></path>
+                          <path d="m5.1 8-2.9-.8"></path>
+                          <path d="m6 12-1.9 2"></path>
+                          <path d="M7.2 2.2 8 5.1"></path>
+                          <path d="M9.037 9.69a.498.498 0 0 1 .653-.653l11 4.5a.5.5 0 0 1-.074.949l-4.349 1.041a1 1 0 0 0-.74.739l-1.04 4.35a.5.5 0 0 1-.95.074z"></path>
+                        </svg></div>
+                    </div>
+                  </div>
+                  <h3 data-wf--typography-plain--variant="inherit" data-number="-1" class="u-text"><span>Rename, crop &amp; choose a format</span></h3>
+                  <p data-wf--typography-plain--variant="inherit" data-number="50" class="u-text"><span>Rename every ticked image with one pattern, crop to an aspect ratio, set a maximum width, and choose WebP, AVIF, JPEG or PNG with a quality setting.</span></p>
+                </div>
+              </div>
+              <div data-medium-columns="1" data-large-columns="12" class="card_step_wrap u-grid u-gap-gutter">
+                <div class="card_step_num_wrap">
+                  <div class="card_step_num_text u-text-style-h1">05</div>
+                </div>
+                <div class="card_step_content u-margin-trim">
+                  <div class="card_icon">
+                    <div class="card_svg">
+                      <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download">
+                          <path d="M12 15V3"></path>
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                          <path d="m7 10 5 5 5-5"></path>
+                        </svg></div>
+                    </div>
+                  </div>
+                  <h3 data-wf--typography-plain--variant="inherit" data-number="-1" class="u-text"><span>Convert &amp; download</span></h3>
+                  <p data-wf--typography-plain--variant="inherit" data-number="48" class="u-text"><span>Convert in the sidebar, then download one ZIP. Add alt text files or a Markdown version of the Doc to the same download, or shrink the file’s own images in place.</span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="u-section" id="faqs">
+        <div class="u-container  ">
+          <div data-wf--content-wrapper--variant="left" style="" class="u-content-wrapper w-variant-e85a4315-14bc-e5ef-0d3e-2c8c9ed7d2f1">
+            <div class="u-display-contents">
+              <h2 data-wf--typography-plain--variant="h2" data-number="12" class="u-text w-variant-9af60b09-c3a1-8c2a-eb78-8e29460ca7a9"><span>Frequently asked questions<br></span></h2>
+              <p data-wf--typography-plain--variant="inherit" data-number="30" class="u-text"><span>Common questions about Pluckr and how it handles your document images.</span></p>
+            </div>
+          </div>
+          <div data-preview="true" data-open-by-default="0" class="accordion_wrap">
+            <div class="u-embed-css w-embed">
+              <style>
+.wf-design-mode .accordion_wrap[data-preview="true"] .accordion_content_wrap {
+	display: block;
+}
+.accordion_wrap[data-open-by-default="0"] .accordion_item:nth-child(0) .accordion_content_wrap {
+	display: block;
+}
+</style>
+            </div>
+            <div data-slot="" role="list" class="accordion_list">
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">How do I download all images from a Google Doc?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Open the Doc, choose Extensions → Pluckr → Extract images, then press Download originals to get every image in one ZIP. Google Docs has no built-in button for this. The manual routes are File → Download → Web page (.html, zipped), or renaming a downloaded .docx to .zip. Our <a href="/guides/download-all-images-from-google-docs">step-by-step guide</a> compares all four methods.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">Does Pluckr work with Google Slides?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Yes. Open Pluckr from a Slides deck to list every picture on every slide, including grouped ones, then select, rename, convert and download them. Markdown export is only available in Docs.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">Can I convert Google Docs images to WebP or AVIF?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Yes. Open Output settings, choose WebP, AVIF, JPEG or PNG, set the quality, an optional aspect ratio and a maximum width, then press Convert. Each image shows its new size before you download, and the conversion runs in your browser. See <a href="/convert-google-docs-images-to-webp">how to convert Google Docs images to WebP or AVIF</a>.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">Can I export a Google Doc as Markdown with images?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Yes, in Docs. Tick the Markdown option in Output settings and your download includes a content.md file and an images folder, with the images linked and their alt text kept. It suits blogs, static sites and Obsidian.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">Can Pluckr edit or export image alt text?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Yes. Pluckr shows each image’s alt text and counts the images that have none. Filter to those, write a description in the sidebar and save it to the file, or add alt text files (CSV and JSON) to your download.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">How much does Pluckr cost? Is there a subscription?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Pluckr costs $5 once for your Google account, for both Docs and Slides. There is no subscription, and refunds are available within 14 days. See the <a href="/terms">terms</a>.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">Are my images uploaded anywhere?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Pluckr does not send images to a separate Pluckr server. Google Apps Script reads images from the current document and prepares original-image ZIP downloads; image conversion runs locally in your browser.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">Do I need a Google account?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Yes. Pluckr runs as a Google Docs and Google Slides add-on and asks for access to the current file so it can read and export its images.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">What image formats are supported?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Pluckr can convert images to AVIF, WebP, JPEG, or PNG. Choose one output format at a time; quality controls are available for lossy formats.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">Why are some images missing when I scan?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Pluckr extracts embedded inline images in the document body, including those in tables and nested document tabs. In Slides it finds pictures on slides, including grouped ones, but not images used as shape fills or backgrounds. It does not currently extract floating images or images in headers, footers, or footnotes in Docs.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">Does it support GIFs or BMPs?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Pluckr can extract these as originals when they are embedded inline. Converting a format depends on whether your browser can decode the image and supports the selected output format.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">Does Pluckr change my file?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Only when you ask. Reading, converting and downloading never touch your file. Saving alt text, or confirming Optimize, writes to the open Doc or deck, so make a copy first; version history can undo it.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="u-embed-js w-embed w-script">
+              <script>
+(function() {
+  const component = document.currentScript.parentElement.parentElement;
+  const uid = window.__accordionUid = (window.__accordionUid || 0) + 1;
+  document.addEventListener("DOMContentLoaded", function () {
+    const list = component.querySelector(".accordion_list");
+    let previousIndex = null,
+      closeFunctions = [];
+    function flattenDisplayContents(slot) {
+      if (!slot) return;
+      let child = slot.firstElementChild;
+      while (child && child.classList.contains("u-display-contents")) {
+        while (child.firstChild) {
+          slot.insertBefore(child.firstChild, child);
+        }
+        slot.removeChild(child);
+        child = slot.firstElementChild;
+      }
+    }
+    flattenDisplayContents(list);
+    function removeCMSList(slot) {
+      const dynList = Array.from(slot.children).find((child) => child.classList.contains("w-dyn-list"));
+      if (!dynList) return;
+      const nestedItems = dynList?.querySelector(".w-dyn-items")?.children;
+      if (!nestedItems) return;
+      const staticWrapper = [...slot.children];
+      [...nestedItems].forEach(el => { const c = [...el.children].find(c => !c.classList.contains('w-condition-invisible')); c && slot.appendChild(c); });
+      staticWrapper.forEach((el) => el.remove());
+    }
+    removeCMSList(list);
+    component.querySelectorAll(".accordion_component").forEach((card, cardIndex) => {
+      const button = card.querySelector(".accordion_toggle_button");
+      const content = card.querySelector(".accordion_content_wrap");
+      if (!button || !content) return console.warn("Missing elements:", card);
+      button.setAttribute("aria-expanded", "false");
+      button.setAttribute("id", "accordion_button_" + uid + "_" + cardIndex);
+      content.setAttribute("id", "accordion_content_" + uid + "_" + cardIndex);
+      button.setAttribute("aria-controls", content.id);
+      content.setAttribute("aria-labelledby", button.id);
+      content.style.display = "none";
+      // Height animation on the answer panel (Web Animations API, no library). Interrupting mid-way continues from the current height.
+      let running = null;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const slide = (to, done, startAt) => {
+        const from = startAt === undefined ? content.offsetHeight : startAt;
+        if (running) running.cancel();
+        content.style.overflow = "hidden";
+        if (reduceMotion.matches || from === to) { content.style.height = ""; content.style.overflow = ""; done(); return; }
+        running = content.animate([{ height: from + "px" }, { height: to + "px" }], { duration: 320, easing: "cubic-bezier(.4, 0, .2, 1)" });
+        const finish = () => { running = null; content.style.height = ""; content.style.overflow = ""; done(); };
+        running.onfinish = finish;
+        running.oncancel = () => {};
+      };
+      const tl = {
+        play: () => { const closed = content.style.display === "none"; content.style.display = "block"; slide(content.scrollHeight, () => {}, closed ? 0 : undefined); },
+        reverse: () => { slide(0, () => { content.style.display = "none"; }); },
+        progress: () => { if (running) running.cancel(); content.style.display = "block"; content.style.height = ""; content.style.overflow = ""; },
+      };
+      const closeAccordion = () => card.classList.contains("is-active") && (card.classList.remove("is-active"), tl.reverse(), button.setAttribute("aria-expanded", "false"));
+      closeFunctions[cardIndex] = closeAccordion;
+      const openAccordion = (instant = false) => {
+        if (true && previousIndex !== null && previousIndex !== cardIndex) closeFunctions[previousIndex]?.();
+        previousIndex = cardIndex;
+        button.setAttribute("aria-expanded", "true");
+        card.classList.add("is-active");
+        instant ? tl.progress(1) : tl.play();
+      };
+      if (0 === cardIndex + 1) openAccordion(true);
+      button.addEventListener("click", () => (card.classList.contains("is-active") && true ? (closeAccordion(), (previousIndex = null)) : openAccordion()));
+      if (false) button.addEventListener("mouseenter", () => openAccordion());
+    });
+  });
+})();
+</script>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="footer_wrap">
+      <h2 class="footer_title u-sr-only">Footer</h2>
+      <div class="footer_contain u-container">
+        <div class="footer_content">
+          <a aria-label="Go to the homepage" href="/" aria-current="page" class="footer_logo_wrap u-margin-bottom-6 w-inline-block w--current">
+            <div style="" class="logo_wrap"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewbox="0 0 164 164" fill="none" class="logo_icon">
+                <rect x="13" y="13" width="138" height="138" rx="7" fill="currentcolor" stroke="currentcolor" stroke-width="2" class="logo_bg"></rect>
+                <rect x="36.5" y="88.5" width="39" height="39" rx="3.5" fill="white" stroke="white"></rect>
+                <rect x="88.5" y="88.5" width="39" height="39" rx="3.5" fill="white" stroke="white"></rect>
+                <rect x="36.5" y="36.5" width="39" height="39" rx="3.5" fill="white" stroke="white"></rect>
+                <rect x="89" y="37" width="38" height="38" rx="3" stroke="white" stroke-width="2" stroke-dasharray="6 6"></rect>
+                <rect x="125.555" y="-0.317688" width="40" height="40" rx="4" transform="rotate(14.2896 125.555 -0.317688)" fill="white"></rect>
+              </svg></div>
+          </a>
+          <p data-wf--typography-plain--variant="h3" data-number="20" class="u-text w-variant-7bfbf33b-fb56-d8df-e2d2-8fe65a7f2e44"><span>Images out of your Doc, in a few clicks<br></span></p>
+          <p data-wf--typography-plain--variant="text-large" data-number="-1" class="u-text w-variant-c8b8ac88-1ac7-e9f6-41cc-82c548bf142d"><span>Preview, convert, and download them together.<br></span></p>
+          <div class="u-button-wrapper">
+            <div class="u-display-contents">
+              <div data-wf--button-main--variant="primary" data-trigger="hover focus" class="button_main_wrap">
+                <div data-wf--clickable--variant="focus-ring-outside" class="clickable_wrap u-cover-absolute"><a href="#how-it-works" aria-label="See how Pluckr works in Google Docs" class="clickable_btn"></a></div>
+                <div data-button="" class="button_main_element">
+                  <div aria-hidden="true" class="button_main_text u-text-style-main u-text-transform-uppercase">See how it works</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer_bottom_wrap">
+        <div class="footer_bottom_contain u-container">
+          <div class="footer_bottom_layout">
+            <div class="footer_bottom_text u-text-style-small"><span>© </span><span data-dynamic-year="">2026</span><span> Copyright. All Rights Reserved.</span></div>
+            <div data-trigger="group" role="list" class="footer_bottom_list">
+              <div data-trigger="hover-other focus-other" role="listitem" class="footer_bottom_item">
+                <a href="/privacy" class="footer_bottom_link_wrap w-inline-block">
+                  <div class="footer_bottom_link_text u-text-style-small">Privacy Policy</div>
+                </a>
+              </div>
+              <div data-trigger="hover-other focus-other" role="listitem" class="footer_bottom_item">
+                <a href="/terms" class="footer_bottom_link_wrap w-inline-block">
+                  <div class="footer_bottom_link_text u-text-style-small">Terms of Use</div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="u-embed-js w-embed w-script">
+        <script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll("[data-dynamic-year]").forEach(function (el) {
+    el.textContent = new Date().getFullYear();
+  });
+});
+</script>
+      </div>
+      <div class="u-bg-noise"></div><img src="images/mike-yukhtenko-wfh8dDlNFOk-unsplash.jpg" loading="lazy" sizes="100vw" srcset="images/mike-yukhtenko-wfh8dDlNFOk-unsplash-p-500.jpg 500w, images/mike-yukhtenko-wfh8dDlNFOk-unsplash-p-800.jpg 800w, images/mike-yukhtenko-wfh8dDlNFOk-unsplash-p-1080.jpg 1080w, images/mike-yukhtenko-wfh8dDlNFOk-unsplash-p-1600.jpg 1600w, images/mike-yukhtenko-wfh8dDlNFOk-unsplash.jpg 1920w" alt="" class="u-bg-image">
+    </footer>
+  </div>
+  <script src="https://d3e54v103j8qbb.cloudfront.net/js/jquery-3.5.1.min.dc5e7f18c8.js?site=6a567b0de382ae0ed963a110" type="text/javascript" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+  <script src="js/webflow.js" type="text/javascript"></script>
+  <script>
+  (function () {
+    var root = document.querySelector('.hero3');
+    var $ = function (s, r) { return (r || root).querySelector(s); };
+    var $$ = function (s, r) { return Array.prototype.slice.call((r || root).querySelectorAll(s)); };
+    var stage = $('#stage'), wrap = $('#wrap'), cursor = $('#cursor');
+
+    /* Keep the whole sidebar in view at any window size. */
+    function fit() {
+      var h = stage.clientHeight, w = stage.clientWidth;
+      var s = Math.min(1.5, (h - 96) / 740, (w - 48) / 300);
+      stage.style.setProperty('--s', Math.max(0.5, s).toFixed(3));
+    }
+    fit();
+    window.addEventListener('resize', fit);
+
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return; // the static sidebar above already shows the product
+
+    var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+    var run = 0, pos = { x: 0, y: 0 }, running = false;
+
+    function centerOf(el, dx, dy) {
+      var a = el.getBoundingClientRect(), b = stage.getBoundingClientRect();
+      return { x: a.left - b.left + a.width / 2 + (dx || 0), y: a.top - b.top + a.height / 2 + (dy || 0) };
+    }
+
+    /* Glide along a gentle arc; longer trips take longer, like a hand would. */
+    function glide(to, id) {
+      var from = pos, dist = Math.hypot(to.x - from.x, to.y - from.y);
+      var dur = Math.max(450, Math.min(1300, 380 + dist * 1.9));
+      var mid = { x: (from.x + to.x) / 2 + (to.y - from.y) * 0.12, y: (from.y + to.y) / 2 - (to.x - from.x) * 0.12 };
+      var t = function (p) { return 'translate(' + p.x.toFixed(1) + 'px,' + p.y.toFixed(1) + 'px)'; };
+      var anim = cursor.animate([{ transform: t(from) }, { transform: t(mid), offset: 0.5 }, { transform: t(to) }],
+        { duration: dur, easing: 'cubic-bezier(.45,.05,.25,1)' });
+      pos = to;
+      /* Park the pointer with a plain style and drop the animation, so nothing can reset it later. */
+      var park = function () { cursor.style.transform = t(to); anim.cancel(); };
+      return anim.finished.then(park, park).then(function () { if (id !== run) throw 0; });
+    }
+
+    function press(el, id) {
+      /* The press is on the arrow itself, so it never touches the pointer's position. */
+      cursor.firstElementChild.animate([{ transform: 'scale(1)' }, { transform: 'scale(0.84)' }, { transform: 'scale(1)' }], { duration: 220, easing: 'ease-out' });
+      if (el) el.classList.add('is-pressed');
+      return sleep(150).then(function () { if (el) el.classList.remove('is-pressed'); if (id !== run) throw 0; });
+    }
+
+    function go(el, id, dx, dy) { return glide(centerOf(el, dx, dy), id); }
+
+    var rows = $$('.image-row'), exportEl = $('#export'), chevron = $('#chevron'), select = $('#select');
+    var aspectSel = $('#aspectSelect'), initialDims = '3000 × 3000', cropped = ['3000 × 1688', '3000 × 1688', '3000 × 1688'];
+    var cta = $('#cta'), ctaText = $('#ctaText'), selectValue = $('#selectValue');
+    var initialNames = rows.map(function (r) { return $('[data-text]', r).textContent; });
+    var initialMeta = rows.map(function (r) { return $$('.meta-row p', r)[1].textContent; });
+    var after = ['→ 71.2 KB', '→ 108.5 KB', '→ 30.1 KB'];
+
+    function reset() {
+      rows.forEach(function (r, i) { $('[data-text]', r).textContent = initialNames[i]; $('[data-after]', r).textContent = ''; });
+      $('[data-name]').classList.remove('is-editing');
+      exportEl.classList.remove('is-open'); chevron.classList.add('is-closed');
+      select.classList.remove('is-open'); $('#selectButton').classList.remove('is-open');
+      selectValue.textContent = 'Original';
+      aspectSel.classList.remove('is-open'); $('#aspectButton').classList.remove('is-open'); $('#aspectValue').textContent = 'Original';
+      $('#aspectList').scrollTop = 0;
+      $$('[data-aspect]').forEach(function (o) { o.classList.toggle('is-selected', o.dataset.aspect === 'Original'); });
+      rows.forEach(function (r, i) { $('.thumb', r).style.aspectRatio = ''; $$('.meta-row p', r)[0].textContent = initialDims; });
+      $$('.select-option').forEach(function (o) { o.classList.toggle('is-selected', o.dataset.format === 'Original'); });
+      $$('[data-needs-format]').forEach(function (f) { f.classList.add('is-off'); });
+      ctaText.textContent = 'Download originals'; cta.classList.remove('is-busy');
+      $('[data-copy]').textContent = 'Copy';
+    }
+
+    function type(el, text, id) {
+      el.textContent = '';
+      var i = 0;
+      return new Promise(function (resolve, reject) {
+        (function tick() {
+          if (id !== run) return reject(0);
+          if (i >= text.length) return resolve();
+          el.textContent += text.charAt(i++);
+          setTimeout(tick, 55 + Math.random() * 60);
+        })();
+      });
+    }
+
+    async function demo(id) {
+      /* A stale run (tab hidden, scrolled away) must never touch the page again, so every pause checks. */
+      var nap = function (ms) { return sleep(ms).then(function () { if (id !== run) throw 0; }); };
+      reset();
+      cursor.classList.add('is-on');
+      var s = stage.getBoundingClientRect();
+      pos = { x: s.width - 40, y: s.height * 0.82 };
+      cursor.style.transform = 'translate(' + pos.x + 'px,' + pos.y + 'px)';
+      await nap(900);
+
+      /* 1. Copy the first image. */
+      var copy = $('[data-copy]');
+      await go(copy, id, -6, 2); await press(copy, id);
+      copy.textContent = 'Copied'; await nap(1100); copy.textContent = 'Copy';
+
+      /* 2. Rename it. */
+      var edit = $('[data-edit]'), name = $('[data-name]'), text = $('[data-text]');
+      await go(edit, id); await press(edit, id);
+      name.classList.add('is-editing');
+      await nap(250);
+      await type(text, 'loch-shore.jpg', id);
+      await nap(350);
+      name.classList.remove('is-editing');
+      await nap(500);
+
+      /* 3. Open Output settings and pick WebP. */
+      var toggle = $('#toggle');
+      await go(toggle, id, 40, 0); await press(toggle, id);
+      exportEl.classList.add('is-open'); chevron.classList.remove('is-closed');
+      await nap(600);
+
+      var sb = $('#selectButton');
+      await go(sb, id); await press(sb, id);
+      select.classList.add('is-open'); sb.classList.add('is-open');
+      await nap(450);
+      var webp = $('[data-format="WebP"]');
+      await go(webp, id); await press(webp, id);
+      $$('.select-option').forEach(function (o) { o.classList.toggle('is-selected', o === webp); });
+      selectValue.textContent = 'WebP';
+      select.classList.remove('is-open'); sb.classList.remove('is-open');
+      $$('[data-needs-format]').forEach(function (f) { f.classList.remove('is-off'); });
+      ctaText.textContent = 'Convert';
+      await nap(600);
+
+      /* Crop to 16:9 from the Aspect ratio list. */
+      var ab = $('#aspectButton'), alist = $('#aspectList');
+      await go(ab, id); await press(ab, id);
+      aspectSel.classList.add('is-open'); ab.classList.add('is-open');
+      await nap(450);
+      alist.scrollTo({ top: alist.scrollHeight, behavior: 'smooth' });
+      await nap(550);
+      var wide = $('[data-aspect="16:9"]');
+      await go(wide, id); await press(wide, id);
+      $$('[data-aspect]').forEach(function (o) { o.classList.toggle('is-selected', o === wide); });
+      $('#aspectValue').textContent = '16:9';
+      aspectSel.classList.remove('is-open'); ab.classList.remove('is-open');
+      rows.forEach(function (r) { $('.thumb', r).style.aspectRatio = '16 / 9'; });
+      await nap(800);
+
+      /* 4. Convert, then download the set. */
+      await go(cta, id, -30, 0); await press(cta, id);
+      ctaText.innerHTML = '<span class="spin"></span>Converting…'; cta.classList.add('is-busy');
+      await nap(1500);
+      cta.classList.remove('is-busy');
+      rows.forEach(function (r, i) { $('[data-after]', r).textContent = after[i]; $$('.meta-row p', r)[0].textContent = cropped[i]; });
+      ctaText.textContent = 'Download 3 as WebP';
+      await nap(900);
+      await press(cta, id);
+      ctaText.innerHTML = '<span class="spin"></span>Zipping…'; cta.classList.add('is-busy');
+      await nap(1100);
+      cta.classList.remove('is-busy'); ctaText.textContent = 'Saved';
+      await nap(900);
+
+      /* Drift away, then start over. */
+      await glide({ x: s.width - 30, y: s.height * 0.9 }, id);
+      cursor.classList.remove('is-on');
+      await nap(1400);
+    }
+
+    async function loop(id) {
+      try { while (id === run) await demo(id); } catch (e) { /* superseded by a newer run or paused */ }
+    }
+    function start() { if (running) return; running = true; run += 1; loop(run); }
+    function stop() { running = false; run += 1; cursor.classList.remove('is-on'); reset(); }
+
+    /* Only play while the page is on screen and in the foreground. */
+    var visible = true;
+    new IntersectionObserver(function (e) { visible = e[0].isIntersecting; sync(); }, { threshold: 0.25 }).observe(stage);
+    document.addEventListener('visibilitychange', sync);
+    function sync() { (visible && !document.hidden) ? start() : stop(); }
+    sync();
+  })();
+  </script>
+</body>
+</html>

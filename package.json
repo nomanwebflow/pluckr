@@ -9,6 +9,7 @@
     "build:apps-script": "vite build && node scripts/build-apps-script.mjs",
     "preview": "vite preview",
     "push": "npm run build:apps-script && clasp push --force",
+    "test:features": "node scripts/test-features.mjs",
     "test:paid": "node --experimental-strip-types --no-warnings scripts/test-convex-crypto.mjs && node --experimental-strip-types --no-warnings scripts/test-addon-gate.mjs"
   },
   "dependencies": {

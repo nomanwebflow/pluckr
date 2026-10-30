@@ -58,7 +58,7 @@
 * { box-sizing: border-box; }
 html, body, #root { width: 100%; min-width: 0; min-height: 100%; margin: 0; }
 body { min-height: 100vh; background: var(--black); color: var(--white); font-family: inherit; font-weight: 500; }
-button, input { font: inherit; color: inherit; }
+button, input, textarea { font: inherit; color: inherit; }
 button { min-width: 0; min-height: 0; margin: 0; border: 0; background: none; padding: 0; box-shadow: none; color: inherit; cursor: pointer; }
 p { margin: 0; }
 ::selection { background: var(--blue); color: var(--on-blue); }
@@ -118,7 +118,7 @@ p { margin: 0; }
 button:focus-visible, .name-input:focus-visible { outline: 2px solid var(--white); outline-offset: 2px; }
 
 /* Export section */
-.export { position: relative; display: flex; flex: none; flex-direction: column; gap: 16px; padding: 12px; border: 1px solid var(--edge); border-radius: 16px; background: var(--panel); }
+.export { position: relative; display: flex; flex: none; flex-direction: column; gap: 0; padding: 12px; border: 1px solid var(--edge); border-radius: 16px; background: var(--panel); }
 .export > :not(.panel-texture) { position: relative; z-index: 1; }
 .export-toggle { display: flex; align-items: center; justify-content: space-between; width: calc(100% + 24px); padding: 12px; margin: -12px -12px -12px; border-radius: 16px; font-size: 12px; line-height: normal; text-transform: uppercase; }
 .chevron { display: block; flex: none; width: 15px; height: 15px; aspect-ratio: 1 / 1; object-fit: contain; transition: transform 0.15s ease; }
@@ -139,7 +139,7 @@ button:focus-visible, .name-input:focus-visible { outline: 2px solid var(--white
 .export-hint { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
 .field { display: flex; flex-direction: column; gap: 8px; }
 .field:focus-within { z-index: 3; }
-.field.is-off > :not(.field-label):not(.field-head) { opacity: 0.4; }
+.field.is-off > :not(.field-label):not(.field-label-row):not(.field-head) { opacity: 0.4; }
 .field.is-off .field-head .field-value { opacity: 0.4; }
 .field-label { color: var(--muted); font-size: 12px; line-height: normal; }
 .field-label.is-strong { color: var(--white); }
@@ -184,10 +184,79 @@ button:focus-visible, .name-input:focus-visible { outline: 2px solid var(--white
 @media (prefers-reduced-motion: reduce) { .privacy-notice.is-checking { animation: none; } }
 
 .notice-agree { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; line-height: 1.4; color: var(--text-soft); text-align: left; }
-.notice-agree input { flex: none; width: 16px; height: 16px; margin: 1px 0 0; accent-color: #2563ff; }
+/* Checkbox in the shadcn style: small square, hairline border, solid fill and a check when on. */
+.notice-agree input, .row-check { appearance: none; -webkit-appearance: none; display: grid; flex: none; place-content: center; width: 16px; height: 16px; margin: 1px 0 0; border: 1px solid var(--muted); border-radius: 4px; background: transparent; cursor: pointer; transition: background-color 0.15s, border-color 0.15s; }
+.notice-agree input::before, .row-check::before { content: ""; width: 12px; height: 12px; background: var(--black); transform: scale(0); transition: transform 0.12s ease-out; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center / contain no-repeat; }
+.notice-agree input:checked, .row-check:checked { border-color: var(--white); background: var(--white); }
+.notice-agree input:checked::before, .row-check:checked::before { transform: scale(1); }
+.notice-agree input:hover:not(:checked):not(:disabled), .row-check:hover:not(:checked):not(:disabled) { border-color: var(--white); }
+.notice-agree input:focus-visible, .row-check:focus-visible { outline: 2px solid var(--white); outline-offset: 2px; }
+.notice-agree input:disabled, .row-check:disabled { cursor: not-allowed; opacity: 0.4; }
 .notice-agree a { color: inherit; text-decoration: underline; }
 .panel-message.is-delayed { animation: checking-in 0.01s linear 0.7s both; }
 @media (prefers-reduced-motion: reduce) { .panel-message.is-delayed { animation: none; } }
 
 /* Light theme: the white line icons are inverted; the blue logo keeps its colours. */
 .icon-button img, .edit-button img, .chevron { filter: var(--icon-filter); }
+
+.alt-row { display: flex; align-items: center; gap: 6px; }
+.alt-text { display: -webkit-box; flex: 1; min-width: 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.mini-button { display: inline-flex; flex: none; align-items: center; justify-content: center; padding: 6px 10px; border: 1px solid var(--edge-card); border-radius: 8px; background: var(--panel); color: var(--white); font-size: 11px; line-height: normal; text-transform: uppercase; white-space: nowrap; }
+.mini-button:hover:not(:disabled) { background: var(--hover-strong); }
+.mini-button[aria-pressed="true"] { border-color: var(--white); background: var(--selected); }
+.progress { height: 4px; overflow: hidden; border-radius: 2px; background: var(--track); }
+.progress > span { display: block; height: 100%; background: var(--blue); transition: width 0.2s; }
+
+/* Output settings slide open and shut: the row height animates between 0fr and 1fr, so the content needs no fixed height. */
+.export-body { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 0.3s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.2s ease; }
+.export-body.is-open { grid-template-rows: 1fr; opacity: 1; }
+.export-clip { min-height: 0; overflow: hidden; }
+.export-body.is-settled .export-clip { overflow: visible; }
+.export-fields { display: flex; flex-direction: column; gap: 16px; padding-top: 16px; }
+@media (prefers-reduced-motion: reduce) { .export-body { transition: none; } }
+
+/* Controls are not text to select. */
+button, .secondary-button, .menu-item, .notice-agree, .select-option { -webkit-user-select: none; user-select: none; }
+.notice-agree a { -webkit-user-select: text; user-select: text; }
+
+/* The tooltip sits under its label and spans the field, so it never runs past the panel. */
+.field-label-row { position: relative; display: flex; align-items: center; gap: 6px; }
+.info-tip { display: contents; }
+.info-button { display: grid; place-content: center; width: 16px; height: 16px; border-radius: 50%; color: var(--muted); }
+.info-button:hover, .info-button[aria-expanded="true"] { color: var(--white); }
+.info-note { position: absolute; z-index: 5; top: calc(100% + 6px); left: 0; right: 0; padding: 10px 12px; border: 1px solid var(--edge-card-strong); border-radius: 12px; background: var(--hover-strong); color: var(--text-soft); font-size: 12px; line-height: 1.4; pointer-events: none; opacity: 0; visibility: hidden; transform: translateY(-4px); transition: opacity 0.12s ease, transform 0.12s ease, visibility 0s 0.12s; }
+.info-note.is-open { opacity: 1; visibility: visible; transform: none; transition: opacity 0.12s ease, transform 0.12s ease; }
+@media (prefers-reduced-motion: reduce) { .info-note, .info-note.is-open { transition: none; } }
+
+.rename-preview { display: flex; flex-direction: column; width: 100%; margin: 0; padding: 0; overflow: hidden; border: 1px solid var(--edge-card); border-radius: 12px; list-style: none; font-size: 12px; line-height: 1.3; text-align: left; }
+.rename-preview li { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 10px 12px; border-top: 1px solid var(--edge); }
+.rename-preview li:first-child { border-top: 0; }
+.rename-old { overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.rename-new { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.rename-new svg { flex: none; color: var(--muted); }
+.rename-new span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rename-preview .rename-more { color: var(--muted); font-size: 11px; }
+
+/* The tick sits on the photo, so it keeps its own colours in both themes: a dark disc behind a white ring, then a white fill. */
+.thumb-wrap { position: relative; }
+.thumb-wrap .row-check { position: absolute; top: 10px; left: 10px; z-index: 1; width: 20px; height: 20px; margin: 0; border: 1.5px solid rgba(255, 255, 255, 0.9); background: rgba(0, 0, 0, 0.5); }
+.thumb-wrap .row-check::before { width: 14px; height: 14px; background: #000; }
+.thumb-wrap .row-check:checked { border-color: #fff; background: #fff; }
+.thumb-wrap .row-check:hover:not(:checked) { background: rgba(0, 0, 0, 0.7); border-color: #fff; }
+.thumb-wrap .row-check:focus-visible { outline-color: #fff; }
+.image-row.is-off .thumb, .image-row.is-off .image-info { opacity: 0.45; transition: opacity 0.15s; }
+.alt-text.is-missing { font-style: normal; opacity: 0.7; }
+.alt-edit { display: flex; flex-direction: column; gap: 6px; }
+.alt-input { width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid var(--edge-card); border-radius: 12px; outline: 0; background: var(--panel); font-size: 12px; line-height: 1.4; resize: none; }
+.alt-input:focus-visible { border-color: var(--white); }
+.alt-input::placeholder { color: var(--muted); opacity: 1; }
+.alt-edit-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.mini-button:disabled { opacity: 0.4; cursor: not-allowed; }
+.meta-note.is-error { color: #ff6b6b; }
+
+/* Same 12px inset on every side as the bars below. The buttons are trimmed so the row fits the 300px Docs sidebar on one line. */
+.selection-bar { flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 8px; padding: 12px; }
+.selection-bar .selection-actions { flex: none; gap: 4px; }
+.selection-bar .mini-button { padding: 6px 7px; }
+.selection-count { flex: 0 1 auto; min-width: 0; overflow: hidden; font-size: 12px; line-height: normal; text-overflow: ellipsis; white-space: nowrap; }
+.selection-actions { display: flex; flex-wrap: wrap; gap: 6px; }

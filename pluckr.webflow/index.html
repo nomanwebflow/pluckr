@@ -2,12 +2,12 @@
 <html data-wf-page="6a567b10e382ae0ed963a1b7" data-wf-site="6a567b0de382ae0ed963a110" lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Extract and Convert Images from Google Docs | Pluckr</title>
-  <meta content="Pull every image out of a Google Doc, convert to WebP, AVIF, JPEG or PNG, and crop or resize. One-time $5. Images never leave your browser." name="description">
-  <meta content="Extract and Convert Images from Google Docs | Pluckr" property="og:title">
-  <meta content="Pull every image out of a Google Doc, convert to WebP, AVIF, JPEG or PNG, and crop or resize. One-time $5. Images never leave your browser." property="og:description">
-  <meta content="Extract and Convert Images from Google Docs | Pluckr" name="twitter:title">
-  <meta content="Pull every image out of a Google Doc, convert to WebP, AVIF, JPEG or PNG, and crop or resize. One-time $5. Images never leave your browser." name="twitter:description">
+  <title>Extract and Convert Images in Google Docs and Slides | Pluckr</title>
+  <meta content="Pull every image out of a Google Doc or Slides deck. Convert to WebP or AVIF, edit alt text, export Markdown. One-time $5, runs in your browser." name="description">
+  <meta content="Extract and Convert Images in Google Docs and Slides | Pluckr" property="og:title">
+  <meta content="Pull every image out of a Google Doc or Slides deck. Convert to WebP or AVIF, edit alt text, export Markdown. One-time $5, runs in your browser." property="og:description">
+  <meta content="Extract and Convert Images in Google Docs and Slides | Pluckr" name="twitter:title">
+  <meta content="Pull every image out of a Google Doc or Slides deck. Convert to WebP or AVIF, edit alt text, export Markdown. One-time $5, runs in your browser." name="twitter:description">
   <meta property="og:type" content="website">
   <meta content="summary_large_image" name="twitter:card">
   <meta content="width=device-width, initial-scale=1" name="viewport">
@@ -156,7 +156,95 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Pluckr sidebar listing the images in a Google Doc, with the headline Extract and convert Google Docs images">
   <meta name="twitter:image" content="https://docpluckr.com/images/og-image.png">
-  <script type="application/ld+json">[{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Pluckr", "applicationCategory": "BrowserApplication", "operatingSystem": "Web (Google Docs add-on)", "description": "Pull every image out of a Google Doc, convert to WebP, AVIF, JPEG or PNG, and crop or resize. One-time $5. Images never leave your browser.", "url": "https://docpluckr.com/", "image": "https://docpluckr.com/images/og-image.png", "offers": {"@type": "Offer", "price": "5.00", "priceCurrency": "USD"}}, {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Are my images uploaded anywhere?", "acceptedAnswer": {"@type": "Answer", "text": "Pluckr does not send images to a separate Pluckr server. Google Apps Script reads images from the current document and prepares original-image ZIP downloads; image conversion runs locally in your browser."}}, {"@type": "Question", "name": "Do I need a Google account?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Pluckr runs as a Google Docs add-on and asks for access to the current document so it can read and export its images."}}, {"@type": "Question", "name": "What image formats are supported?", "acceptedAnswer": {"@type": "Answer", "text": "Pluckr can convert images to AVIF, WebP, JPEG, or PNG. Choose one output format at a time; quality controls are available for lossy formats."}}, {"@type": "Question", "name": "Why are some images missing when I scan?", "acceptedAnswer": {"@type": "Answer", "text": "Pluckr extracts embedded inline images in the document body, including those in tables and nested document tabs. It does not currently extract floating images or images in headers, footers, or footnotes."}}, {"@type": "Question", "name": "Does it support GIFs or BMPs?", "acceptedAnswer": {"@type": "Answer", "text": "Pluckr can extract these as originals when they are embedded inline. Converting a format depends on whether your browser can decode the image and supports the selected output format."}}]}]</script>
+  <script type="application/ld+json">[{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Pluckr", "applicationCategory": "BrowserApplication", "operatingSystem": "Web (Google Docs and Google Slides add-on)", "description": "Pull every image out of a Google Doc or Slides deck. Convert to WebP or AVIF, edit alt text, export Markdown. One-time $5, runs in your browser.", "url": "https://docpluckr.com/", "image": "https://docpluckr.com/images/og-image.png", "offers": {"@type": "Offer", "price": "5.00", "priceCurrency": "USD"}, "featureList": ["Extract every image from a Google Doc or Google Slides deck", "Select the images to export", "Rename images in bulk with a pattern", "Convert images to WebP, AVIF, JPEG or PNG", "Crop to an aspect ratio and set a maximum width", "See, edit and export image alt text", "Export a Google Doc as Markdown with an images folder", "Shrink the images inside a Doc or deck in place"]}, {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How do I download all images from a Google Doc?", "acceptedAnswer": {"@type": "Answer", "text": "Open the Doc, choose Extensions → Pluckr → Extract images, then press Download originals to get every image in one ZIP. Google Docs has no built-in button for this. The manual routes are File → Download → Web page (.html, zipped), or renaming a downloaded .docx to .zip. Our step-by-step guide compares all four methods."}}, {"@type": "Question", "name": "Does Pluckr work with Google Slides?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Open Pluckr from a Slides deck to list every picture on every slide, including grouped ones, then select, rename, convert and download them. Markdown export is only available in Docs."}}, {"@type": "Question", "name": "Can I convert Google Docs images to WebP or AVIF?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Open Output settings, choose WebP, AVIF, JPEG or PNG, set the quality, an optional aspect ratio and a maximum width, then press Convert. Each image shows its new size before you download, and the conversion runs in your browser. See how to convert Google Docs images to WebP or AVIF."}}, {"@type": "Question", "name": "Can I export a Google Doc as Markdown with images?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, in Docs. Tick the Markdown option in Output settings and your download includes a content.md file and an images folder, with the images linked and their alt text kept. It suits blogs, static sites and Obsidian."}}, {"@type": "Question", "name": "Can Pluckr edit or export image alt text?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Pluckr shows each image’s alt text and counts the images that have none. Filter to those, write a description in the sidebar and save it to the file, or add alt text files (CSV and JSON) to your download."}}, {"@type": "Question", "name": "How much does Pluckr cost? Is there a subscription?", "acceptedAnswer": {"@type": "Answer", "text": "Pluckr costs $5 once for your Google account, for both Docs and Slides. There is no subscription, and refunds are available within 14 days. See the terms."}}, {"@type": "Question", "name": "Are my images uploaded anywhere?", "acceptedAnswer": {"@type": "Answer", "text": "Pluckr does not send images to a separate Pluckr server. Google Apps Script reads images from the current document and prepares original-image ZIP downloads; image conversion runs locally in your browser."}}, {"@type": "Question", "name": "Do I need a Google account?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Pluckr runs as a Google Docs and Google Slides add-on and asks for access to the current file so it can read and export its images."}}, {"@type": "Question", "name": "What image formats are supported?", "acceptedAnswer": {"@type": "Answer", "text": "Pluckr can convert images to AVIF, WebP, JPEG, or PNG. Choose one output format at a time; quality controls are available for lossy formats."}}, {"@type": "Question", "name": "Why are some images missing when I scan?", "acceptedAnswer": {"@type": "Answer", "text": "Pluckr extracts embedded inline images in the document body, including those in tables and nested document tabs. In Slides it finds pictures on slides, including grouped ones, but not images used as shape fills or backgrounds. It does not currently extract floating images or images in headers, footers, or footnotes in Docs."}}, {"@type": "Question", "name": "Does it support GIFs or BMPs?", "acceptedAnswer": {"@type": "Answer", "text": "Pluckr can extract these as originals when they are embedded inline. Converting a format depends on whether your browser can decode the image and supports the selected output format."}}, {"@type": "Question", "name": "Does Pluckr change my file?", "acceptedAnswer": {"@type": "Answer", "text": "Only when you ask. Reading, converting and downloading never touch your file. Saving alt text, or confirming Optimize, writes to the open Doc or deck, so make a copy first; version history can undo it."}}]}]</script>
+  <style>
+
+.v4 { background: #000; color: #fff; font-family: "PP Neue Montreal", "Helvetica Neue", Arial, sans-serif; font-weight: 500; -webkit-font-smoothing: antialiased; }
+.v4 * { box-sizing: border-box; }
+.v4 a { color: inherit; }
+.v4 p, .v4 h1, .v4 h2, .v4 h3, .v4 figure { margin: 0; }
+.v4-wrap { width: min(1280px, 100% - 48px); margin-inline: auto; }
+.v4 h2, .v4 h3, .v4 h4 { text-transform: none; }
+.v4 h2 + .lede { margin-top: 28px !important; }
+.v4 h2 { max-width: 21ch; font-size: clamp(34px, 5vw, 76px); font-weight: 500; line-height: 1; letter-spacing: -0.025em; }
+.v4 .lede { max-width: 560px; margin-top: 20px; color: rgba(255, 255, 255, 0.62); font-size: clamp(16px, 1.4vw, 19px); line-height: 1.45; }
+.v4 section { padding-block: clamp(72px, 10vw, 150px) 0; }
+
+/* Hero: the headline across the top, the Docs window under it, cut off by the fold. */
+.v4-hero { padding-top: clamp(56px, 8vw, 120px) !important; overflow: hidden; }
+.v4-hero h1 { max-width: 15ch; font-size: clamp(46px, 7.4vw, 116px); font-weight: 500; line-height: 0.95; letter-spacing: -0.035em; text-wrap: balance; }
+.v4-hero-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 32px; margin-top: clamp(28px, 4vw, 56px); }
+.v4-hero .lede { margin-top: 0; max-width: 520px; }
+.v4-hero-cta { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.v4-note { color: rgba(255, 255, 255, 0.55); font-size: 13px; }
+.v4-window { position: relative; width: min(1100px, 100%); margin: clamp(40px, 6vw, 80px) auto 0; aspect-ratio: 1000 / 700; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1); border-bottom: 0; border-radius: 18px 18px 0 0; background: #0a0a0a; }
+.v4-window iframe { display: block; width: 100%; height: 138%; border: 0; }
+
+/* Then and now: two real file listings. */
+.v4-split { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-top: clamp(36px, 5vw, 72px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 18px; overflow: hidden; }
+.v4-then, .v4-now { padding: clamp(20px, 3vw, 40px); }
+.v4-now { background: #0d0d0d; border-left: 1px solid rgba(255, 255, 255, 0.1); }
+.v4-split h3 { font-size: 15px; font-weight: 500; color: rgba(255, 255, 255, 0.6); }
+.v4-now h3 { color: #fff; }
+.v4-files { margin: 22px 0 0; padding: 0; list-style: none; font: 400 15px/1.9 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+.v4-files li { display: flex; justify-content: space-between; gap: 16px; }
+.v4-then .v4-files { color: rgba(255, 255, 255, 0.5); }
+.v4-files span:last-child { color: rgba(255, 255, 255, 0.55); white-space: nowrap; }
+.v4-now .v4-files span:last-child { color: #5aa2ff; }
+.v4-split p.v4-cap { margin-top: 22px; font-size: 14px; line-height: 1.5; color: rgba(255, 255, 255, 0.55); }
+
+/* The format chart: bars drawn to scale from measured files. */
+.v4-chart { margin-top: clamp(36px, 5vw, 64px); display: grid; gap: 14px; }
+.v4-bar { display: grid; grid-template-columns: 90px 1fr 90px; align-items: center; gap: 18px; font-size: 16px; }
+.v4-bar > span:first-child { color: rgba(255, 255, 255, 0.7); }
+.v4-bar > span:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.v4-bar i { display: block; width: var(--w); min-width: 6px; height: 34px; border-radius: 6px; background: rgba(255, 255, 255, 0.18); }
+.v4-bar.is-best i { background: #0062fb; }
+.v4 p.v4-source { margin-top: 26px; max-width: 640px; color: rgba(255, 255, 255, 0.5); font-size: 13px; line-height: 1.5; }
+.v4 a.v4-link { display: inline-block; margin-top: 22px; font-size: 15px; }
+
+/* The strip: real sidebar screens, scrolling sideways. */
+.v4-stripwrap { margin-top: clamp(36px, 5vw, 64px); }
+.v4-strip { display: flex; gap: 28px; padding: 0 max(24px, calc((100% - 1280px) / 2)) 28px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.25) transparent; }
+.v4-shot { flex: none; width: 300px; scroll-snap-align: start; }
+.v4-shot img { display: block; width: 300px; height: auto; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; }
+.v4-shot figcaption { display: flex; flex-direction: column; gap: 4px; margin-top: 14px; }
+.v4-shot figcaption span { color: rgba(255, 255, 255, 0.58); font-size: 14px; line-height: 1.4; }
+
+/* Doc to Markdown: three artifacts in a row. */
+.v4-md { display: grid; grid-template-columns: 1.1fr 1.2fr 0.8fr; gap: 20px; margin-top: clamp(36px, 5vw, 64px); align-items: start; }
+.v4-paper { padding: 28px 30px; border-radius: 6px; background: #fff; color: #202124; font: 400 14px/1.55 Arial, "Helvetica Neue", sans-serif; }
+.v4-paper h4 { margin: 0 0 10px; font-size: 24px; font-weight: 400; line-height: 1.2; }
+.v4-paper p { margin: 0 0 12px; }
+.v4-paper img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 2px; }
+.v4-code { margin: 0; padding: 26px 28px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; background: #0d0d0d; font: 400 14px/1.7 ui-monospace, "SF Mono", Menlo, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; color: rgba(255, 255, 255, 0.85); }
+.v4-code b { font-weight: 400; color: #5aa2ff; }
+.v4-tree { margin: 0; padding: 26px 24px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; font: 400 14px/1.8 ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: rgba(255, 255, 255, 0.85); white-space: pre; overflow-x: auto; }
+.v4-label { margin-bottom: 12px; color: rgba(255, 255, 255, 0.5); font-size: 13px; }
+
+/* Price: one number. */
+.v4-price { display: grid; grid-template-columns: auto 1fr; align-items: end; gap: clamp(28px, 6vw, 96px); margin-top: clamp(24px, 4vw, 48px); }
+.v4-big { font-size: clamp(120px, 22vw, 320px); line-height: 0.8; letter-spacing: -0.05em; }
+.v4-price ul { margin: 0 0 0 0; padding: 0; list-style: none; display: grid; gap: 14px; font-size: clamp(18px, 2vw, 26px); line-height: 1.25; }
+.v4-price li { padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.14); }
+.v4-price .u-button-wrapper { margin-top: 28px; }
+
+.v4 #faqs { padding-top: clamp(72px, 10vw, 150px); padding-bottom: clamp(72px, 10vw, 140px); }
+.v4 #faqs .u-container { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(32px, 6vw, 96px); align-items: start; width: min(1280px, 100% - 48px); max-width: none; margin-inline: auto; padding-inline: 0; }
+.v4 #faqs .u-content-wrapper { position: sticky; top: 40px; }
+.v4 #faqs h2 { margin-bottom: 24px; line-height: 1.02; }
+.v4 #faqs h2 + p { color: rgba(255, 255, 255, 0.62); }
+@media (max-width: 900px) {
+  .v4-split, .v4-md { grid-template-columns: 1fr; }
+  .v4-now { border-left: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+  .v4-bar { grid-template-columns: 64px 1fr 72px; gap: 12px; font-size: 14px; }
+  .v4-price { grid-template-columns: 1fr; }
+  .v4 #faqs .u-container { grid-template-columns: 1fr; }
+  .v4 #faqs .u-content-wrapper { position: static; }
+  .v4 h2 { max-width: 20ch; }
+}
+
+  </style>
 </head>
 <body>
   <div class="page_wrap">
@@ -549,135 +637,15 @@ html.wf-design-mode .guide_wrap {
         </div>
       </div>
     </div>
-    <main id="main" class="page_main">
-      <section class="hero3" aria-label="Pluckr">
-        <div class="stage" id="stage" role="group" aria-label="Pluckr sidebar, shown working on a Google Doc">
-
-      <div class="sidebar-wrap" id="wrap">
-        <div class="sidebar" id="sidebar">
-          <header class="top-bar">
-            <img class="brand-mark" src="images/v2/mark.svg" alt="">
-            <p class="brand">Pluckr</p>
-            <span class="icon-button"><img src="images/v2/more.svg" alt=""></span>
-          </header>
-
-          <section class="panel" id="panel" aria-label="Extracted images">
-
-            <article class="image-row" data-row="0">
-              <img class="thumb" src="images/v2/lake.jpg" alt="Loch shore with snow-capped mountain">
-              <div class="image-info">
-                <div class="name-row">
-                  <p class="image-name" data-name><span data-text>image-01.jpg</span><span class="caret"></span></p>
-                  <span class="edit-button" data-edit><img src="images/v2/edit.svg" alt=""></span>
-                </div>
-                <div class="meta-row"><p>3000 × 3000</p><p>2.1 MB</p><p data-after></p></div>
-              </div>
-              <div class="actions">
-                <button class="action-button" type="button" data-copy tabindex="-1">Copy</button>
-                <button class="action-button" type="button" tabindex="-1">Download</button>
-              </div>
-            </article>
-
-            <article class="image-row" data-row="1">
-              <img class="thumb" src="images/v2/library.jpg" alt="Library atrium with crossing staircases">
-              <div class="image-info">
-                <div class="name-row">
-                  <p class="image-name"><span data-text>image-02.jpg</span></p>
-                  <span class="edit-button"><img src="images/v2/edit.svg" alt=""></span>
-                </div>
-                <div class="meta-row"><p>3000 × 3000</p><p>2.4 MB</p><p data-after></p></div>
-              </div>
-              <div class="actions">
-                <button class="action-button" type="button" tabindex="-1">Copy</button>
-                <button class="action-button" type="button" tabindex="-1">Download</button>
-              </div>
-            </article>
-
-            <article class="image-row" data-row="2">
-              <img class="thumb" src="images/v2/building.jpg" alt="White building with round windows">
-              <div class="image-info">
-                <div class="name-row">
-                  <p class="image-name"><span data-text>image-03.jpg</span></p>
-                  <span class="edit-button"><img src="images/v2/edit.svg" alt=""></span>
-                </div>
-                <div class="meta-row"><p>3000 × 3000</p><p>1.2 MB</p><p data-after></p></div>
-              </div>
-              <div class="actions">
-                <button class="action-button" type="button" tabindex="-1">Copy</button>
-                <button class="action-button" type="button" tabindex="-1">Download</button>
-              </div>
-            </article>
-          </section>
-
-          <section class="export" id="export">
-            <button class="export-toggle" type="button" id="toggle" tabindex="-1">
-              <span>Output settings</span>
-              <img class="chevron is-closed" id="chevron" src="images/v2/chevron-down.svg" alt="">
-            </button>
-            <div class="export-body">
-              <div class="field">
-                <span class="field-label">Format</span>
-                <div class="select" id="select">
-                  <button class="select-button" type="button" id="selectButton" tabindex="-1"><span id="selectValue">Original</span><img class="chevron" src="images/v2/chevron-down.svg" alt=""></button>
-                  <div class="select-list" role="listbox">
-                    <button class="select-option is-selected" type="button" data-format="Original" tabindex="-1">Original</button>
-                    <button class="select-option" type="button" data-format="AVIF" tabindex="-1">AVIF</button>
-                    <button class="select-option" type="button" data-format="WebP" tabindex="-1">WebP</button>
-                    <button class="select-option" type="button" data-format="PNG" tabindex="-1">PNG</button>
-                    <button class="select-option" type="button" data-format="JPEG" tabindex="-1">JPEG</button>
-                  </div>
-                </div>
-              </div>
-              <div class="field is-off" data-needs-format>
-                <div class="field-head"><span class="field-label">Quality</span><span class="field-value">80%</span></div>
-                <div class="slider"></div>
-              </div>
-              <div class="field is-off" data-needs-format>
-                <span class="field-label">Aspect ratio</span>
-                <div class="select" id="aspectSelect">
-                  <button class="select-button" type="button" id="aspectButton" tabindex="-1"><span id="aspectValue">Original</span><img class="chevron" src="images/v2/chevron-down.svg" alt=""></button>
-                  <div class="select-list" id="aspectList" role="listbox">
-                    <button class="select-option is-selected" type="button" data-aspect="Original" tabindex="-1">Original</button>
-                    <button class="select-option" type="button" data-aspect="1:1" tabindex="-1">1:1</button>
-                    <button class="select-option" type="button" data-aspect="4:3" tabindex="-1">4:3</button>
-                    <button class="select-option" type="button" data-aspect="3:4" tabindex="-1">3:4</button>
-                    <button class="select-option" type="button" data-aspect="3:2" tabindex="-1">3:2</button>
-                    <button class="select-option" type="button" data-aspect="2:3" tabindex="-1">2:3</button>
-                    <button class="select-option" type="button" data-aspect="16:9" tabindex="-1">16:9</button>
-                    <button class="select-option" type="button" data-aspect="9:16" tabindex="-1">9:16</button>
-                  </div>
-                </div>
-              </div>
-              <div class="field is-off" data-needs-format>
-                <span class="field-label">Max width (px)</span>
-                <div class="field-input">Auto</div>
-              </div>
-              <p class="export-hint">A fixed aspect ratio crops from the centre. Leave the width empty to keep the original size; images are never enlarged.</p>
-            </div>
-          </section>
-
-          <button class="primary-button" type="button" id="cta" tabindex="-1"><span id="ctaText">Download originals</span></button>
-        </div>
-      </div>
-
-      <div class="cursor" id="cursor" aria-hidden="true">
-        <svg viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg"><path d="M5 3.2 21.4 13.6 13.7 14.9 10.2 22.2Z" fill="#fff" stroke="#0b0b0b" stroke-width="1.6" stroke-linejoin="round"/></svg>
-      </div>
-    </div>
-        <div class="hero_text">
-          <div style="width: 5rem;" class="logo_wrap"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewbox="0 0 164 164" fill="none" class="logo_icon">
-              <rect x="13" y="13" width="138" height="138" rx="7" fill="currentcolor" stroke="currentcolor" stroke-width="2" class="logo_bg"></rect>
-              <rect x="36.5" y="88.5" width="39" height="39" rx="3.5" fill="white" stroke="white"></rect>
-              <rect x="88.5" y="88.5" width="39" height="39" rx="3.5" fill="white" stroke="white"></rect>
-              <rect x="36.5" y="36.5" width="39" height="39" rx="3.5" fill="white" stroke="white"></rect>
-              <rect x="89" y="37" width="38" height="38" rx="3" stroke="white" stroke-width="2" stroke-dasharray="6 6"></rect>
-              <rect x="125.555" y="-0.317688" width="40" height="40" rx="4" transform="rotate(14.2896 125.555 -0.317688)" fill="white"></rect>
-            </svg></div>
-          <div data-wf--content-wrapper--variant="left" style="" class="u-content-wrapper w-variant-e85a4315-14bc-e5ef-0d3e-2c8c9ed7d2f1">
-            <div class="u-display-contents">
-              <h1 data-wf--typography-plain--variant="h1" data-number="-1" class="u-text w-variant-83c598b0-8cc2-f955-1996-fcb8fb10bf70"><span>Pluck Every Image Out Of A Google Doc</span></h1>
-              <p data-wf--typography-plain--variant="inherit" data-number="50" class="u-text"><span>Grab every image from a Google Doc, then compress and convert to AVIF or WebP. It all happens instantly, right in your browser.</span></p>
-              <div class="u-button-wrapper">
+    
+<main id="main" class="page_main v4">
+  <section class="v4-hero">
+    <div class="v4-wrap">
+      <h1>Pluck every image out of a Google Doc</h1>
+      <div class="v4-hero-row">
+        <p class="lede">Extract every image from a Google Doc or Slides deck. Rename them in bulk, convert to WebP or AVIF, and keep the alt text.</p>
+        <div class="v4-hero-cta">
+          <div class="u-button-wrapper">
                 <div class="u-display-contents">
                   <div data-wf--button-main--variant="primary" data-trigger="hover focus" class="button_main_wrap">
                     <div data-wf--clickable--variant="focus-ring-outside" class="clickable_wrap u-cover-absolute"><a href="https://workspace.google.com/marketplace/app/pluckr/315157378382" target="_blank" rel="noopener" aria-label="Add Pluckr to Google Docs" class="clickable_btn"></a></div>
@@ -687,272 +655,114 @@ html.wf-design-mode .guide_wrap {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        
+          <span class="v4-note">One-time $5. Your images never leave your browser.</span>
         </div>
-        <p class="foot">Photos by Ben Jessop, Gavin Allanwood and Elina Ayupova on <a href="https://unsplash.com">Unsplash</a>.</p>
-      </section>
-      <section class="u-section">
+      </div>
+    </div>
+    <div class="v4-wrap">
+      <div class="v4-window"><iframe src="hero-flip.html" title="The images of a Google Doc fly into the Pluckr sidebar, where they are listed and converted" loading="eager"></iframe></div>
+    </div>
+  </section>
+
+  <section id="then-and-now">
+    <div class="v4-wrap">
+      <h2>Stop opening image7.png to find out what it is</h2>
+      <p class="lede">Google Docs has no button to save all the images. The built-in download gives you a folder of generic names. Pluckr gives you files you can use.</p>
+      <div class="v4-split">
+        <div class="v4-then">
+          <h3>File, Download, Web page (.html, zipped)</h3>
+          <ul class="v4-files"><li><span>image1.png</span><span></span></li><li><span>image2.png</span><span></span></li><li><span>image3.png</span><span></span></li><li><span>image4.png</span><span></span></li><li><span>image5.png</span><span></span></li><li><span>image6.png</span><span></span></li><li><span>image7.png</span><span></span></li><li><span>…</span><span></span></li></ul>
+          <p class="v4-cap">An HTML file you did not want, a folder of numbered images, no previews, no alt text.</p>
+        </div>
+        <div class="v4-now">
+          <h3>Extensions, Pluckr, Extract images</h3>
+          <ul class="v4-files"><li><span>west-coast-road-trip-01.webp</span><span>83 KB</span></li><li><span>west-coast-road-trip-02.webp</span><span>77 KB</span></li><li><span>west-coast-road-trip-03.webp</span><span>11 KB</span></li><li><span>images-metadata.csv</span><span>alt text</span></li><li><span>content.md</span><span>Markdown</span></li></ul>
+          <p class="v4-cap">Named by one pattern, converted to WebP and cropped to 16:9. Sizes measured on our three sample photos.</p>
+        </div>
+      </div>
+      <a class="v4-link" href="/guides/download-all-images-from-google-docs">How to download all images from a Google Doc, four ways</a>
+    </div>
+  </section>
+
+  <section id="formats">
+    <div class="v4-wrap">
+      <h2>Convert Google Docs images to WebP: 796 KB becomes 83 KB</h2>
+      <p class="lede">Docs images are often PNGs. WebP and AVIF keep the look at a fraction of the size, so pages load faster and uploads fit.</p>
+      <div class="v4-chart" role="img" aria-label="File sizes of the same photo: PNG 796 KB, JPEG 104 KB, WebP 83 KB">
+        <div class="v4-bar"><span>PNG</span><i style="--w: 100%"></i><span>796 KB</span></div>
+        <div class="v4-bar"><span>JPEG</span><i style="--w: 13.1%"></i><span>104 KB</span></div>
+        <div class="v4-bar is-best"><span>WebP</span><i style="--w: 10.4%"></i><span>83 KB</span></div>
+      </div>
+      <p class="v4-source">One of our sample photos, cropped to 16:9 (1000 × 562 px), quality 80, measured with cwebp and libjpeg. Your results depend on the image and the settings. AVIF is usually smaller still; try it on your own images.</p>
+      <a class="v4-link" href="/convert-google-docs-images-to-webp">How to convert Google Docs images to WebP or AVIF</a>
+    </div>
+  </section>
+
+  <section id="how-it-works">
+    <div class="v4-wrap">
+      <h2>Pick, rename, crop and convert from one sidebar</h2>
+      <p class="lede">Open Extensions, Pluckr, Extract images in a Doc or Slides deck. This is the whole sidebar, state by state, at the width Google gives it.</p>
+    </div>
+    <div class="v4-stripwrap"><div class="v4-strip"><figure class="v4-shot"><img src="images/v4/sidebar-list-alt-edit.webp" width="300" height="680" loading="lazy" alt="The Pluckr sidebar: alt text"><figcaption><strong>Alt text</strong><span>See which images have no alt text and write it in the sidebar.</span></figcaption></figure><figure class="v4-shot"><img src="images/v4/sidebar-selection-filter.webp" width="300" height="680" loading="lazy" alt="The Pluckr sidebar: pick"><figcaption><strong>Pick</strong><span>Tick only the images you need, or filter to the ones missing alt text.</span></figcaption></figure><figure class="v4-shot"><img src="images/v4/sidebar-rename-pattern.webp" width="300" height="680" loading="lazy" alt="The Pluckr sidebar: rename"><figcaption><strong>Rename</strong><span>One pattern for every file name, with a preview before you apply it.</span></figcaption></figure><figure class="v4-shot"><img src="images/v4/sidebar-output-webp.webp" width="300" height="680" loading="lazy" alt="The Pluckr sidebar: convert"><figcaption><strong>Convert</strong><span>WebP, AVIF, JPEG or PNG, with quality, aspect ratio and maximum width.</span></figcaption></figure><figure class="v4-shot"><img src="images/v4/sidebar-optimize-done.webp" width="300" height="680" loading="lazy" alt="The Pluckr sidebar: shrink"><figcaption><strong>Shrink</strong><span>Replace the heavy pictures inside the Doc itself with smaller copies.</span></figcaption></figure><figure class="v4-shot"><img src="images/v4/sidebar-slides-list.webp" width="300" height="680" loading="lazy" alt="The Pluckr sidebar: slides"><figcaption><strong>Slides</strong><span>The same sidebar in a deck: every picture on every slide.</span></figcaption></figure></div></div>
+  </section>
+
+  <section id="markdown">
+    <div class="v4-wrap">
+      <h2>Export a Google Doc as Markdown, with its images</h2>
+      <p class="lede">Tick one box and the download holds a content.md, an images folder and the alt text, ready for a blog, a static site or Obsidian.</p>
+      <div class="v4-md">
+        <div><div class="v4-label">In the Google Doc</div>
+          <div class="v4-paper"><h4>West Coast Road Trip</h4><p>Seventy-two hours, four people and one car.</p><img src="images/v2/lake.jpg" alt="Loch shore with snow-capped mountain"></div></div>
+        <div><div class="v4-label">content.md</div>
+          <pre class="v4-code"><b>#</b> West Coast Road Trip
+
+Seventy-two hours, four people and one car.
+
+<b>![</b>Loch shore with snow-capped mountain<b>](</b>./images/west-coast-road-trip-01.webp<b>)</b></pre></div>
+        <div><div class="v4-label">In your download</div>
+          <pre class="v4-tree">content.md
+images-metadata.csv
+images-metadata.json
+images/
+  west-coast-road-trip-01.webp
+  west-coast-road-trip-02.webp
+  west-coast-road-trip-03.webp</pre></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <div class="v4-wrap">
+      <h2 class="u-sr-only">Pluckr pricing: $5 once, no subscription</h2>
+      <div class="v4-price">
+        <div class="v4-big">$5</div>
+        <div>
+          <ul>
+            <li>Once. No subscription.</li>
+            <li>Google Docs and Google Slides, one purchase.</li>
+            <li>Refunds within 14 days.</li>
+            <li>Your images stay in your browser.</li>
+          </ul>
+          <div class="u-button-wrapper">
+                <div class="u-display-contents">
+                  <div data-wf--button-main--variant="primary" data-trigger="hover focus" class="button_main_wrap">
+                    <div data-wf--clickable--variant="focus-ring-outside" class="clickable_wrap u-cover-absolute"><a href="https://workspace.google.com/marketplace/app/pluckr/315157378382" target="_blank" rel="noopener" aria-label="Add Pluckr to Google Docs" class="clickable_btn"></a></div>
+                    <div data-button="" class="button_main_element">
+                      <div aria-hidden="true" class="button_main_text u-text-style-main u-text-transform-uppercase">Add to Google Docs</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="u-section" id="faqs">
         <div class="u-container  ">
           <div data-wf--content-wrapper--variant="left" style="" class="u-content-wrapper w-variant-e85a4315-14bc-e5ef-0d3e-2c8c9ed7d2f1">
             <div class="u-display-contents">
-              <h2 data-wf--typography-plain--variant="h2" data-number="-1" class="u-text w-variant-9af60b09-c3a1-8c2a-eb78-8e29460ca7a9"><span>What it does<br></span></h2>
-              <p data-wf--typography-plain--variant="inherit" data-number="35" class="u-text"><span>Find inline images across document tabs, review them, and export originals or optimized copies.</span></p>
-            </div>
-          </div>
-          <div data-wf--grid--variant="default" data-number="12" class="u-grid-wrapper u-gap-0">
-            <div data-large-columns="2" data-medium-columns="2" data-small-columns="1" class="u-grid">
-              <div data-wf--card-primary--card-type="default" class="card_primary_wrap">
-                <div data-trigger="hover-if-clickable focus" class="card_primary_group">
-                  <div class="card_primary_element">
-                    <div class="card_primary_visual"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="card_primary_image"></div>
-                    <div class="card_primary_content">
-                      <div class="card_primary_icon">
-                        <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-down-to-line">
-                            <path d="M12 17V3"></path>
-                            <path d="m6 11 6 6 6-6"></path>
-                            <path d="M19 21H5"></path>
-                          </svg></div>
-                      </div>
-                      <div class="card_primary_header">
-                        <h3 class="card_primary_title u-text-style-h5">Grab every image</h3>
-                        <div class="card_primary_text u-text-style-small w-richtext">
-                          <p>Extracts embedded inline images from the document body, including images in tables and nested document tabs.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div data-wf--card-primary--card-type="default" class="card_primary_wrap">
-                <div data-trigger="hover-if-clickable focus" class="card_primary_group">
-                  <div class="card_primary_element">
-                    <div class="card_primary_visual"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="card_primary_image"></div>
-                    <div class="card_primary_content">
-                      <div class="card_primary_icon">
-                        <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-arrow-out-down-right">
-                            <path d="M21 11V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"></path>
-                            <path d="m21 21-9-9"></path>
-                            <path d="M21 15v6h-6"></path>
-                          </svg></div>
-                      </div>
-                      <div class="card_primary_header">
-                        <h3 class="card_primary_title u-text-style-h5">Compress &amp; resize</h3>
-                        <div class="card_primary_text u-text-style-small w-richtext">
-                          <p>Choose an output format, adjust quality for lossy formats, and set an optional maximum width in pixels.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div data-wf--card-primary--card-type="default" class="card_primary_wrap">
-                <div data-trigger="hover-if-clickable focus" class="card_primary_group">
-                  <div class="card_primary_element">
-                    <div class="card_primary_visual"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="card_primary_image"></div>
-                    <div class="card_primary_content">
-                      <div class="card_primary_icon">
-                        <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw">
-                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
-                            <path d="M21 3v5h-5"></path>
-                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
-                            <path d="M8 16H3v5"></path>
-                          </svg></div>
-                      </div>
-                      <div class="card_primary_header">
-                        <h3 class="card_primary_title u-text-style-h5">Convert formats</h3>
-                        <div class="card_primary_text u-text-style-small w-richtext">
-                          <p>Convert to AVIF, WebP, JPEG, or PNG. Image drawing and conversion run locally in a background worker.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div data-wf--card-primary--card-type="default" class="card_primary_wrap">
-                <div data-trigger="hover-if-clickable focus" class="card_primary_group">
-                  <div class="card_primary_element">
-                    <div class="card_primary_visual"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="card_primary_image"></div>
-                    <div class="card_primary_content">
-                      <div class="card_primary_icon">
-                        <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-archive">
-                            <path d="M13.659 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v11.5"></path>
-                            <path d="M14 2v5a1 1 0 0 0 1 1h5"></path>
-                            <path d="M8 12v-1"></path>
-                            <path d="M8 18v-2"></path>
-                            <path d="M8 7V6"></path>
-                            <circle cx="8" cy="20" r="2"></circle>
-                          </svg></div>
-                      </div>
-                      <div class="card_primary_header">
-                        <h3 class="card_primary_title u-text-style-h5">Pick &amp; bundle</h3>
-                        <div class="card_primary_text u-text-style-small w-richtext">
-                          <p>See each image’s preview, dimensions, and file size. Rename files, copy or download one, or export the set as a ZIP.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div data-wf--card-primary--card-type="default" class="card_primary_wrap">
-                <div data-trigger="hover-if-clickable focus" class="card_primary_group">
-                  <div class="card_primary_element">
-                    <div class="card_primary_visual"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="card_primary_image"></div>
-                    <div class="card_primary_content">
-                      <div class="card_primary_icon">
-                        <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock">
-                            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                          </svg></div>
-                      </div>
-                      <div class="card_primary_header">
-                        <h3 class="card_primary_title u-text-style-h5">Private by design</h3>
-                        <div class="card_primary_text u-text-style-small w-richtext">
-                          <p>Pluckr has no separate image server. Google Apps Script reads images from the open Doc; conversions run in your browser.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div data-wf--card-primary--card-type="default" class="card_primary_wrap">
-                <div data-trigger="hover-if-clickable focus" class="card_primary_group">
-                  <div class="card_primary_element">
-                    <div class="card_primary_visual"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="card_primary_image"></div>
-                    <div class="card_primary_content">
-                      <div class="card_primary_icon">
-                        <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-zap">
-                            <path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z"></path>
-                          </svg></div>
-                      </div>
-                      <div class="card_primary_header">
-                        <h3 class="card_primary_title u-text-style-h5">Fast &amp; cancelable</h3>
-                        <div class="card_primary_text u-text-style-small w-richtext">
-                          <p>Large-image drawing and pixel reads run off the page’s main thread to keep the sidebar responsive during conversion.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section class="u-section" id="how-it-works">
-        <div class="u-container  ">
-          <div data-wf--content-wrapper--variant="left" style="" class="u-content-wrapper w-variant-e85a4315-14bc-e5ef-0d3e-2c8c9ed7d2f1">
-            <div class="u-display-contents">
-              <h2 data-wf--typography-plain--variant="h2" data-number="12" class="u-text w-variant-9af60b09-c3a1-8c2a-eb78-8e29460ca7a9"><span>How it works<br></span></h2>
-              <p data-wf--typography-plain--variant="inherit" data-number="30" class="u-text"><span>Open Pluckr from Google Docs, review the images, then download originals or convert and export.</span></p>
-            </div>
-          </div>
-          <div data-wf--grid--variant="default" data-number="12" class="u-grid-wrapper u-gap-0">
-            <div data-large-columns="1" data-medium-columns="1" class="u-grid">
-              <div data-medium-columns="1" data-large-columns="12" class="card_step_wrap u-grid u-gap-gutter">
-                <div class="card_step_num_wrap">
-                  <div class="card_step_num_text u-text-style-h1">01</div>
-                </div>
-                <div class="card_step_content u-margin-trim">
-                  <div class="card_icon">
-                    <div class="card_svg">
-                      <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-left">
-                          <rect width="18" height="18" x="3" y="3" rx="2"></rect>
-                          <path d="M9 3v18"></path>
-                        </svg></div>
-                    </div>
-                  </div>
-                  <h3 data-wf--typography-plain--variant="inherit" data-number="-1" class="u-text"><span>Open Pluckr in Docs</span></h3>
-                  <p data-wf--typography-plain--variant="inherit" data-number="60" class="u-text"><span>In a Google Doc, choose Extensions → Pluckr → Extract images. The Pluckr sidebar opens beside your document.</span></p>
-                </div>
-              </div>
-              <div data-medium-columns="1" data-large-columns="12" class="card_step_wrap u-grid u-gap-gutter">
-                <div class="card_step_num_wrap">
-                  <div class="card_step_num_text u-text-style-h1">02</div>
-                </div>
-                <div class="card_step_content u-margin-trim">
-                  <div class="card_icon">
-                    <div class="card_svg">
-                      <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-in">
-                          <path d="m10 17 5-5-5-5"></path>
-                          <path d="M15 12H3"></path>
-                          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                        </svg></div>
-                    </div>
-                  </div>
-                  <h3 data-wf--typography-plain--variant="inherit" data-number="-1" class="u-text"><span>Authorize document access</span></h3>
-                  <p data-wf--typography-plain--variant="inherit" data-number="51" class="u-text"><span>Review Pluckr’s data-use notice, then choose to scan. Approve access to the current document when Google asks; Pluckr reads embedded inline images, including content in nested tabs.</span></p>
-                </div>
-              </div>
-              <div data-medium-columns="1" data-large-columns="12" class="card_step_wrap u-grid u-gap-gutter">
-                <div class="card_step_num_wrap">
-                  <div class="card_step_num_text u-text-style-h1">03</div>
-                </div>
-                <div class="card_step_content u-margin-trim">
-                  <div class="card_icon">
-                    <div class="card_svg">
-                      <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-scan">
-                          <path d="M20 10V8a2.4 2.4 0 0 0-.706-1.704l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.35"></path>
-                          <path d="M14 2v5a1 1 0 0 0 1 1h5"></path>
-                          <path d="M16 14a2 2 0 0 0-2 2"></path>
-                          <path d="M16 22a2 2 0 0 1-2-2"></path>
-                          <path d="M20 14a2 2 0 0 1 2 2"></path>
-                          <path d="M20 22a2 2 0 0 0 2-2"></path>
-                        </svg></div>
-                    </div>
-                  </div>
-                  <h3 data-wf--typography-plain--variant="inherit" data-number="-1" class="u-text"><span>Scan the document</span></h3>
-                  <p data-wf--typography-plain--variant="inherit" data-number="46" class="u-text"><span>Pluckr lists inline images from the document body with a preview, filename, dimensions, and file size. Images in tables are included; floating images and images in headers, footers, or footnotes are not.</span></p>
-                </div>
-              </div>
-              <div data-medium-columns="1" data-large-columns="12" class="card_step_wrap u-grid u-gap-gutter">
-                <div class="card_step_num_wrap">
-                  <div class="card_step_num_text u-text-style-h1">04</div>
-                </div>
-                <div class="card_step_content u-margin-trim">
-                  <div class="card_icon">
-                    <div class="card_svg">
-                      <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mouse-pointer-click">
-                          <path d="M14 4.1 12 6"></path>
-                          <path d="m5.1 8-2.9-.8"></path>
-                          <path d="m6 12-1.9 2"></path>
-                          <path d="M7.2 2.2 8 5.1"></path>
-                          <path d="M9.037 9.69a.498.498 0 0 1 .653-.653l11 4.5a.5.5 0 0 1-.074.949l-4.349 1.041a1 1 0 0 0-.74.739l-1.04 4.35a.5.5 0 0 1-.95.074z"></path>
-                        </svg></div>
-                    </div>
-                  </div>
-                  <h3 data-wf--typography-plain--variant="inherit" data-number="-1" class="u-text"><span>Set format &amp; quality</span></h3>
-                  <p data-wf--typography-plain--variant="inherit" data-number="50" class="u-text"><span>Choose AVIF, WebP, JPEG, or PNG, adjust quality where available, and optionally set a maximum width in pixels.</span></p>
-                </div>
-              </div>
-              <div data-medium-columns="1" data-large-columns="12" class="card_step_wrap u-grid u-gap-gutter">
-                <div class="card_step_num_wrap">
-                  <div class="card_step_num_text u-text-style-h1">05</div>
-                </div>
-                <div class="card_step_content u-margin-trim">
-                  <div class="card_icon">
-                    <div class="card_svg">
-                      <div aria-hidden="true" data-wf--icon--variant="full" class="u-icon w-embed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download">
-                          <path d="M12 15V3"></path>
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                          <path d="m7 10 5 5 5-5"></path>
-                        </svg></div>
-                    </div>
-                  </div>
-                  <h3 data-wf--typography-plain--variant="inherit" data-number="-1" class="u-text"><span>Convert &amp; download</span></h3>
-                  <p data-wf--typography-plain--variant="inherit" data-number="48" class="u-text"><span>Convert images in the sidebar and download each result, or export the converted set as a ZIP. You can also download the original images together.</span></p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section class="u-section" id="faqs">
-        <div class="u-container  ">
-          <div data-wf--content-wrapper--variant="left" style="" class="u-content-wrapper w-variant-e85a4315-14bc-e5ef-0d3e-2c8c9ed7d2f1">
-            <div class="u-display-contents">
-              <h2 data-wf--typography-plain--variant="h2" data-number="12" class="u-text w-variant-9af60b09-c3a1-8c2a-eb78-8e29460ca7a9"><span>FAQs</span></h2>
+              <h2 data-wf--typography-plain--variant="h2" data-number="12" class="u-text w-variant-9af60b09-c3a1-8c2a-eb78-8e29460ca7a9"><span>Frequently asked questions<br></span></h2>
               <p data-wf--typography-plain--variant="inherit" data-number="30" class="u-text"><span>Common questions about Pluckr and how it handles your document images.</span></p>
             </div>
           </div>
@@ -968,6 +778,96 @@ html.wf-design-mode .guide_wrap {
 </style>
             </div>
             <div data-slot="" role="list" class="accordion_list">
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">How do I download all images from a Google Doc?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Open the Doc, choose Extensions → Pluckr → Extract images, then press Download originals to get every image in one ZIP. Google Docs has no built-in button for this. The manual routes are File → Download → Web page (.html, zipped), or renaming a downloaded .docx to .zip. Our <a href="/guides/download-all-images-from-google-docs">step-by-step guide</a> compares all four methods.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">Does Pluckr work with Google Slides?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Yes. Open Pluckr from a Slides deck to list every picture on every slide, including grouped ones, then select, rename, convert and download them. Markdown export is only available in Docs.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">Can I convert Google Docs images to WebP or AVIF?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Yes. Open Output settings, choose WebP, AVIF, JPEG or PNG, set the quality, an optional aspect ratio and a maximum width, then press Convert. Each image shows its new size before you download, and the conversion runs in your browser. See <a href="/convert-google-docs-images-to-webp">how to convert Google Docs images to WebP or AVIF</a>.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">Can I export a Google Doc as Markdown with images?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Yes, in Docs. Tick the Markdown option in Output settings and your download includes a content.md file and an images folder, with the images linked and their alt text kept. It suits blogs, static sites and Obsidian.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">Can Pluckr edit or export image alt text?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Yes. Pluckr shows each image’s alt text and counts the images that have none. Filter to those, write a description in the sidebar and save it to the file, or add alt text files (CSV and JSON) to your download.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">How much does Pluckr cost? Is there a subscription?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Pluckr costs $5 once for your Google account, for both Docs and Slides. There is no subscription, and refunds are available within 14 days. See the <a href="/terms">terms</a>.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div role="listitem" data-state=" " class="accordion_item">
                 <div class="accordion_component">
                   <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">Are my images uploaded anywhere?</span><span class="accordion_toggle_icon">
@@ -992,7 +892,7 @@ html.wf-design-mode .guide_wrap {
                   <div class="accordion_content_wrap">
                     <div class="accordion_content_padding">
                       <div class="accordion_content_text u-rich-text w-richtext">
-                        <p>Yes. Pluckr runs as a Google Docs add-on and asks for access to the current document so it can read and export its images.</p>
+                        <p>Yes. Pluckr runs as a Google Docs and Google Slides add-on and asks for access to the current file so it can read and export its images.</p>
                       </div>
                     </div>
                   </div>
@@ -1022,7 +922,7 @@ html.wf-design-mode .guide_wrap {
                   <div class="accordion_content_wrap">
                     <div class="accordion_content_padding">
                       <div class="accordion_content_text u-rich-text w-richtext">
-                        <p>Pluckr extracts embedded inline images in the document body, including those in tables and nested document tabs. It does not currently extract floating images or images in headers, footers, or footnotes.</p>
+                        <p>Pluckr extracts embedded inline images in the document body, including those in tables and nested document tabs. In Slides it finds pictures on slides, including grouped ones, but not images used as shape fills or backgrounds. It does not currently extract floating images or images in headers, footers, or footnotes in Docs.</p>
                       </div>
                     </div>
                   </div>
@@ -1038,6 +938,21 @@ html.wf-design-mode .guide_wrap {
                     <div class="accordion_content_padding">
                       <div class="accordion_content_text u-rich-text w-richtext">
                         <p>Pluckr can extract these as originals when they are embedded inline. Converting a format depends on whether your browser can decode the image and supports the selected output format.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="listitem" data-state=" " class="accordion_item">
+                <div class="accordion_component">
+                  <h3 class="accordion_toggle_heading"><button aria-expanded="false" class="accordion_toggle_button"><span class="accordion_toggle_text u-text-style-h5">Does Pluckr change my file?</span><span class="accordion_toggle_icon">
+                        <div class="accordion_toggle_icon_line is-v"></div>
+                        <div class="accordion_toggle_icon_line"></div>
+                      </span></button></h3>
+                  <div class="accordion_content_wrap">
+                    <div class="accordion_content_padding">
+                      <div class="accordion_content_text u-rich-text w-richtext">
+                        <p>Only when you ask. Reading, converting and downloading never touch your file. Saving alt text, or confirming Optimize, writes to the open Doc or deck, so make a copy first; version history can undo it.</p>
                       </div>
                     </div>
                   </div>
@@ -1123,7 +1038,8 @@ html.wf-design-mode .guide_wrap {
           </div>
         </div>
       </section>
-    </main>
+</main>
+</main>
     <footer class="footer_wrap">
       <h2 class="footer_title u-sr-only">Footer</h2>
       <div class="footer_contain u-container">

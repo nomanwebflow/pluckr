@@ -6,7 +6,7 @@ export PATH="$HOME/.nvm/versions/node/v22.23.1/bin:/usr/local/bin:/opt/homebrew/
 cd "$(dirname "$0")/.."
 OUT=site-dist
 rm -rf "$OUT" && mkdir "$OUT"
-for f in index.html privacy.html terms.html 404.html sitemap.xml robots.txt extract-images-from-google-docs.html convert-google-docs-images-to-webp.html; do cp "pluckr.webflow/$f" "$OUT/$f"; done
+for f in index.html hero-flip.html privacy.html terms.html 404.html sitemap.xml robots.txt extract-images-from-google-docs.html convert-google-docs-images-to-webp.html; do cp "pluckr.webflow/$f" "$OUT/$f"; done
 mkdir "$OUT/guides" && cp pluckr.webflow/guides/*.html "$OUT/guides/"
 for d in css js images fonts; do cp -R "pluckr.webflow/$d" "$OUT/$d"; done
 find "$OUT" -name .DS_Store -delete

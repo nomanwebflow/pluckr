@@ -3,14 +3,15 @@
 
 Usage: python3 scripts/marketplace-shots.py <folder-or-files...>
 Each image is scaled to cover 1280x800 and centre-cropped (no padding, square corners), then written to
-brand/marketplace/screenshots/. Warns when the source is not roughly 16:10, because the crop would cut content.
+brand/marketplace/screenshots/ (or the folder in PLUCKR_SHOTS_OUT). Warns when the source is not roughly 16:10, because the crop would cut content.
 """
 import sys
 from pathlib import Path
 from PIL import Image
 
 W, H = 1280, 800
-OUT = Path(__file__).resolve().parent.parent / "brand" / "marketplace" / "screenshots"
+import os
+OUT = Path(os.environ.get("PLUCKR_SHOTS_OUT") or Path(__file__).resolve().parent.parent / "brand" / "marketplace" / "screenshots")
 OUT.mkdir(parents=True, exist_ok=True)
 
 paths = []
@@ -31,4 +32,4 @@ for index, path in enumerate(paths, start=1):
     left, top = (resized.width - W) // 2, (resized.height - H) // 2
     out = OUT / f"screenshot-{index}.png"
     resized.crop((left, top, left + W, top + H)).save(out, optimize=True)
-    print(f"{path.name} -> {out.relative_to(OUT.parent.parent.parent)}  ({img.width}x{img.height})")
+    print(f"{path.name} -> {out}  ({img.width}x{img.height})")

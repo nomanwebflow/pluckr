@@ -6,3 +6,4 @@ site-dist/
 .env.local
 .secrets/
 .playwright-mcp/
+brand/marketplace/shots/
