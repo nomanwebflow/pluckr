@@ -23,3 +23,14 @@ function onOpen() {
     .addToUi();
 }
 ```
+
+
+## Deployments
+
+| Deployment | Version | Note |
+|---|---|---|
+| `AKfycbxcfNun…zCAiw` | @1 | Marketplace 1.0. Left untouched. |
+| `AKfycbxos6bK…bg` | @3 | Marketplace 2.0 (Slides), created Oct 30, 2026 with `clasp deploy --versionNumber 3`. Not referenced by the Marketplace SDK yet. |
+| `AKfycbxGJ-Y-…tl-J` | @HEAD | Latest code, for test deployments. |
+
+Never redeploy @1 to a newer version before the new scope is verified: if the SDK reads that deployment, it would go live for existing users.
