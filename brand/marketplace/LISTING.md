@@ -60,7 +60,7 @@ Google Docs™, Google Slides™, Google Sheets™ and Google Account™ are tra
 
 - Visibility: Public (cannot be changed after publishing)
 - Installation: Individual and admin install
-- Integration: Docs add-on and (the release after the menu fix, script version 3) Slides add-on, both on the same script. Apps Script deployment ID: `AKfycbxcfNun4c4REi2wgEVmS9Ky0eYZg5O_ewg1aXIuoUfKSjGCVQLwfvxhDGzYJii2zSCAiw` (versioned deployment @1, "Marketplace 1.0"). The Slides release needs a new numbered script version (3).
+- Integration: Docs add-on and (the release after the menu fix, script version 4) Slides add-on, both on the same script. Apps Script deployment ID: `AKfycbxcfNun4c4REi2wgEVmS9Ky0eYZg5O_ewg1aXIuoUfKSjGCVQLwfvxhDGzYJii2zSCAiw` (versioned deployment @1, "Marketplace 1.0"). The Slides release needs a new numbered script version (3).
 - OAuth scopes (must match the manifest): documents.currentonly, presentations.currentonly (new in version 2), script.container.ui, openid, userinfo.email
 - Developer info: name, website https://docpluckr.com, email support@docpluckr.com
 
@@ -68,7 +68,7 @@ Google Docs™, Google Slides™, Google Sheets™ and Google Account™ are tra
 
 Neutral content only: the sample Doc "Blog draft: image SEO" (built by `scripts/build-sample-doc.py` from the Unsplash photos and infographics in `brand/marketplace/assets/`). The Slides shot needs a neutral deck (not made yet). The old folders `screenshots-v1`, `screenshots` and `shots` hold client content; do not upload them.
 
-Take them from script version 3 on a test deployment (Apps Script editor > Deploy > Test deployments), because the published add-on is still version 2:
+Take them from script version 4 on a test deployment (Apps Script editor > Deploy > Test deployments), because the published add-on is still version 2:
 
 1. `node scripts/marketplace-screenshots.mjs docs <doc-url>` writes raw 2560x1600 shots to `brand/marketplace/shots/`: the list with alt text, bulk rename, output settings (WebP, 16:9, alt text and Markdown ticked), converted, light.
 2. `node scripts/marketplace-screenshots.mjs slides <deck-url>` for the Slides shot.
@@ -78,4 +78,4 @@ The shot order: 1 Docs list with selection and alt text (dark); 2 Slides sidebar
 
 The four shots for the live version 2 are in `brand/marketplace/screenshots-live/`.
 
-The Release 2 set (taken from the version 3 test on Oct 30, 2026, neutral content, avatars blurred) is in `brand/marketplace/screenshots-r2/`: 1 Docs list with selection and alt text, 2 Slides, 3 bulk rename, 4 output settings, 5 light theme. The 2560x1600 originals are in `hires/`. To retake a Docs shot, run the test (Deploy > Test deployments > Execute), then pass the opened Doc's full address (it carries `addon_dry_run`) as the last argument: `node scripts/marketplace-screenshots.mjs docs "<address>"`. The capture runs hidden.
+The Release 2 set (taken from the Latest Code test (the code of version 4) on Oct 30, 2026, neutral content, avatars blurred) is in `brand/marketplace/screenshots-r2/`: 1 Docs list with selection and alt text, 2 Slides, 3 bulk rename, 4 output settings, 5 light theme. The 2560x1600 originals are in `hires/`. To retake a Docs shot, run the test (Deploy > Test deployments > Execute), then pass the opened Doc's full address (it carries `addon_dry_run`) as the last argument: `node scripts/marketplace-screenshots.mjs docs "<address>"`. The capture runs hidden.

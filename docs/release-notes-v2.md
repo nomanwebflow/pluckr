@@ -1,6 +1,6 @@
 # Pluckr 2: release notes (draft)
 
-Use for the site, the Marketplace "what's new" line and a LinkedIn post, once version 3 is live.
+Use for the site, the Marketplace "what's new" line and a LinkedIn post, once version 4 is live.
 
 ## Short (Marketplace / social)
 

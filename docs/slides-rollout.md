@@ -20,14 +20,14 @@ Unit tests (`npm run test:features`) use mocks. These need a real deck:
 4. Optimize on a copy. Check the picture stays in its box, keeps alt text and link, and that Version history can undo it. Check cropped or rotated pictures: `replace` may drop the crop.
 5. Menu: both editors use `createAddonMenu()` (Extensions > Pluckr > Extract images). Check it in the deck.
 
-## Release steps (the Docs add-on is approved and live; script version 3 is cut)
+## Release steps (the Docs add-on is approved and live; script version 4 is cut)
 
 Full text and the order of operations are in `brand/oauth-slides-scope.md`. Short form:
 
-1. **OAuth first.** Console > Data Access: add `presentations.currentonly` with the justification, check whether it shows as sensitive, record the demo video from a version 3 test deployment, submit for verification. Do not change App Configuration or the listing text until it is approved: those edits may go live at once, and the live Docs add-on must not start asking for an unverified scope.
+1. **OAuth first.** Console > Data Access: add `presentations.currentonly` with the justification, check whether it shows as sensitive, record the demo video from a version 4 test deployment, submit for verification. Do not change App Configuration or the listing text until it is approved: those edits may go live at once, and the live Docs add-on must not start asking for an unverified scope.
 2. Make a neutral test deck and share it and the test Doc with `gsmtestuser@marketplacetest.net`. Keep that account licensed until the review ends.
-3. Take the Release 2 screenshots (neutral content only, from version 3 on a test deployment).
-4. After approval: SDK App Configuration (Docs and Slides add-ons, version 3, scopes), Store Listing from `LISTING.md`, Submit for review.
+3. Take the Release 2 screenshots (neutral content only, from version 4 on a test deployment).
+4. After approval: SDK App Configuration (Docs and Slides add-ons, version 4, scopes), Store Listing from `LISTING.md`, Submit for review.
 5. After the Marketplace approval: merge `release/v2` into `main`, deploy the site (`scripts/deploy-site.sh`), post `docs/release-notes-v2.md`, revoke the reviewer licence with `npx convex run --prod licences:markRefunded '{"orderId":"reviewer-grant-gsm-1"}'`.
 6. The live site must not promise Slides before step 4 ends.
 

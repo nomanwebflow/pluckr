@@ -1,13 +1,13 @@
 # OAuth resubmission for Release 2 (Slides): adding presentations.currentonly
 
-Project `pkuckr` (number 315157378382). Docs v1/v2 is live and verified. Release 2 is script version 3 (Slides, alt text, Markdown, optimize, bulk rename, selection). Console path: Google Auth Platform > Data Access > Add or remove scopes, then Verification Center.
+Project `pkuckr` (number 315157378382). Docs v1/v2 is live and verified. Release 2 is script version 4 (Slides, alt text, Markdown, optimize, bulk rename, selection). Console path: Google Auth Platform > Data Access > Add or remove scopes, then Verification Center.
 
 ## Read first: two ways to break the live add-on
 
-1. **Do not touch Marketplace SDK > App Configuration until the new scope is verified.** Store listing edits (text, screenshots) went live immediately when you saved one. Scope and script-version changes may do the same. If version 3 reaches the live Docs add-on before `presentations.currentonly` is verified, every existing user gets the "Google hasn't verified this app" screen. Order: OAuth first, then the SDK.
+1. **Do not touch Marketplace SDK > App Configuration until the new scope is verified.** Store listing edits (text, screenshots) went live immediately when you saved one. Scope and script-version changes may do the same. If version 4 reaches the live Docs add-on before `presentations.currentonly` is verified, every existing user gets the "Google hasn't verified this app" screen. Order: OAuth first, then the SDK.
 2. **Do not paste the Release 2 listing text yet.** `LISTING.md` describes Slides, alt text and Markdown. Saved early, it would promise features the live add-on (version 2) does not have. Use it only together with the version 3 switch.
 
-## Scopes at version 3 (the manifest, and the SDK list must match it)
+## Scopes at version 4 (the manifest, and the SDK list must match it)
 
 | Scope | Status | Use |
 |---|---|---|
@@ -32,7 +32,7 @@ Version 2 of Pluckr adds Google Slides support (new scope: presentations.current
 
 ## 2. Demo video (YouTube link, unlisted is fine, about 3 minutes)
 
-Record from **script version 3**, not from the old test: Apps Script editor > Deploy > Test deployments, install version 3 on the test deck and the test Doc.
+Record from **script version 4**, not from the old test: Apps Script editor > Deploy > Test deployments, install version 4 on the test deck and the test Doc.
 
 - Consent screen language English, showing the app name "Pluckr", the logo and **all five scopes**, including the new Slides one.
 - The "Google hasn't verified this app" screen if it appears (the console says to show it).
@@ -51,11 +51,11 @@ Record from **script version 3**, not from the old test: Apps Script editor > De
 
 In this order:
 
-1. Marketplace SDK > App Configuration: Docs add-on script version 3; add the Slides add-on (same script, version 3); the scope list.
+1. Marketplace SDK > App Configuration: Docs add-on script version 4; add the Slides add-on (same script, version 4); the scope list.
 2. Store Listing: paste `LISTING.md`, upload the new screenshots (neutral content only), Save.
 3. Submit for review and use the reply text in `docs/review-reply.md` (update the scope list and links).
 4. When approved: merge `release/v2` into `main`, deploy the site (`scripts/deploy-site.sh`), post the release note.
 
 ## Existing users
 
-They see one new consent prompt the next time they open Pluckr after version 3 goes live. Say so in the release notes (`docs/release-notes-v2.md`).
+They see one new consent prompt the next time they open Pluckr after version 4 goes live. Say so in the release notes (`docs/release-notes-v2.md`).
