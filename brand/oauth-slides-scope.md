@@ -16,7 +16,7 @@ Project `pkuckr` (number 315157378382). Docs v1/v2 is live and verified. Release
 | `script.container.ui` | verified | open the sidebar |
 | `openid`, `userinfo.email` | verified | identify the licence holder |
 
-Check before you submit: the manifest (`apps-script/appsscript.json`) has no `userinfo.profile`. If the SDK scope list or the consent screen has it, remove it there too, or add it to the manifest on purpose. Mismatched lists are a common rejection. Also confirm in the console whether the new scope shows as "Sensitive". Google's public scope pages do not list `presentations.currentonly`, so the console is the only authority. If it shows as sensitive, expect a review of several days and the demo video below. If it is non-sensitive, no verification is needed and you can go straight to the SDK.
+Confirmed Oct 30, 2026: the Console accepted `presentations.currentonly` under **Your non-sensitive scopes**, so it needs no OAuth verification review (the justification text and demo video below are kept in case a reviewer asks). The Marketplace review of the Slides add-on still applies. Check before you submit: the manifest (`apps-script/appsscript.json`) has no `userinfo.profile`. If the SDK scope list or the consent screen has it, remove it there too, or add it to the manifest on purpose. Mismatched lists are a common rejection. Also confirm in the console whether the new scope shows as "Sensitive". Google's public scope pages do not list `presentations.currentonly`, so the console is the only authority. If it shows as sensitive, expect a review of several days and the demo video below. If it is non-sensitive, no verification is needed and you can go straight to the SDK.
 
 ## 1. Data Access
 
