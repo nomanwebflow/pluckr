@@ -66,12 +66,14 @@ Google Docs™, Google Slides™, Google Sheets™ and Google Account™ are tra
 
 ## SCREENSHOTS (version 2)
 
-Made by `node scripts/marketplace-screenshots.mjs docs` (raw shots in `brand/marketplace/shots/`), then `python3 scripts/marketplace-shots.py <files in order>` and `python3 scripts/blur-avatar.py`.
+Neutral content only: the sample Doc "Blog draft: image SEO" (built by `scripts/build-sample-doc.py` from the Unsplash photos and infographics in `brand/marketplace/assets/`). The Slides shot needs a neutral deck (not made yet). The old folders `screenshots-v1`, `screenshots` and `shots` hold client content; do not upload them.
 
-1. Docs: the sidebar with the selection bar, a ticked image and its alt text (dark).
-2. Slides: the sidebar next to a deck (take it by hand: `marketplace-shots.py` normalises it to 1280x800).
-3. Docs: Bulk rename open with the live preview.
-4. Docs: Output settings with WebP, 16:9, and the alt text and Markdown options ticked.
-5. Docs: light theme.
+Take them from script version 3 on a test deployment (Apps Script editor > Deploy > Test deployments), because the published add-on is still version 2:
 
-Use a window of 1280x800, browser zoom 100%.
+1. `node scripts/marketplace-screenshots.mjs docs <doc-url>` writes raw 2560x1600 shots to `brand/marketplace/shots/`: the list with alt text, bulk rename, output settings (WebP, 16:9, alt text and Markdown ticked), converted, light.
+2. `node scripts/marketplace-screenshots.mjs slides <deck-url>` for the Slides shot.
+3. `PLUCKR_SHOTS_OUT=brand/marketplace/screenshots-r2 python3 scripts/marketplace-shots.py <files in order>`, then `PLUCKR_SHOTS_OUT=brand/marketplace/screenshots-r2 python3 scripts/blur-avatar.py` (blur the Google account photo).
+
+The shot order: 1 Docs list with selection and alt text (dark); 2 Slides sidebar next to a deck; 3 Bulk rename with the live preview; 4 Output settings with WebP and 16:9; 5 light theme. Browser zoom 100%.
+
+The four shots for the live version 2 are in `brand/marketplace/screenshots-live/`.
