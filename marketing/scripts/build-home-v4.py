@@ -20,7 +20,7 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
-SITE = ROOT / "pluckr.webflow"
+SITE = ROOT / "webflow"
 src = (SITE / "index-v3.html").read_text()
 RAW = Path(
     "/private/tmp/claude-501/-Users-noman-Projects-WIP-pluckr/1fc8a230-d629-48c4-93c7-21c570896bfd/scratchpad/pluckr-sidebar-states"

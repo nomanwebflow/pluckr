@@ -3,10 +3,12 @@
 // Uses the same signed-in Chrome profile as marketplace-screenshots.mjs (.secrets/playwright-profile).
 // If Google asks you to sign in, do it yourself in the window; the script waits. Prints the new Doc's URL.
 import { chromium } from 'playwright-core';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const FILE = resolve('brand/marketplace/assets/sample-blog-draft.docx');
-const context = await chromium.launchPersistentContext(resolve('.secrets/playwright-profile'), {
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const FILE = resolve(__dirname, '../brand/marketplace/assets/sample-blog-draft.docx');
+const context = await chromium.launchPersistentContext(resolve(__dirname, '../../.secrets/playwright-profile'), {
   channel: 'chrome',
   headless: false,
   viewport: { width: 1280, height: 800 },

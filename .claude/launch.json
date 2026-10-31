@@ -18,9 +18,21 @@
         "http.server",
         "4173",
         "--directory",
-        "pluckr.webflow"
+        "marketing/webflow"
       ],
       "port": 4173
+    },
+    {
+      "name": "site-next",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "4180",
+        "--directory",
+        "marketing/site/out"
+      ],
+      "port": 4180
     }
   ]
 }

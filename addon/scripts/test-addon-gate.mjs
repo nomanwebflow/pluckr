@@ -1,10 +1,10 @@
 // Runs the real apps-script/Code.gs gate against entitlements signed by convex/crypto.ts.
-// Run: node --experimental-strip-types --no-warnings scripts/test-addon-gate.mjs
+// Run: node --experimental-strip-types --no-warnings addon/scripts/test-addon-gate.mjs
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
-import { signEntitlement } from '../convex/crypto.ts';
+import { signEntitlement } from '../../convex/crypto.ts';
 
 const jwtFor = (claims) => `h.${Buffer.from(JSON.stringify(claims)).toString('base64url')}.s`;
 
@@ -23,7 +23,7 @@ function loadGate({ secret, token }) {
     },
   };
   vm.createContext(sandbox);
-  vm.runInContext(readFileSync('apps-script/Code.gs', 'utf8'), sandbox);
+  vm.runInContext(readFileSync(new URL('../apps-script/Code.gs', import.meta.url), 'utf8'), sandbox);
   return sandbox;
 }
 

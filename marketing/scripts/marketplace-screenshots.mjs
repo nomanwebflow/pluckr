@@ -7,8 +7,10 @@
 // Output: brand/marketplace/shots/<name>.png. `scripts/marketplace-shots.py` then picks, numbers and blurs them.
 import { chromium } from 'playwright-core';
 import { mkdir } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const MODE = ['slides', 'live'].includes(process.argv[2]) ? process.argv[2] : 'docs';
 const URLS = {
   docs: 'https://docs.google.com/document/d/1yntVX-3Y_S3z2WQSKecH7vav1n04_HtDD0Y5Fg3-UpY/edit',
@@ -16,10 +18,10 @@ const URLS = {
   slides: 'https://docs.google.com/presentation/d/1GO2PMFy3-fSUK-_ufhNdm4bNmDVAk12rp2NDqe0kums/edit',
 };
 const TARGET = process.argv[3] || URLS[MODE];
-const OUT = resolve('brand/marketplace/shots');
+const OUT = resolve(__dirname, '../brand/marketplace/shots');
 await mkdir(OUT, { recursive: true });
 
-const context = await chromium.launchPersistentContext(resolve('.secrets/playwright-profile'), {
+const context = await chromium.launchPersistentContext(resolve(__dirname, '../../.secrets/playwright-profile'), {
   channel: 'chrome',
   headless: !process.env.SHOW_BROWSER, // set SHOW_BROWSER=1 to watch, or to sign in to Google
   viewport: { width: 1280, height: 800 },

@@ -1,10 +1,14 @@
 node_modules/
 dist/
+addon/dist/
 .DS_Store
 site-dist/
+marketing/site-dist/
+marketing/site/out/
 
 .env.local
 .secrets/
 .playwright-mcp/
 brand/marketplace/shots/
+marketing/brand/marketplace/shots/
 .wrangler/

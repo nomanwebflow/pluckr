@@ -1,8 +1,8 @@
-// Checks convex/crypto.ts against the reference Standard Webhooks library. Run: node scripts/test-convex-crypto.mjs
+// Checks convex/crypto.ts against the reference Standard Webhooks library. Run: node addon/scripts/test-convex-crypto.mjs
 import assert from 'node:assert/strict';
 import { createHmac, randomBytes } from 'node:crypto';
 import { Webhook } from 'standardwebhooks';
-import { signEntitlement, verifyStandardWebhook } from '../convex/crypto.ts';
+import { signEntitlement, verifyStandardWebhook } from '../../convex/crypto.ts';
 
 const now = Math.floor(Date.now() / 1000);
 const body = JSON.stringify({ type: 'order.paid', data: { id: 'ord_1', paid: true } });

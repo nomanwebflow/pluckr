@@ -1,11 +1,13 @@
 // Checks the alt-text/Markdown bundle (src/bundle.js) and the Doc-reading and Doc-writing code in apps-script/Code.gs
-// against a small mock of Google's DocumentApp. Run: node scripts/test-features.mjs
+// against a small mock of Google's DocumentApp. Run: node addon/scripts/test-features.mjs
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { unzipSync, strFromU8 } from 'fflate';
 import { bulkNames } from '../src/rename.js';
 import { linkMarkdownImages, metadataCsv, uniqueNames, zipBundle } from '../src/bundle.js';
+
+const codeGs = readFileSync(new URL('../apps-script/Code.gs', import.meta.url), 'utf8');
 
 // ---- bundle.js ----
 assert.deepEqual(uniqueNames(['a.png', 'b.png', 'a.png', 'a.png']), ['a.png', 'b.png', '(1) a.png', '(2) a.png']);
@@ -89,7 +91,7 @@ const sandbox = {
   DocumentApp: { ElementType: { ...T, LIST_ITEM: T.LIST_ITEM }, ParagraphHeading: H, TabType: { DOCUMENT_TAB: 'DOC' }, getActiveDocument: () => doc, getUi: () => ({}) },
 };
 vm.createContext(sandbox);
-vm.runInContext(readFileSync('apps-script/Code.gs', 'utf8'), sandbox);
+vm.runInContext(codeGs, sandbox);
 
 // The menu is the add-on menu (Extensions > Pluckr), never a top-level one, in Docs too.
 const docsMenu = [];
@@ -195,7 +197,7 @@ const slidesSandbox = {
   },
 };
 vm.createContext(slidesSandbox);
-vm.runInContext(readFileSync('apps-script/Code.gs', 'utf8'), slidesSandbox);
+vm.runInContext(codeGs, slidesSandbox);
 
 slidesSandbox.onOpen();
 assert.deepEqual(menu, [['addon', 'Extract images (Google reads this deck’s images)', 'openPluckrSidebar']], 'the menu appears even before the add-on is authorized');
@@ -227,6 +229,6 @@ assert.throws(() => slidesSandbox.getDocumentMarkdown('ok'), /only available in 
 // Neither editor: a clear message instead of a crash.
 const nowhere = { ...slidesSandbox, SlidesApp: { getUi: () => { throw new Error('no'); } } };
 const lost = vm.createContext({ ...nowhere });
-vm.runInContext(readFileSync('apps-script/Code.gs', 'utf8'), lost);
+vm.runInContext(codeGs, lost);
 assert.throws(() => lost.host_(), /Google Doc or a Google Slides deck/);
 console.log('Code.gs in Slides: all checks passed');

@@ -6,11 +6,12 @@ import { chromium } from 'playwright-core';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const PAGE = resolve('brand/hero-flip.html');
-const OUT = resolve('brand/hero-flip.mp4');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const PAGE = resolve(__dirname, '../brand/hero-flip.html');
+const OUT = resolve(__dirname, '../brand/hero-flip.mp4');
 const TMP = join(process.env.RECORD_TMP || tmpdir(), 'pluckr-hero-flip-frames');
 await rm(TMP, { recursive: true, force: true });
 await mkdir(TMP, { recursive: true });

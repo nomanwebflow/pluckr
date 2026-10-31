@@ -2,9 +2,11 @@
 //   node scripts/build-seo-pages.mjs
 // Output goes to pluckr.webflow/ (and pluckr.webflow/guides/). Edit the copy below, rerun, commit.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const SITE = resolve('pluckr.webflow');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const SITE = resolve(__dirname, '../webflow');
 const ORIGIN = 'https://docpluckr.com';
 const TEMPLATE = readFileSync(`${SITE}/privacy.html`, 'utf8');
 const TODAY = '2026-10-26';
