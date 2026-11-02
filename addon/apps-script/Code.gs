@@ -124,6 +124,23 @@ function requireEntitlement_(entitlement) {
   if (!valid) throw new Error('LICENCE_REQUIRED');
 }
 
+/** Images a free account can read per file. Everything past it, and every write, needs a licence. */
+var FREE_IMAGE_LIMIT = 50;
+
+/**
+ * How many of `total` images this caller may read: all of them with a valid entitlement, otherwise the free
+ * allowance. Never throws, so a missing secret or a lapsed entitlement degrades to free and never opens the paid tier.
+ * Writes (alt text, optimize, Markdown) do not use this: they call requireEntitlement_ and need a licence.
+ */
+function allowedImageCount_(entitlement, total) {
+  try {
+    requireEntitlement_(entitlement);
+    return total;
+  } catch (error) {
+    return Math.min(total, FREE_IMAGE_LIMIT);
+  }
+}
+
 function signEntitlement_(secret, text) {
   return Utilities.base64EncodeWebSafe(Utilities.computeHmacSha256Signature(text, secret)).replace(/=+$/, '');
 }
@@ -147,22 +164,40 @@ function logout() {
   ScriptApp.invalidateAuth();
 }
 
-/** The name of the open file, how many images it holds, and which editor it is. */
+function openFileName_() {
+  return host_() === 'slides' ? SlidesApp.getActivePresentation().getName() : DocumentApp.getActiveDocument().getName();
+}
+
+/** The name of the open file, how many images it holds (`count` is what this account may read), and which editor it is. */
 function getDocumentInfo(entitlement) {
-  requireEntitlement_(entitlement);
-  var host = host_();
-  var name = host === 'slides' ? SlidesApp.getActivePresentation().getName() : DocumentApp.getActiveDocument().getName();
-  return { documentName: name, host: host, count: collectImages_().length };
+  var total = collectImages_().length;
+  return { documentName: openFileName_(), host: host_(), count: allowedImageCount_(entitlement, total), total: total };
+}
+
+/** One image's preview data. The sidebar scans with getDocumentImages; this stays for single lookups. */
+function getDocumentImage(index, entitlement) {
+  var entries = collectImages_();
+  var entry = entries[index];
+  if (!entry) throw new Error('This image is no longer in the file. Scan again.');
+  if (index >= allowedImageCount_(entitlement, entries.length)) throw new Error('LICENCE_REQUIRED');
+  return describeImage_(entry, index);
 }
 
 /**
- * One image's preview data. The sidebar asks for every image at once: Apps Script runs the calls in parallel, so
- * a scan takes as long as the slowest image instead of the sum of all of them.
+ * A batch of images starting at `start`. One call walks the file and checks the entitlement once for the whole
+ * batch, instead of once per image. `total` is every image in the file; `available` is how many this account may
+ * read (all when licensed, otherwise the free allowance), and no image past it is ever returned.
  */
-function getDocumentImage(index, entitlement) {
-  requireEntitlement_(entitlement);
-  var entry = collectImages_()[index];
-  if (!entry) throw new Error('This image is no longer in the file. Scan again.');
+function getDocumentImages(start, count, entitlement) {
+  var entries = collectImages_();
+  var available = allowedImageCount_(entitlement, entries.length);
+  var end = Math.min(available, start + count);
+  var batch = [];
+  for (var index = start; index < end; index += 1) batch.push(describeImage_(entries[index], index));
+  return { documentName: openFileName_(), host: host_(), total: entries.length, available: available, images: batch };
+}
+
+function describeImage_(entry, index) {
   var image = entry.image;
   var blob = image.getBlob();
   var bytes = blob.getBytes();
@@ -374,11 +409,11 @@ function textMarkdown_(text, plainBold) {
 
 /** Package selected document images into a ZIP. `names` maps sourceIndex to a custom file name. */
 function getImagesArchive(sourceIndexes, names, entitlement) {
-  requireEntitlement_(entitlement);
   var entries = collectImages_();
+  var available = allowedImageCount_(entitlement, entries.length);
   var selected = {};
   (sourceIndexes || []).forEach(function (index) {
-    selected[String(index)] = true;
+    if (index < available) selected[String(index)] = true;
   });
   names = names || {};
   var used = {};
@@ -398,8 +433,7 @@ function getImagesArchive(sourceIndexes, names, entitlement) {
 
   if (!blobs.length) throw new Error('No images are available to download.');
 
-  var name = host_() === 'slides' ? SlidesApp.getActivePresentation().getName() : DocumentApp.getActiveDocument().getName();
-  var archive = Utilities.zip(blobs, safeFileName_(name) + '-images.zip');
+  var archive = Utilities.zip(blobs, safeFileName_(openFileName_()) + '-images.zip');
   return {
     name: archive.getName(),
     data: Utilities.base64Encode(archive.getBytes())

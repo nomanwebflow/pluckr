@@ -202,9 +202,15 @@ vm.runInContext(codeGs, slidesSandbox);
 slidesSandbox.onOpen();
 assert.deepEqual(menu, [['addon', 'Extract images (Google reads this deck’s images)', 'openPluckrSidebar']], 'the menu appears even before the add-on is authorized');
 slidesLimited.on = false;
-assert.throws(() => slidesSandbox.getDocumentInfo('bad'), /LICENCE_REQUIRED/);
+// Without a licence the file can still be read (the free plan), but writing needs one.
+assert.deepEqual({ ...slidesSandbox.getDocumentInfo('bad') }, { documentName: 'My Deck', host: 'slides', count: 3, total: 3 });
+assert.throws(() => slidesSandbox.setImageAlt(0, 'x', 'y', 'bad'), /LICENCE_REQUIRED/, 'alt text editing is Pro');
+assert.throws(() => slidesSandbox.replaceDocumentImage(0, '', 'image/png', 'bad'), /LICENCE_REQUIRED/, 'optimize is Pro');
+assert.throws(() => slidesSandbox.getDocumentMarkdown('bad'), /LICENCE_REQUIRED/, 'Markdown export is Pro');
 slidesSandbox.requireEntitlement_ = () => {};
-assert.deepEqual({ ...slidesSandbox.getDocumentInfo('ok') }, { documentName: 'My Deck', host: 'slides', count: 3 });
+assert.deepEqual({ ...slidesSandbox.getDocumentInfo('ok') }, { documentName: 'My Deck', host: 'slides', count: 3, total: 3 });
+const batch = slidesSandbox.getDocumentImages(1, 8, 'ok');
+assert.deepEqual(JSON.parse(JSON.stringify([batch.total, batch.available, batch.images.map((item) => item.sourceIndex), batch.documentName, batch.host])), [3, 3, [1, 2], 'My Deck', 'slides'], 'a batch carries the totals');
 
 const img0 = slidesSandbox.getDocumentImage(0, 'ok');
 assert.equal(img0.name, 'slide-01-image-01.png');
@@ -225,6 +231,23 @@ assert.deepEqual(first.image.calls.splice(0), [['replace', 'image/jpeg', false],
 slidesSandbox.replaceDocumentImage(2, Buffer.from('x').toString('base64'), 'image/png', 'ok');
 assert.deepEqual(third.image.calls.splice(0), [['replace', 'image/png', false]], 'nothing to restore on a plain image');
 assert.throws(() => slidesSandbox.getDocumentMarkdown('ok'), /only available in Google Docs/);
+
+// Free plan on a big file: reads stop at the allowance, including the ZIP, and a lapsed licence never reads more.
+const big = vm.createContext({ ...slidesSandbox });
+vm.runInContext(readFileSync('apps-script/Code.gs', 'utf8'), big);
+const fake = Array.from({ length: 120 }, (_, i) => ({ name: `n${i}`, image: { getBlob: () => ({ getBytes: () => [1], getContentType: () => 'image/png', setName: () => ({}) }), getWidth: () => 1, getHeight: () => 1, getTitle: () => '', getDescription: () => '', getLink: () => null } }));
+big.collectImages_ = () => fake;
+const free = big.getDocumentImages(48, 8, 'bad');
+assert.deepEqual([free.total, free.available, free.images.length, free.images[free.images.length - 1].sourceIndex], [120, 50, 2, 49], 'free reads the first 50 only');
+assert.equal(big.getDocumentImages(50, 8, 'bad').images.length, 0, 'nothing past the allowance');
+assert.throws(() => big.getDocumentImage(50, 'bad'), /LICENCE_REQUIRED/);
+assert.equal(big.getDocumentInfo('bad').count, 50);
+let zipped = 0;
+big.Utilities = { ...big.Utilities, zip: (blobs) => { zipped = blobs.length; return { getName: () => 'z.zip', getBytes: () => [] }; }, base64Encode: () => '' };
+big.getImagesArchive([0, 49, 50, 119], {}, 'bad');
+assert.equal(zipped, 2, 'the ZIP skips images past the allowance');
+big.requireEntitlement_ = () => {};
+assert.deepEqual([big.getDocumentImages(112, 8, 'ok').images.length, big.getDocumentInfo('ok').count], [8, 120], 'a licence reads everything');
 
 // Neither editor: a clear message instead of a crash.
 const nowhere = { ...slidesSandbox, SlidesApp: { getUi: () => { throw new Error('no'); } } };
