@@ -234,7 +234,7 @@ assert.throws(() => slidesSandbox.getDocumentMarkdown('ok'), /only available in 
 
 // Free plan on a big file: reads stop at the allowance, including the ZIP, and a lapsed licence never reads more.
 const big = vm.createContext({ ...slidesSandbox });
-vm.runInContext(readFileSync('apps-script/Code.gs', 'utf8'), big);
+vm.runInContext(readFileSync('addon/apps-script/Code.gs', 'utf8'), big);
 const fake = Array.from({ length: 120 }, (_, i) => ({ name: `n${i}`, image: { getBlob: () => ({ getBytes: () => [1], getContentType: () => 'image/png', setName: () => ({}) }), getWidth: () => 1, getHeight: () => 1, getTitle: () => '', getDescription: () => '', getLink: () => null } }));
 big.collectImages_ = () => fake;
 const free = big.getDocumentImages(48, 8, 'bad');
