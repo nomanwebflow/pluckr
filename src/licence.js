@@ -2,6 +2,8 @@
 const SITE_URL = (import.meta.env.VITE_PLUCKR_LICENCE_URL || '').replace(/\/$/, '');
 
 export const PAYWALL_ENABLED = Boolean(SITE_URL);
+// Mirrors FREE_IMAGE_LIMIT in apps-script/Code.gs, which is what actually enforces it. This only words the screens.
+export const FREE_IMAGE_LIMIT = 50;
 export const PRICE_LABEL = import.meta.env.VITE_PRICE_LABEL || '$5';
 
 const SERVICE_DOWN = 'Could not reach the licence service. Check your connection and try again.';

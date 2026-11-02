@@ -191,3 +191,8 @@ button:focus-visible, .name-input:focus-visible { outline: 2px solid var(--white
 
 /* Light theme: the white line icons are inverted; the blue logo keeps its colours. */
 .icon-button img, .edit-button img, .chevron { filter: var(--icon-filter); }
+
+.pro-badge { margin-left: 8px; padding: 2px 6px; border: 1px solid var(--edge-card); border-radius: 6px; color: var(--muted); font-size: 10px; letter-spacing: 0.04em; }
+.limit-note { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--edge); border-radius: 12px; }
+.limit-note p { color: var(--muted); font-size: 12px; line-height: 1.4; text-align: center; }
+.notice-list { margin: 0; padding-left: 16px; color: var(--muted); font-size: 12px; line-height: 1.5; }

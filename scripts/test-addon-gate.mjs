@@ -46,6 +46,15 @@ assert.equal(allowed(gate, await signEntitlement('shared-secret', 'someone-else'
 assert.equal(allowed(gate, good.replace(/.$/, (c) => (c === 'A' ? 'B' : 'A'))), false, 'tampered signature');
 assert.equal(allowed(loadGate({ secret: 'shared-secret', token: null }), good), false, 'no identity token (scope not granted)');
 
+// Free tier: a valid entitlement reads everything, anything else is capped at the free allowance and never throws.
+const count = (g, entitlement, total) => g.allowedImageCount_(entitlement, total);
+assert.equal(count(gate, good, 300), 300, 'licensed reads every image');
+assert.equal(count(gate, '', 300), 50, 'no entitlement => free allowance');
+assert.equal(count(gate, 'garbage', 300), 50, 'garbage entitlement => free allowance');
+assert.equal(count(gate, await signEntitlement('shared-secret', sub, now - 10), 300), 50, 'expired => free allowance');
+assert.equal(count(gate, '', 12), 12, 'small docs are fully readable for free');
+assert.equal(count(loadGate({ secret: undefined, token }), good, 300), 50, 'no secret => free allowance, never the paid tier');
+
 // The diagnostic logs claims, not the token.
 const logged = [];
 const diag = loadGate({ secret: undefined, token });

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ASPECTS, FORMATS, cancelEncoding, detectSupportedFormats, exportName, prefetchAvifCodec, processImage, zipBlobs } from './process.js';
-import { PAYWALL_ENABLED, PRICE_LABEL, createCheckout, fetchLicence } from './licence.js';
+import { FREE_IMAGE_LIMIT, PAYWALL_ENABLED, PRICE_LABEL, createCheckout, fetchLicence } from './licence.js';
 import './styles.css';
 
 const DEMO_IMAGES = [
@@ -228,7 +228,13 @@ function useImageExtractor() {
   // 'ready' also covers "paywall off". Otherwise: checking | unpaid | waiting (payment in progress) | error.
   // PLUCKR_BOOT is filled in by the add-on's server code when it still holds a valid entitlement.
   const boot = window.PLUCKR_BOOT;
+  // 'unpaid' is the free plan: up to FREE_IMAGE_LIMIT images per Doc, no output settings.
   const [licence, setLicence] = useState(paywall && !boot?.entitlement ? 'checking' : 'ready');
+  // The unlock screen is only shown when a free user asks for it.
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  // Every image in the Doc, and how many this plan may read.
+  const [counts, setCounts] = useState({ total: 0, available: 0 });
+  const plan = licence === 'ready' ? 'pro' : licence === 'unpaid' ? 'free' : null;
   const [licenceError, setLicenceError] = useState('');
   const [checkoutUrl, setCheckoutUrl] = useState('');
   const entitlementRef = useRef({ token: boot?.entitlement || '', expiresAt: boot?.expiresAt || 0 });
@@ -298,7 +304,8 @@ function useImageExtractor() {
       return;
     }
 
-    const entitlement = await ensureEntitlement();
+    // Free accounts read with no entitlement; the server caps them. A paid one that has lapsed turns free and rescans.
+    const entitlement = plan === 'free' ? '' : await ensureEntitlement();
     if (entitlement === null) {
       setLoading(false);
       return;
@@ -318,6 +325,7 @@ function useImageExtractor() {
       const first = await call('getDocumentImages', 0, SCAN_BATCH_SIZE, entitlement);
       const stale = takeBlobUrls();
       batches[0] = first.images;
+      setCounts({ total: first.total, available: first.available });
       first.images.forEach(prepareOriginal);
       publish();
       window.setTimeout(() => stale.forEach((url) => URL.revokeObjectURL(url)), 1000);
@@ -335,7 +343,7 @@ function useImageExtractor() {
       // A few batches in flight at once: each call walks the document, and Apps Script limits concurrent calls.
       let next = SCAN_BATCH_SIZE;
       const worker = async () => {
-        while (next < first.total && scanRef.current === scan) {
+        while (next < first.available && scanRef.current === scan) {
           const start = next;
           next += SCAN_BATCH_SIZE;
           const { images: batch } = await call('getDocumentImages', start, SCAN_BATCH_SIZE, entitlement);
@@ -351,7 +359,7 @@ function useImageExtractor() {
       handleServerFailure(failure, 'Could not read images from this document. Try again.');
     }
     setLoading(false);
-  }, [isAppsScript, scriptRun, ensureEntitlement, handleServerFailure]);
+  }, [isAppsScript, plan, scriptRun, ensureEntitlement, handleServerFailure]);
 
   const startCheckout = useCallback(async () => {
     setLicenceError('');
@@ -368,6 +376,14 @@ function useImageExtractor() {
       setLicenceError(failure.message);
     }
   }, [scriptRun, checkLicence]);
+
+  const openUpgrade = useCallback(() => setShowUpgrade(true), []);
+  /** Back from the unlock screen to the free plan, also while a checkout is still pending. */
+  const closeUpgrade = useCallback(() => {
+    setShowUpgrade(false);
+    setLicenceError('');
+    setLicence((current) => (current === 'waiting' ? 'unpaid' : current));
+  }, []);
 
   const renameImage = useCallback((id, name) => {
     setImages((current) => current.map((image) => (image.id === id ? { ...image, name } : image)));
@@ -417,9 +433,13 @@ function useImageExtractor() {
     if (paywall && !entitlementRef.current.token) checkLicence();
   }, [paywall, checkLicence]);
 
+  // Scans when the plan is known, and again when it changes (a free user who pays gets the rest of the images).
   useEffect(() => {
-    if (isAppsScript && licence === 'ready') extractImages();
-  }, [licence, isAppsScript, extractImages]);
+    if (isAppsScript && plan) extractImages();
+  }, [plan, isAppsScript, extractImages]);
+
+  // Paid: leave the unlock screen once the licence is confirmed.
+  useEffect(() => { if (plan === 'pro') setShowUpgrade(false); }, [plan]);
 
   // While a checkout is open in another tab, poll until the payment shows up (about 5 minutes at most).
   useEffect(() => {
@@ -439,7 +459,7 @@ function useImageExtractor() {
 
   // Coming back from the checkout tab: re-check right away instead of waiting for the next poll.
   useEffect(() => {
-    if (licence !== 'waiting' && licence !== 'unpaid') return undefined;
+    if (licence !== 'waiting' && !(licence === 'unpaid' && showUpgrade)) return undefined;
     const recheck = () => { if (document.visibilityState === 'visible') checkLicence({ silent: true }); };
     window.addEventListener('focus', recheck);
     document.addEventListener('visibilitychange', recheck);
@@ -447,13 +467,14 @@ function useImageExtractor() {
       window.removeEventListener('focus', recheck);
       document.removeEventListener('visibilitychange', recheck);
     };
-  }, [licence, checkLicence]);
+  }, [licence, showUpgrade, checkLicence]);
 
-  const ready = licence === 'ready';
+  // The scan view, unless a free user opened the unlock screen or a payment is pending.
+  const ready = plan !== null && !showUpgrade;
 
   return {
-    images, loading, downloading, error, ready, licence, licenceError, checkoutUrl,
-    checkLicence, startCheckout, extractImages, renameImage, downloadAll, closeSidebar, logout,
+    images, loading, downloading, error, ready, licence, licenceError, checkoutUrl, plan, counts, showUpgrade,
+    openUpgrade, closeUpgrade, checkLicence, startCheckout, extractImages, renameImage, downloadAll, closeSidebar, logout,
   };
 }
 
@@ -495,7 +516,7 @@ function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, 
   );
 }
 
-function Panel({ images, results, thumbAspect, loading, error, onRename, onDownload }) {
+function Panel({ images, results, thumbAspect, loading, error, onRename, onDownload, hiddenCount, onUpgrade }) {
   return (
     <section className="panel" aria-label="Extracted images" aria-live="polite">
       <div className="panel-texture" aria-hidden="true" />
@@ -505,6 +526,12 @@ function Panel({ images, results, thumbAspect, loading, error, onRename, onDownl
       {!loading && !error && images.map((image) => (
         <ImageRow key={image.id} image={image} result={results[image.id]} thumbAspect={thumbAspect} onRename={onRename} onDownload={onDownload} />
       ))}
+      {!loading && !error && hiddenCount > 0 && (
+        <div className="limit-note">
+          <p>Free plan: showing the first {images.length} of {images.length + hiddenCount} images.</p>
+          <button className="secondary-button" type="button" onClick={onUpgrade}>Unlock all {images.length + hiddenCount} images</button>
+        </div>
+      )}
     </section>
   );
 }
@@ -614,17 +641,17 @@ function Select({ value, options, onChange, label, disabled = false, isAvailable
   );
 }
 
-function ExportPanel({ settings, onChange, supported, open, onToggle }) {
+function ExportPanel({ settings, onChange, supported, open, onToggle, locked, onUpgrade }) {
   const lossy = FORMATS.find((item) => item.id === settings.format)?.lossy;
 
   return (
     <section className="export" aria-label="Output settings">
       <div className="panel-texture" aria-hidden="true" />
-      <button className="export-toggle" type="button" aria-expanded={open} onClick={onToggle}>
-        <span className="trim">Output settings</span>
-        <Asset name="chevron-down" className={`chevron${open ? '' : ' is-closed'}`} />
+      <button className="export-toggle" type="button" aria-expanded={locked ? undefined : open} onClick={locked ? onUpgrade : onToggle}>
+        <span className="trim">Output settings{locked && <span className="pro-badge">Pro</span>}</span>
+        {!locked && <Asset name="chevron-down" className={`chevron${open ? '' : ' is-closed'}`} />}
       </button>
-      {open && (
+      {open && !locked && (
         <>
           <div className="field">
             <span className="field-label" id="format-label">Format</span>
@@ -685,7 +712,7 @@ function ExportPanel({ settings, onChange, supported, open, onToggle }) {
   );
 }
 
-function PaywallNotice({ state, error, price, checkoutUrl, onBuy, onCheck }) {
+function PaywallNotice({ state, error, price, checkoutUrl, onBuy, onCheck, onBack }) {
   const [agreed, setAgreed] = useState(false);
   const checking = state === 'checking';
   const waiting = state === 'waiting';
@@ -698,11 +725,17 @@ function PaywallNotice({ state, error, price, checkoutUrl, onBuy, onCheck }) {
       ) : (
         <>
           <h1 id="paywall-title">{waiting ? 'Waiting for your payment' : 'Unlock Pluckr'}</h1>
+          {!waiting && state !== 'error' && (
+            <ul className="notice-list">
+              <li>Every image in the Doc, with no limit (the free plan reads the first {FREE_IMAGE_LIMIT})</li>
+              <li>Output settings: convert, compress, resize and crop</li>
+            </ul>
+          )}
           {waiting ? (
             <p>Finish checking out in the tab that just opened. This screen updates by itself when your payment goes through.</p>
           ) : (
             <>
-              <p>Pluckr is a one-time purchase of {price}. Pay once and use it on any Doc with this Google account.</p>
+              <p>One-time purchase of {price}. Pay once and use it on any Doc with this Google account.</p>
               <p>You check out securely with Polar. Pluckr never sees your card details, and uses your Google email only to find your licence. Document images are never sent to Pluckr's servers.</p>
               {state !== 'error' && (
                 <label className="notice-agree">
@@ -720,10 +753,12 @@ function PaywallNotice({ state, error, price, checkoutUrl, onBuy, onCheck }) {
               <>
                 <a className="secondary-button" href={checkoutUrl} target="_blank" rel="noopener noreferrer">Open checkout again</a>
                 <button className="primary-button" type="button" onClick={onCheck}>I have paid, check again</button>
+                <button className="secondary-button" type="button" onClick={onBack}>Continue with the free plan</button>
               </>
             ) : (
               <>
                 {state === 'unpaid' && <button className="secondary-button" type="button" onClick={onCheck}>I have already paid</button>}
+                {state === 'unpaid' && <button className="secondary-button" type="button" onClick={onBack}>Continue with the free plan</button>}
                 <button className="primary-button" type="button" disabled={state !== 'error' && !agreed} onClick={state === 'error' ? onCheck : onBuy}>
                   {state === 'error' ? 'Try again' : `Buy Pluckr for ${price}`}
                 </button>
@@ -762,7 +797,8 @@ function App() {
   const [zipping, setZipping] = useState(false);
   const [exportError, setExportError] = useState('');
   // A collapsed export section means "no conversion"; the choices are kept for when it reopens.
-  const activeSettings = exportOpen ? settings : { ...settings, format: null };
+  const locked = extractor.plan === 'free';
+  const activeSettings = exportOpen && !locked ? settings : { ...settings, format: null };
   const { results, converted, busy, convert } = useConverter(extractor.images, activeSettings);
   const { format } = activeSettings;
   // The thumbnail previews the centred crop a fixed aspect ratio will make; otherwise the design's square.
@@ -827,6 +863,8 @@ function App() {
             error={extractor.error || exportError}
             onRename={extractor.renameImage}
             onDownload={downloadOne}
+            hiddenCount={Math.max(0, extractor.counts.total - extractor.counts.available)}
+            onUpgrade={extractor.openUpgrade}
           />
         ) : (
           <PaywallNotice
@@ -836,11 +874,12 @@ function App() {
             checkoutUrl={extractor.checkoutUrl}
             onBuy={extractor.startCheckout}
             onCheck={() => extractor.checkLicence()}
+            onBack={extractor.closeUpgrade}
           />
         )}
         {extractor.ready && (
           <>
-          <ExportPanel settings={settings} onChange={updateSettings} supported={supported} open={exportOpen} onToggle={() => setExportOpen((value) => !value)} />
+          <ExportPanel settings={settings} onChange={updateSettings} supported={supported} open={exportOpen} onToggle={() => setExportOpen((value) => !value)} locked={locked} onUpgrade={extractor.openUpgrade} />
           <button
             className="primary-button"
             type="button"

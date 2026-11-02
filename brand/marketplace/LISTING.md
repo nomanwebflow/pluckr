@@ -7,7 +7,7 @@ Everything to paste into Marketplace SDK > Store Listing. Limits from Google's d
 - Language: English (United States)
 - Application name (max 50): `Pluckr`  (matches the OAuth consent screen)
 - Category: Productivity
-- Pricing model: Paid (one-time purchase)
+- Pricing model: Free with paid upgrade (free: first 50 images per Doc; $5 one-time unlocks all images and output settings). Update this in Marketplace SDK > Store Listing.
 
 ### Short description (max 200; this one is 148)
 

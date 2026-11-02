@@ -36,9 +36,11 @@ Notes:
 1. The sidebar asks Apps Script for a Google identity token and sends it to Convex (`POST /licence`).
 2. Convex verifies the token with Google and looks up a paid licence for that Google account ID (`sub`).
 3. If licensed, Convex returns a short-lived (6 hour) entitlement signed with `ENTITLEMENT_SECRET`.
-4. The sidebar passes the entitlement to `getDocumentInfo`, `getDocumentImage` and `getImagesArchive`. `Code.gs` verifies it offline
-   with the same secret, so the images cannot be read without a licence even from the browser console.
-5. Not licensed: the sidebar shows "Unlock Pluckr". Buy opens a Polar checkout created by Convex (`POST /checkout`)
+4. The sidebar passes the entitlement to `getDocumentImages` (and `getDocumentInfo`, `getDocumentImage`, `getImagesArchive`). `Code.gs` verifies it offline
+   with the same secret. With a valid entitlement every image is readable; without one (the free plan) the server returns only the first
+   `FREE_IMAGE_LIMIT` (50) images per Doc, so the cap holds even from the browser console. A missing secret also means free, never paid.
+   The free plan has no output settings (convert/compress/resize/crop); that lock is in the sidebar only, because conversion runs in the browser.
+5. Not licensed: the sidebar works on the free plan and shows "Unlock" prompts (cap notice, locked Output settings). Buy opens a Polar checkout created by Convex (`POST /checkout`)
    with the Google account ID as the customer's external ID. Polar's `order.paid` webhook (`POST /polar-webhook`,
    signature-checked) then records the licence, and the sidebar unlocks by itself within a few seconds.
    `order.refunded` (status "refunded") switches the licence off.

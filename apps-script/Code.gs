@@ -105,6 +105,22 @@ function requireEntitlement_(entitlement) {
   if (!valid) throw new Error('LICENCE_REQUIRED');
 }
 
+/** Images a free account can read per document. */
+var FREE_IMAGE_LIMIT = 50;
+
+/**
+ * How many images this caller may read: everything with a valid entitlement, otherwise the free allowance.
+ * Never throws, so a missing secret or an expired entitlement degrades to the free tier and never opens the paid one.
+ */
+function allowedImageCount_(entitlement, total) {
+  try {
+    requireEntitlement_(entitlement);
+    return total;
+  } catch (error) {
+    return Math.min(total, FREE_IMAGE_LIMIT);
+  }
+}
+
 function signEntitlement_(secret, text) {
   return Utilities.base64EncodeWebSafe(Utilities.computeHmacSha256Signature(text, secret)).replace(/=+$/, '');
 }
@@ -130,9 +146,9 @@ function logout() {
 
 /** Return image previews and metadata for every document tab. */
 function getDocumentInfo(entitlement) {
-  requireEntitlement_(entitlement);
   var document = DocumentApp.getActiveDocument();
-  return { documentName: document.getName(), count: collectDocumentImages_(document).length };
+  var total = collectDocumentImages_(document).length;
+  return { documentName: document.getName(), count: allowedImageCount_(entitlement, total), total: total };
 }
 
 /**
@@ -140,24 +156,26 @@ function getDocumentInfo(entitlement) {
  * a scan takes as long as the slowest image instead of the sum of all of them.
  */
 function getDocumentImage(index, entitlement) {
-  requireEntitlement_(entitlement);
-  var image = collectDocumentImages_(DocumentApp.getActiveDocument())[index];
+  var images = collectDocumentImages_(DocumentApp.getActiveDocument());
+  if (index >= allowedImageCount_(entitlement, images.length)) throw new Error('LICENCE_REQUIRED');
+  var image = images[index];
   if (!image) throw new Error('This image is no longer in the document. Scan again.');
   return describeImage_(image, index);
 }
 
 /**
- * A batch of images starting at `start`, with the document's total image count. One call walks the document and
- * checks the entitlement once for the whole batch, instead of once per image.
+ * A batch of images starting at `start`. One call walks the document and checks the entitlement once for the whole
+ * batch, instead of once per image. `total` is every image in the Doc; `available` is how many this account may
+ * read (all of them when licensed, otherwise the free allowance), and no image past it is ever returned.
  */
 function getDocumentImages(start, count, entitlement) {
-  requireEntitlement_(entitlement);
   var document = DocumentApp.getActiveDocument();
   var images = collectDocumentImages_(document);
-  var end = Math.min(images.length, start + count);
+  var available = allowedImageCount_(entitlement, images.length);
+  var end = Math.min(available, start + count);
   var batch = [];
   for (var index = start; index < end; index += 1) batch.push(describeImage_(images[index], index));
-  return { documentName: document.getName(), total: images.length, images: batch };
+  return { documentName: document.getName(), total: images.length, available: available, images: batch };
 }
 
 function describeImage_(image, index) {
@@ -179,12 +197,12 @@ function describeImage_(image, index) {
 
 /** Package selected document images into a ZIP. `names` maps sourceIndex to a custom file name. */
 function getImagesArchive(sourceIndexes, names, entitlement) {
-  requireEntitlement_(entitlement);
   var document = DocumentApp.getActiveDocument();
   var images = collectDocumentImages_(document);
+  var available = allowedImageCount_(entitlement, images.length);
   var selected = {};
   (sourceIndexes || []).forEach(function (index) {
-    selected[String(index)] = true;
+    if (index < available) selected[String(index)] = true;
   });
   names = names || {};
   var used = {};
