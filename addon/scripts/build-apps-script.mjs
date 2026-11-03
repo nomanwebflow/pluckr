@@ -53,7 +53,7 @@ const sidebarHtml = `<!DOCTYPE html>
     <div id="root"></div>
     <!--PLUCKR_BOOT-->
     <script>window.PLUCKR_ASSETS = ${inlineAssets};</script>
-    <script>(function(){var b=atob('${encodedScript}'),u=new Uint8Array(b.length),i;for(i=0;i<b.length;i++)u[i]=b.charCodeAt(i);var s=document.createElement('script');s.text=new TextDecoder('utf-8').decode(u);document.body.appendChild(s);})();</script>
+    <script>(function(){var e='${encodedScript}',u;if(Uint8Array.fromBase64){u=Uint8Array.fromBase64(e);}else{var b=atob(e),i;u=new Uint8Array(b.length);for(i=0;i<b.length;i++)u[i]=b.charCodeAt(i);}var s=document.createElement('script');s.text=new TextDecoder('utf-8').decode(u);document.body.appendChild(s);})();</script>
   </body>
 </html>`;
 

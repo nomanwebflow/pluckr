@@ -33,10 +33,15 @@ function onInstall() {
 }
 
 function openPluckrSidebar() {
-  // Rendered here, before the page loads: a still-valid entitlement lets the sidebar open straight onto the images
-  // instead of flashing a "checking your licence" screen first.
-  var bootData = { theme: getTheme_(), host: host_() };  // null until the user picks one; the page then follows the system setting
-  var cached = cachedEntitlement_();
+  // Rendered here, before the page loads: a still-valid entitlement lets the sidebar open with Pro unlocked right away.
+  // Read UserProperties once for both theme and entitlement, and skip ScriptProperties when no entitlement is stored.
+  var userProps = PropertiesService.getUserProperties().getProperties();
+  var savedTheme = userProps.theme;
+  var bootData = {
+    theme: savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : null, // null follows the system setting
+    host: host_()
+  };
+  var cached = cachedEntitlement_(userProps.entitlement);
   if (cached) { bootData.entitlement = cached.entitlement; bootData.expiresAt = cached.expiresAt; }
   var boot = JSON.stringify(bootData).replace(/</g, '\\u003c');
   var page = HtmlService.createHtmlOutputFromFile('Sidebar').getContent()
@@ -48,11 +53,14 @@ function openPluckrSidebar() {
  * The last entitlement the licence service issued to this user, if it is still valid. Otherwise null.
  * Stored with the user's Google ID, so the signature can be checked here without asking Google for a token.
  */
-function cachedEntitlement_() {
+function cachedEntitlement_(rawSaved) {
   try {
+    var raw = rawSaved !== undefined ? rawSaved : PropertiesService.getUserProperties().getProperty('entitlement');
+    if (!raw) return null;
+    var saved = JSON.parse(raw);
+    if (!saved || !saved.entitlement || !saved.sub) return null;
     var secret = PropertiesService.getScriptProperties().getProperty('ENTITLEMENT_SECRET');
-    var saved = JSON.parse(PropertiesService.getUserProperties().getProperty('entitlement') || 'null');
-    if (!secret || !saved) return null;
+    if (!secret) return null;
     var parts = String(saved.entitlement).split('.');
     var exp = Number(parts[0]);
     var valid = parts.length === 2 && exp > Date.now() / 1000 + 60 &&
@@ -117,11 +125,26 @@ function requireEntitlement_(entitlement) {
 
   var parts = String(entitlement || '').split('.');
   var exp = Number(parts[0]);
-  var token = ScriptApp.getIdentityToken();
-  var sub = token ? decodeJwtPayload_(token).sub : '';
-  var valid = parts.length === 2 && exp && sub && exp > Date.now() / 1000 &&
-    constantTimeEquals_(signEntitlement_(secret, sub + '.' + exp), parts[1]);
+  if (parts.length !== 2 || !exp || exp <= Date.now() / 1000) throw new Error('LICENCE_REQUIRED');
+
+  var sub = verifiedUserSub_(entitlement);
+  if (!sub) {
+    var token = ScriptApp.getIdentityToken();
+    sub = token ? decodeJwtPayload_(token).sub : '';
+  }
+  var valid = Boolean(sub) && constantTimeEquals_(signEntitlement_(secret, sub + '.' + exp), parts[1]);
   if (!valid) throw new Error('LICENCE_REQUIRED');
+}
+
+/** Fast-path for batches: `rememberEntitlement` already verified and bound this entitlement to this user's UserProperties. */
+function verifiedUserSub_(entitlement) {
+  try {
+    if (!PropertiesService.getUserProperties) return '';
+    var saved = JSON.parse(PropertiesService.getUserProperties().getProperty('entitlement') || 'null');
+    return saved && saved.entitlement === entitlement && saved.sub ? String(saved.sub) : '';
+  } catch (error) {
+    return '';
+  }
 }
 
 /** Images a free account can read per file. Everything past it, and every write, needs a licence. */
@@ -133,6 +156,7 @@ var FREE_IMAGE_LIMIT = 50;
  * Writes (alt text, optimize, Markdown) do not use this: they call requireEntitlement_ and need a licence.
  */
 function allowedImageCount_(entitlement, total) {
+  if (!entitlement) return Math.min(total, FREE_IMAGE_LIMIT);
   try {
     requireEntitlement_(entitlement);
     return total;
@@ -188,13 +212,21 @@ function getDocumentImage(index, entitlement) {
  * batch, instead of once per image. `total` is every image in the file; `available` is how many this account may
  * read (all when licensed, otherwise the free allowance), and no image past it is ever returned.
  */
-function getDocumentImages(start, count, entitlement) {
+function getDocumentImages(start, count, entitlement, options) {
+  if (options && (options.host === 'docs' || options.host === 'slides')) hostCache_ = options.host;
   var entries = collectImages_();
   var available = allowedImageCount_(entitlement, entries.length);
   var end = Math.min(available, start + count);
   var batch = [];
   for (var index = start; index < end; index += 1) batch.push(describeImage_(entries[index], index));
-  return { documentName: openFileName_(), host: host_(), total: entries.length, available: available, images: batch };
+  var skipMeta = Boolean(options && options.skipMeta);
+  return {
+    documentName: skipMeta ? '' : openFileName_(),
+    host: host_(),
+    total: entries.length,
+    available: available,
+    images: batch
+  };
 }
 
 function describeImage_(entry, index) {
@@ -454,12 +486,21 @@ function collectSlideImages_(presentation) {
   var pad = function (n) { return String(n).padStart(2, '0'); };
   presentation.getSlides().forEach(function (slide, slideIndex) {
     var inSlide = 0;
+    var prefix = 'slide-' + pad(slideIndex + 1) + '-image-';
+    // Fast path when a slide has no groups: getImages() fetches every image in one bridge call instead of inspecting shapes and text boxes.
+    if (slide.getGroups && slide.getImages && slide.getGroups().length === 0) {
+      slide.getImages().forEach(function (image) {
+        inSlide += 1;
+        found.push({ image: image, name: prefix + pad(inSlide) });
+      });
+      return;
+    }
     (function visit(elements) {
       elements.forEach(function (element) {
         var type = element.getPageElementType();
         if (type === SlidesApp.PageElementType.IMAGE) {
           inSlide += 1;
-          found.push({ image: element.asImage(), name: 'slide-' + pad(slideIndex + 1) + '-image-' + pad(inSlide) });
+          found.push({ image: element.asImage(), name: prefix + pad(inSlide) });
         } else if (type === SlidesApp.PageElementType.GROUP) {
           visit(element.asGroup().getChildren());
         }

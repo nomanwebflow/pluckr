@@ -1,6 +1,6 @@
-import React, { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
+import React, { createContext, memo, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ASPECTS, FORMATS, cancelEncoding, compressForDoc, detectSupportedFormats, exportName, prefetchAvifCodec, processImage } from './process.js';
+import { ASPECTS, FORMATS, cancelEncoding, compressForDoc, decodeBase64, detectSupportedFormats, exportName, prefetchAvifCodec, processImage } from './process.js';
 import { zipBundle } from './bundle.js';
 import { bulkNames } from './rename.js';
 import { FREE_IMAGE_LIMIT, PAYWALL_ENABLED, PRICE_LABEL, createCheckout, fetchLicence } from './licence.js';
@@ -54,25 +54,31 @@ function formatSize(bytes) {
   return kb < 1024 ? `${kb.toFixed(1)} KB` : `${(kb / 1024).toFixed(1)} MB`;
 }
 
-function decodeBase64(base64) {
-  const binary = window.atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
-  return bytes;
-}
-
 /** Google reports the size an image is drawn at in the Doc, not its real pixels, so read the real size from the file. */
-function naturalSize(image) {
+async function naturalSize(image) {
+  const url = imageUrl(image);
+  if (image.blob && image.mimeType !== 'image/svg+xml' && typeof createImageBitmap === 'function') {
+    try {
+      const bitmap = await createImageBitmap(image.blob);
+      const size = { width: bitmap.width, height: bitmap.height };
+      bitmap.close();
+      return size;
+    } catch (_) {
+      // Fall through to HTMLImageElement probe.
+    }
+  }
   return new Promise((resolve) => {
     const probe = new Image();
+    probe.decoding = 'async';
     probe.onload = () => resolve({ width: probe.naturalWidth, height: probe.naturalHeight });
     probe.onerror = () => resolve({});
-    probe.src = imageUrl(image);
+    probe.src = url;
   });
 }
 
-// Images fetched per server call, and how many such calls run at once.
-const SCAN_BATCH_SIZE = 8;
+// Small initial batch to put the first rows on screen quickly, then larger parallel batches for the rest.
+const FIRST_BATCH_SIZE = 2;
+const SCAN_BATCH_SIZE = 12;
 const SCAN_CONCURRENCY = 4;
 
 // Blob URLs created for the current scan; a rescan releases the previous scan's so a long session does not keep them all.
@@ -93,6 +99,7 @@ function prepareOriginal(image) {
   }
   if (image.data) {
     image.blob = new Blob([decodeBase64(image.data)], { type: image.mimeType || 'image/png' });
+    delete image.data;
     image._blobUrl = URL.createObjectURL(image.blob);
     blobUrls.add(image._blobUrl);
     return image._blobUrl;

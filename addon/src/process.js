@@ -35,6 +35,7 @@ export const AVIF_OPTIONS = {
 export const AVIF_MAX_PIXELS = 24_000_000;
 
 export function decodeBase64(base64) {
+  if (typeof Uint8Array.fromBase64 === 'function') return Uint8Array.fromBase64(base64);
   const binary = window.atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
@@ -46,10 +47,7 @@ async function loadWasmBytes() {
   const run = window.google?.script?.run;
   if (run) {
     const encoded = await new Promise((resolve, reject) => run.withSuccessHandler(resolve).withFailureHandler(reject).getAvifCodec());
-    const binary = window.atob(encoded);
-    const packed = new Uint8Array(binary.length);
-    for (let index = 0; index < binary.length; index += 1) packed[index] = binary.charCodeAt(index);
-    return unzlibSync(packed);
+    return unzlibSync(decodeBase64(encoded));
   }
   const response = await fetch('/assets/avif_enc.wasm');
   return new Uint8Array(await response.arrayBuffer());
