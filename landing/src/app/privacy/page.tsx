@@ -74,7 +74,7 @@ export default function PrivacyPage() {
 
           {privacy.sections.map((section) => (
             <section key={section.title} className="flex flex-col gap-8">
-              <h2 className="font-display text-[clamp(32px,5vw,56px)] leading-none text-balance capitalize [text-box:trim-both_cap_alphabetic]">
+              <h2 className="font-display text-[32px] leading-none text-balance capitalize [text-box:trim-both_cap_alphabetic]">
                 {section.title}
               </h2>
               {section.blocks.map((block, i) =>
