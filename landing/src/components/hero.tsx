@@ -1,4 +1,11 @@
+"use client";
+
+import { useRef } from "react";
 import Link from "next/link";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SplitText } from "gsap/SplitText";
+import { useGSAP } from "@gsap/react";
 
 import { Button } from "@/components/ui/button";
 
@@ -31,9 +38,113 @@ function Mark() {
   );
 }
 
+gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
+
+// Line masks clip at the line box, which shaves descenders (g, y) and
+// ascenders. Pad each mask clear of the cut and pull the layout back.
+function clearTheCut(masks: Element[]) {
+  gsap.set(masks, {
+    paddingBlock: "0.2em",
+    marginBlock: "-0.2em",
+  });
+}
+
 export function Hero() {
+  const root = useRef<HTMLElement>(null);
+
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const q = (name: string) =>
+          root.current!.querySelector<HTMLElement>(`[data-hero="${name}"]`)!;
+        const panel = q("panel");
+        let scrub: gsap.core.Timeline | undefined;
+
+        // Entrance: only things already on screen move. Nothing is hidden by
+        // CSS, so with JS off the page is fully readable.
+        gsap.from(q("nav"), { y: -16, duration: 0.9, ease: "power3.out" });
+        gsap.from(panel, {
+          yPercent: 6,
+          duration: 1.4,
+          delay: 0.35,
+          ease: "power3.out",
+        });
+
+        SplitText.create(q("h1"), {
+          type: "lines,words",
+          mask: "lines",
+          autoSplit: true,
+          onSplit(self) {
+            clearTheCut(self.masks);
+            scrub?.scrollTrigger?.kill();
+            scrub?.kill();
+
+            // Scroll: pin the hero, the headline words climb out of their
+            // line masks, the demo panel rises over the copy.
+            scrub = gsap.timeline({
+              defaults: { ease: "none" },
+              scrollTrigger: {
+                trigger: root.current,
+                start: "top top",
+                end: "+=80%",
+                pin: true,
+                scrub: 0.8,
+                invalidateOnRefresh: true,
+              },
+            });
+            scrub
+              .to(self.words, { yPercent: -170, stagger: 0.08, duration: 0.5 }, 0)
+              .to(
+                panel,
+                {
+                  y: () =>
+                    -Math.max(
+                      0,
+                      panel.offsetTop + panel.offsetHeight + 64 - window.innerHeight,
+                    ),
+                  duration: 1,
+                },
+                0,
+              );
+
+            return gsap.from(self.lines, {
+              yPercent: 115,
+              duration: 1.1,
+              stagger: 0.12,
+              ease: "power4.out",
+              delay: 0.1,
+            });
+          },
+        });
+
+        SplitText.create(q("p"), {
+          type: "lines",
+          mask: "lines",
+          autoSplit: true,
+          onSplit(self) {
+            clearTheCut(self.masks);
+            return gsap.from(self.lines, {
+              yPercent: 110,
+              duration: 0.9,
+              stagger: 0.1,
+              ease: "power3.out",
+              delay: 0.5,
+            });
+          },
+        });
+
+        gsap.from(q("cta"), { y: 24, duration: 0.9, delay: 0.7, ease: "power3.out" });
+      });
+    },
+    { scope: root },
+  );
+
   return (
-    <section className="relative flex h-svh min-h-[640px] flex-col items-center gap-16 overflow-hidden p-6 text-white md:p-16">
+    <section
+      ref={root}
+      className="relative flex h-svh min-h-[640px] flex-col items-center gap-16 overflow-hidden p-6 text-white md:p-16">
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-t from-black to-[#0d0d0d]" />
         <div
@@ -45,7 +156,7 @@ export function Hero() {
         />
       </div>
 
-      <nav className="relative flex w-full shrink-0 items-center justify-center">
+      <nav data-hero="nav" className="relative flex w-full shrink-0 items-center justify-center">
         <Link href="/" className="flex items-center gap-1" aria-label="Pluckr home">
           <Mark />
           <span className="font-display text-[17.455px] leading-normal">
@@ -56,16 +167,17 @@ export function Hero() {
 
       <div className="relative flex shrink-0 flex-col items-center gap-8">
         <div className="flex flex-col items-center gap-6 text-center">
-          <h1 className="font-display w-full max-w-[818px] text-[clamp(40px,7vw,72px)] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
+          <h1 data-hero="h1" className="font-display w-full max-w-[818px] text-[clamp(40px,7vw,72px)] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
             Download every image from a Google Doc
           </h1>
-          <p className="w-full max-w-[392px] text-base leading-normal">
+          <p data-hero="p" className="w-full max-w-[392px] text-base leading-normal">
             Pull every image out of a Doc or Slides deck. Rename in bulk,
             convert to WebP or AVIF, keep the alt text.
           </p>
         </div>
         <Button
           asChild
+          data-hero="cta"
           className="h-auto rounded-[16px] border-0 bg-[#0062fb] px-8 py-3 text-base leading-[normal] text-white hover:bg-[#0062fb]/85 active:translate-y-0"
         >
           <a href={MARKETPLACE_URL} target="_blank" rel="noopener noreferrer">
@@ -75,7 +187,8 @@ export function Hero() {
       </div>
 
       <div
-        className="relative h-[738px] w-full shrink-0 rounded-[20px] border-2 border-white/5 bg-[#0d0d0d]"
+        data-hero="panel"
+        className="relative z-10 h-[738px] w-full shrink-0 rounded-[20px] border-2 border-white/5 bg-[#0d0d0d]"
         role="img"
         aria-label="Product demo"
       />
