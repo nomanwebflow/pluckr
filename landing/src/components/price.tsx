@@ -1,6 +1,29 @@
+// Feature lists follow docs/site-copy.md (the pricing page copy).
 const plans = [
-  { price: "Free", note: ["Up to 50 images, lifetime.", "No extra features."] },
-  { price: "$12", note: ["Everything unlocked forever"] },
+  {
+    price: "Free",
+    note: ["Up to 50 images, lifetime.", "No extra features."],
+    features: [
+      "List and preview every image",
+      "Download the originals as one ZIP file",
+    ],
+  },
+  {
+    price: "$12",
+    note: ["Everything unlocked forever"],
+    features: [
+      "Everything in Free",
+      "No limit on images",
+      "Bulk rename",
+      "Alt text editing",
+      "Alt text export as CSV or JSON",
+      "Convert to WebP, AVIF, JPEG or PNG",
+      "Crop and resize",
+      "Optimize the images in your file",
+      "Markdown export with an images folder",
+      "Google Docs and Slides",
+    ],
+  },
 ];
 
 export function Price() {
@@ -26,13 +49,18 @@ export function Price() {
                 {plan.price}
               </p>
             </div>
-            <p className="font-display p-2 text-lg leading-[normal] capitalize">
+            <p className="font-display p-2 text-lg leading-[normal] capitalize sm:min-h-[calc(2lh+1rem)]">
               {plan.note.map((line) => (
                 <span key={line} className="block">
                   {line}
                 </span>
               ))}
             </p>
+            <ul className="mt-2 flex list-disc flex-col gap-2 px-2 pr-3 pb-3 pl-7 text-sm leading-normal text-white/80 marker:text-white/40">
+              {plan.features.map((feature) => (
+                <li key={feature}>{feature}</li>
+              ))}
+            </ul>
           </li>
         ))}
       </ul>
