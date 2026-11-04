@@ -184,7 +184,7 @@ function withExtension(name, original) {
   return clean.includes('.') || !extension ? clean : clean + extension;
 }
 
-function ImageRow({ image, result, thumbAspect, selected, onSelect, onRename, onDownload, onSaveAlt, altLocked, onUpgrade }) {
+const ImageRow = memo(function ImageRow({ image, result, thumbAspect, selected, onSelect, onRename, onDownload, onSaveAlt, altLocked, onUpgrade }) {
   const { noun } = useWords();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(image.name);
@@ -340,7 +340,7 @@ function ImageRow({ image, result, thumbAspect, selected, onSelect, onRename, on
       </div>
     </article>
   );
-}
+});
 
 function useImageExtractor() {
   const scriptRun = useMemo(() => window.google?.script?.run, []);
@@ -349,19 +349,22 @@ function useImageExtractor() {
   // 'ready' also covers "paywall off". Otherwise: checking | unpaid | waiting (payment in progress) | error.
   // PLUCKR_BOOT is filled in by the add-on's server code when it still holds a valid entitlement.
   const boot = window.PLUCKR_BOOT;
+  const devLicence = devFlags.get('licence');
   // 'unpaid' is the free plan: the first FREE_IMAGE_LIMIT images per file and no editing or output tools.
-  const [licence, setLicence] = useState(devFlags.get('licence') || (paywall && !boot?.entitlement ? 'checking' : 'ready'));
+  const [licence, setLicence] = useState(devLicence || (boot?.entitlement ? 'ready' : paywall ? 'checking' : 'ready'));
   // The unlock screen is only shown when a free user asks for it (the dev preview can open it directly).
-  const [showUpgrade, setShowUpgrade] = useState(devFlags.get('licence') === 'unpaid');
+  const [showUpgrade, setShowUpgrade] = useState(devLicence === 'unpaid' || devLicence === 'checking');
   // Every image in the file, and how many this plan may read.
   const [counts, setCounts] = useState({ total: 0, available: 0 });
   // Identifies the latest scan, so a rescan makes batches still in flight from the previous one stop publishing.
   const scanRef = useRef(0);
-  const plan = licence === 'ready' ? 'pro' : licence === 'unpaid' ? 'free' : null;
+  const plan = licence === 'ready' ? 'pro' : licence === 'unpaid' ? 'free' : (devLicence ? null : 'free');
   const [licenceError, setLicenceError] = useState(devFlags.get('licenceError') || '');
   const [checkoutUrl, setCheckoutUrl] = useState(devFlags.has('licence') ? '#' : '');
   const entitlementRef = useRef({ token: boot?.entitlement || '', expiresAt: boot?.expiresAt || 0 });
   const [images, setImages] = useState(isAppsScript || devState ? [] : DEMO_IMAGES);
+  const imagesRef = useRef(images);
+  imagesRef.current = images;
   // Starts true in the add-on so the panel never paints an empty "no images" frame before the first scan begins.
   const [loading, setLoading] = useState(isAppsScript || devState === 'loading');
   const [downloading, setDownloading] = useState(false);
@@ -433,8 +436,8 @@ function useImageExtractor() {
       return;
     }
 
-    // Free accounts read with no entitlement and the server caps them. A paid one that has lapsed turns free and rescans.
-    const entitlement = plan === 'free' ? '' : await ensureEntitlement();
+    // Free accounts or initial background check read with current entitlement (or empty for free allowance).
+    const entitlement = plan === 'free' ? (entitlementRef.current.token || '') : await ensureEntitlement();
     if (entitlement === null) {
       setLoading(false);
       return;
@@ -446,17 +449,20 @@ function useImageExtractor() {
 
     const scan = scanRef.current + 1;
     scanRef.current = scan;
-    const batches = [];
-    const publish = () => setImages(batches.flat());
+    const batches = new Map();
+    const publish = () => {
+      const sorted = Array.from(batches.entries()).sort((a, b) => a[0] - b[0]).flatMap((e) => e[1]);
+      setImages(sorted);
+    };
 
     try {
-      // The first batch also reports the totals, so no separate count call is needed.
-      const first = await call('getDocumentImages', 0, SCAN_BATCH_SIZE, entitlement);
+      // The first batch (FIRST_BATCH_SIZE = 2) gets previews on screen fast.
+      const first = await call('getDocumentImages', 0, FIRST_BATCH_SIZE, entitlement, { host });
       setDocumentName(first.documentName || '');
       if (first.host) setHost(first.host);
       setCounts({ total: first.total, available: first.available });
       const stale = takeBlobUrls();
-      batches[0] = first.images;
+      batches.set(0, first.images);
       first.images.forEach(prepareOriginal);
       publish();
       setDeselected(new Set());
@@ -468,20 +474,23 @@ function useImageExtractor() {
       const correctSizes = (batch) => Promise.all(batch.map(naturalSize)).then((sizes) => {
         if (scanRef.current !== scan) return;
         const byId = new Map(batch.map((image, index) => [image.id, sizes[index]]));
-        setImages((current) => current.map((image) => ({ ...image, ...(byId.get(image.id)?.width ? byId.get(image.id) : {}) })));
+        setImages((current) => current.map((image) => {
+          const size = byId.get(image.id);
+          return size?.width ? { ...image, ...size } : image;
+        }));
       });
       correctSizes(first.images);
 
       // A few batches in flight at once: each call walks the file, and Apps Script limits concurrent calls.
-      let next = SCAN_BATCH_SIZE;
+      let next = FIRST_BATCH_SIZE;
       const worker = async () => {
         while (next < first.available && scanRef.current === scan) {
           const start = next;
           next += SCAN_BATCH_SIZE;
-          const { images: batch } = await call('getDocumentImages', start, SCAN_BATCH_SIZE, entitlement);
+          const { images: batch } = await call('getDocumentImages', start, SCAN_BATCH_SIZE, entitlement, { skipMeta: true, host: first.host });
           if (scanRef.current !== scan) return;
           batch.forEach(prepareOriginal);
-          batches[start / SCAN_BATCH_SIZE] = batch;
+          batches.set(start, batch);
           publish();
           correctSizes(batch);
         }
@@ -546,12 +555,12 @@ function useImageExtractor() {
 
   /** Writes the alt text into the Doc, then updates the list. Clearing the text clears the title too. */
   const saveAlt = useCallback(async (id, text) => {
-    const image = images.find((item) => item.id === id);
+    const image = imagesRef.current.find((item) => item.id === id);
     if (!image) return;
     const title = text ? image.altTitle || '' : '';
     if (isAppsScript) await serverCall('setImageAlt', image.sourceIndex, title, text);
     setImages((current) => current.map((item) => (item.id === id ? { ...item, altTitle: title, altDescription: text } : item)));
-  }, [images, isAppsScript, serverCall]);
+  }, [isAppsScript, serverCall]);
 
   // Every image is ticked after a scan; the user unticks the ones to leave out.
   const [deselected, setDeselected] = useState(() => new Set());
@@ -604,15 +613,28 @@ function useImageExtractor() {
       .logout();
   }, [isAppsScript, scriptRun, closeSidebar]);
 
-  // Check the licence on open, then scan once it is confirmed.
+  // Check the licence on open. If no cached entitlement, run checkLicence in the background.
   useEffect(() => {
-    if (paywall && !entitlementRef.current.token) checkLicence();
+    if (paywall && !entitlementRef.current.token) checkLicence({ silent: true });
   }, [paywall, checkLicence]);
 
-  // Scans when the plan is known, and again when it changes (a free user who pays gets the rest of the images).
+  // Scans on start, and again if a free user upgrades to pro and there were more images than the free allowance.
+  const hasMountedRef = useRef(false);
+  const prevPlanRef = useRef(plan);
   useEffect(() => {
-    if (isAppsScript && plan) extractImages();
-  }, [plan, isAppsScript, extractImages]);
+    if (!isAppsScript) return;
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      prevPlanRef.current = plan;
+      extractImages();
+      return;
+    }
+    const prev = prevPlanRef.current;
+    prevPlanRef.current = plan;
+    if (prev === 'free' && plan === 'pro' && counts.total > counts.available) {
+      extractImages();
+    }
+  }, [plan, isAppsScript, extractImages, counts.total, counts.available]);
 
   // Paid: leave the unlock screen once the licence is confirmed.
   useEffect(() => { if (plan === 'pro') setShowUpgrade(false); }, [plan]);
@@ -1252,10 +1274,10 @@ function App() {
 
   const processedName = (image, result) => exportName(image.name, result.ext);
 
-  const downloadOne = (image, result) => {
-    if (result?.blob) saveBlob(result.blob, processedName(image, result));
+  const downloadOne = useCallback((image, result) => {
+    if (result?.blob) saveBlob(result.blob, exportName(image.name, result.ext));
     else downloadImage(image);
-  };
+  }, []);
 
   /** Sends the export's files to the Drive folder one call at a time. Re-running replaces files by name, so a retry is safe. */
   const saveToDrive = async (files) => {
