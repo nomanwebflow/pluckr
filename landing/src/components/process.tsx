@@ -40,15 +40,15 @@ export function Process() {
 
       <ol className="flex w-full flex-wrap items-start justify-center gap-4">
         {steps.map((step) => (
-          <li key={step.title} className="flex w-[300px] flex-col gap-6">
+          <li key={step.title} className="flex w-full flex-col gap-6 sm:w-[300px]">
             <Image
               src={step.src}
               alt={step.alt}
               width={300}
               height={400}
-              sizes="300px"
+              sizes="(min-width: 640px) 300px, 100vw"
               quality={90}
-              className="h-[400px] w-[300px]"
+              className="aspect-[3/4] h-auto w-full sm:h-[400px] sm:w-[300px]"
             />
             <div className="flex flex-col items-center gap-[14px] px-3 text-center">
               <h3 className="font-display w-full text-[32px] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
