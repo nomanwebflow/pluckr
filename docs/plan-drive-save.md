@@ -1,6 +1,6 @@
 # Plan: save to a Google Drive folder
 
-Status: plan only, nothing built. Do it after the current Marketplace review is approved: it adds an OAuth scope, so it needs a new Marketplace and OAuth review of its own.
+Status: built on branch `drive-save` (Nov 4, 2026) and tested against mocks only. The real-Drive spike and the manual tests below are still to do. Do not release before the scope review is approved. Original note: do it after the current Marketplace review is approved: it adds an OAuth scope, so it needs a new Marketplace and OAuth review of its own.
 
 ## Why
 

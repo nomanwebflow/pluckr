@@ -472,6 +472,43 @@ function getImagesArchive(sourceIndexes, names, entitlement) {
   };
 }
 
+/**
+ * Save to Drive. The manifest has the narrow drive.file scope, which only reaches files this add-on creates, so
+ * this uses the Drive advanced service (v3); DriveApp would need the restricted full drive scope.
+ * The folder is "<file name> images" in the user's My Drive, remembered per file so a second export reuses it.
+ */
+function getDriveFolder(entitlement) {
+  requireEntitlement_(entitlement);
+  var properties = PropertiesService.getDocumentProperties();
+  var id = properties.getProperty('driveFolderId');
+  if (id) {
+    try {
+      var found = Drive.Files.get(id, { fields: 'id,trashed' });
+      if (found && !found.trashed) return { id: id, url: driveFolderUrl_(id) };
+    } catch (ignored) { /* deleted, or not reachable any more: make a new one */ }
+  }
+  var folder = Drive.Files.create({ name: openFileName_() + ' images', mimeType: 'application/vnd.google-apps.folder' }, null, { fields: 'id' });
+  properties.setProperty('driveFolderId', folder.id);
+  return { id: folder.id, url: driveFolderUrl_(folder.id) };
+}
+
+/** One file per call, so a failure loses one file and each call stays small. A file with the same name is replaced, not duplicated. */
+function saveFileToDrive(folderId, name, mimeType, data, entitlement) {
+  requireEntitlement_(entitlement);
+  if (!folderId || !name) throw new Error('Missing folder or file name.');
+  if (folderId !== PropertiesService.getDocumentProperties().getProperty('driveFolderId')) throw new Error('Unknown Drive folder. Try again.');
+  var blob = Utilities.newBlob(Utilities.base64Decode(data), mimeType || 'application/octet-stream', name);
+  var query = "name = '" + String(name).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "' and '" + folderId + "' in parents and trashed = false";
+  var existing = Drive.Files.list({ q: query, fields: 'files(id)', pageSize: 1 }).files;
+  if (existing && existing.length) {
+    Drive.Files.update({}, existing[0].id, blob);
+    return existing[0].id;
+  }
+  return Drive.Files.create({ name: name, parents: [folderId] }, blob, { fields: 'id' }).id;
+}
+
+function driveFolderUrl_(id) { return 'https://drive.google.com/drive/folders/' + id; }
+
 /** Every image in the open file, in reading order, with the default name its download gets (without extension). */
 function collectImages_() {
   if (host_() === 'slides') return collectSlideImages_(SlidesApp.getActivePresentation());

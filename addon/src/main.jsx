@@ -1,7 +1,7 @@
 import React, { createContext, memo, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ASPECTS, FORMATS, cancelEncoding, compressForDoc, decodeBase64, detectSupportedFormats, exportName, prefetchAvifCodec, processImage } from './process.js';
-import { zipBundle } from './bundle.js';
+import { exportFiles, zipBundle } from './bundle.js';
 import { bulkNames } from './rename.js';
 import { FREE_IMAGE_LIMIT, PAYWALL_ENABLED, PRICE_LABEL, createCheckout, fetchLicence } from './licence.js';
 import './styles.css';
@@ -937,6 +937,16 @@ function ExportPanel({ settings, onChange, supported, open, onToggle, extras, on
             <input type="checkbox" checked={extras.metadata} onChange={(event) => onExtras({ metadata: event.target.checked })} />
             <span>Add alt text files (CSV and JSON)</span>
           </label>
+          <label className="notice-agree">
+            <input type="checkbox" checked={extras.drive} onChange={(event) => onExtras({ drive: event.target.checked })} />
+            <span>Also save to Google Drive</span>
+          </label>
+          {extras.drive && (
+            <label className="notice-agree">
+              <input type="checkbox" checked={extras.driveOnly} onChange={(event) => onExtras({ driveOnly: event.target.checked })} />
+              <span>Save to Drive instead of downloading</span>
+            </label>
+          )}
           {host === 'docs' && (
             <label className="notice-agree">
               <input type="checkbox" checked={extras.markdown} onChange={(event) => onExtras({ markdown: event.target.checked })} />
@@ -1195,15 +1205,18 @@ function App() {
   const [supported, setSupported] = useState({});
   const [zipping, setZipping] = useState(false);
   const [exportError, setExportError] = useState('');
-  const [extras, setExtras] = useState({ metadata: false, markdown: false });
+  const [extras, setExtras] = useState({ metadata: false, markdown: false, drive: false, driveOnly: false });
+  // Progress of a Save to Drive run: { done, total, url, error }.
+  const [drive, setDrive] = useState(null);
   // The hash lets the optimize screen be opened directly in the dev preview, where the menu item is hidden.
   const [view, setView] = useState(() => devFlags.get('view') || (devFlags.has('optimize') ? 'optimize' : 'images'));
   // The free plan has no output tools: Output settings is locked, so nothing is converted or bundled.
   const locked = extractor.plan === 'free';
   // A collapsed export section means "no conversion"; the choices are kept for when it reopens.
   const activeSettings = exportOpen && !locked ? settings : { ...settings, format: null };
-  const bundle = exportOpen && !locked ? { ...extras, markdown: extras.markdown && extractor.host === 'docs' } : { metadata: false, markdown: false };
+  const bundle = exportOpen && !locked ? { ...extras, markdown: extras.markdown && extractor.host === 'docs' } : { metadata: false, markdown: false, drive: false, driveOnly: false };
   const wantsBundle = bundle.metadata || bundle.markdown;
+  const driveOnly = bundle.drive && bundle.driveOnly;
   const { results, converted, busy, convert } = useConverter(extractor.chosen, activeSettings);
   const { format } = activeSettings;
   // The thumbnail previews the centred crop a fixed aspect ratio will make; otherwise the design's square.
@@ -1224,8 +1237,26 @@ function App() {
     else downloadImage(image);
   };
 
+  /** Sends the export's files to the Drive folder one call at a time. Re-running replaces files by name, so a retry is safe. */
+  const saveToDrive = async (files) => {
+    setDrive({ done: 0, total: files.length, url: '' });
+    try {
+      const folder = extractor.isAppsScript ? await extractor.serverCall('getDriveFolder') : { id: 'dev', url: 'https://drive.google.com/drive/' };
+      const { url } = folder;
+      for (const [index, file] of files.entries()) {
+        const blob = typeof file.data === 'string' ? new Blob([file.data], { type: file.mimeType }) : file.data;
+        await extractor.serverCall('saveFileToDrive', folder.id, file.path, file.mimeType, await blobToBase64(blob));
+        setDrive({ done: index + 1, total: files.length, url });
+      }
+    } catch (failure) {
+      setDrive(null);
+      throw new Error(`Could not save to Drive: ${failure?.message || 'try again.'} Run it again to finish; files already saved are replaced, not duplicated.`);
+    }
+  };
+
   const downloadAll = async () => {
-    if (!format && !wantsBundle) {
+    setDrive(null);
+    if (!format && !wantsBundle && !bundle.drive) {
       extractor.downloadAll(extractor.chosen);
       return;
     }
@@ -1234,6 +1265,7 @@ function App() {
       return;
     }
     setExportError('');
+    setDrive(null);
     setZipping(true);
     try {
       const entries = [];
@@ -1258,7 +1290,8 @@ function App() {
       }
       const base = slug(extractor.documentName);
       const zipName = markdown ? `${base}-export.zip` : format ? `images-${target.ext}.zip` : `${base}-images.zip`;
-      saveBlob(await zipBundle(entries, { metadata: bundle.metadata, markdown }), zipName);
+      if (!driveOnly) saveBlob(await zipBundle(entries, { metadata: bundle.metadata, markdown }), zipName);
+      if (bundle.drive) await saveToDrive(exportFiles(entries, { metadata: bundle.metadata, markdown, imageFolder: '' }));
     } catch (failure) {
       setExportError(failure.message);
     }
@@ -1266,15 +1299,16 @@ function App() {
   };
 
   const label = (() => {
-    if (extractor.downloading || zipping) return 'Preparing download…';
+    if (extractor.downloading || zipping) return drive && drive.done < drive.total ? `Saving ${drive.done + 1} of ${drive.total} to Drive` : 'Preparing download…';
     if (!format) {
       const all = extractor.chosen.length === extractor.images.length;
+      if (driveOnly) return all ? 'Save to Drive' : `Save ${extractor.chosen.length} to Drive`;
       if (wantsBundle) return all ? 'Download bundle' : `Download bundle of ${extractor.chosen.length}`;
-      return all ? 'Download originals' : `Download ${count(extractor.chosen.length, 'original')}`;
+      return all ? (bundle.drive ? 'Download and save to Drive' : 'Download originals') : `Download ${count(extractor.chosen.length, 'original')}`;
     }
     if (busy) return 'Converting…';
     if (!converted) return 'Convert';
-    return `Download ${extractor.chosen.length} as ${target.label}`;
+    return driveOnly ? `Save ${extractor.chosen.length} to Drive as ${target.label}` : `Download ${extractor.chosen.length} as ${target.label}`;
   })();
 
   return (
@@ -1341,6 +1375,11 @@ function App() {
           >
             <span className="trim">{label}</span>
           </button>
+          {drive && drive.done === drive.total && !zipping && (
+            <p className="drive-status" role="status">
+              Saved {drive.total} {drive.total === 1 ? 'file' : 'files'} to your Drive. <a href={drive.url} target="_blank" rel="noopener noreferrer">Open folder in Drive</a>
+            </p>
+          )}
           </>
         )}
       </div>

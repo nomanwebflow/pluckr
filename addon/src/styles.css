@@ -282,3 +282,6 @@ button, .secondary-button, .menu-item, .notice-agree, .select-option { -webkit-u
 .selection-bar [data-tip]:hover::after, .selection-bar [data-tip]:focus-visible::after, .selection-bar .select-all:has(:focus-visible)::after { opacity: 1; visibility: visible; transform: none; transition: opacity 0.12s ease 0.35s, transform 0.12s ease 0.35s; }
 .selection-bar .view-switch button { position: static; }
 @media (prefers-reduced-motion: reduce) { .selection-bar [data-tip]::after, .selection-bar [data-tip]:hover::after { transition: none; } }
+
+.drive-status { margin: 0; font-size: 12px; line-height: 1.4; color: var(--text-soft); text-align: center; }
+.drive-status a { color: var(--white); text-decoration: underline; text-underline-offset: 2px; }

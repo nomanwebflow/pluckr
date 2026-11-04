@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { unzipSync, strFromU8 } from 'fflate';
 import { bulkNames } from '../src/rename.js';
-import { linkMarkdownImages, metadataCsv, uniqueNames, zipBundle } from '../src/bundle.js';
+import { exportFiles, linkMarkdownImages, metadataCsv, uniqueNames, zipBundle } from '../src/bundle.js';
 
 const codeGs = readFileSync(new URL('../apps-script/Code.gs', import.meta.url), 'utf8');
 
@@ -29,6 +29,11 @@ assert.match(strFromU8(zip['content.md']), /\(\.\/images\/a\.png\)[\s\S]*\(\.\/i
 assert.equal(JSON.parse(strFromU8(zip['images-metadata.json']))[1].filename, '(1) a.png');
 const flat = unzipSync(new Uint8Array(await (await zipBundle([entry('a.png', 0, '')])).arrayBuffer()));
 assert.deepEqual(Object.keys(flat), ['a.png'], 'no extras: a flat ZIP like before');
+// Drive gets the same files as the ZIP, in one flat folder, so content.md links to ./name there.
+const drivePaths = exportFiles([entry('a.png', 0, 'First')], { metadata: true, markdown: '![First](pluckr-image:0)\n', imageFolder: '' });
+assert.deepEqual(drivePaths.map((f) => f.path), ['a.png', 'images-metadata.csv', 'images-metadata.json', 'content.md']);
+assert.match(drivePaths[3].data, /\(\.\/a\.png\)/, 'flat Drive folder: no images/ prefix');
+assert.equal(exportFiles([entry('a.png', 0, '')], { markdown: '![x](pluckr-image:0)' })[0].path, 'images/a.png', 'ZIP keeps images/ with Markdown');
 
 // ---- rename.js ----
 const pics = [{ name: 'image-01.PNG', altDescription: 'A Chart: Q3!' }, { name: 'photo.jpg' }, { name: 'photo2.jpg' }];
@@ -255,3 +260,55 @@ const lost = vm.createContext({ ...nowhere });
 vm.runInContext(codeGs, lost);
 assert.throws(() => lost.host_(), /Google Doc or a Google Slides deck/);
 console.log('Code.gs in Slides: all checks passed');
+
+// ---- Save to Drive ----
+const driveFiles = new Map(); // id -> { name, parents, trashed }
+let nextId = 1;
+const props = {};
+const driveSandbox = {
+  ...slidesSandbox,
+  DocumentApp: { ...sandbox.DocumentApp, getActiveDocument: () => doc },
+  SlidesApp: undefined,
+  PropertiesService: {
+    getScriptProperties: () => ({ getProperty: () => 'secret' }),
+    getDocumentProperties: () => ({ getProperty: (k) => props[k] ?? null, setProperty: (k, v) => { props[k] = v; } }),
+  },
+  Drive: {
+    Files: {
+      get: (id) => { if (!driveFiles.has(id)) throw new Error('File not found'); return { id, trashed: driveFiles.get(id).trashed }; },
+      create: (resource, blob) => { const id = `f${nextId++}`; driveFiles.set(id, { ...resource, blob, trashed: false }); return { id }; },
+      list: ({ q }) => {
+        const name = /name = '((?:\\.|[^'\\])*)'/.exec(q)[1].replace(/\\(.)/g, '$1');
+        return { files: [...driveFiles].filter(([, f]) => f.name === name && !f.trashed && f.parents?.length).map(([id]) => ({ id })) };
+      },
+      update: (resource, id, blob) => { driveFiles.get(id).blob = blob; return { id }; },
+    },
+  },
+};
+const drive = vm.createContext(driveSandbox);
+vm.runInContext(codeGs, drive);
+drive.requireEntitlement_ = () => {};
+
+const driveFolder = drive.getDriveFolder('ok');
+assert.equal(driveFiles.get(driveFolder.id).name, 'Doc images');
+assert.equal(driveFolder.url, `https://drive.google.com/drive/folders/${driveFolder.id}`);
+assert.equal(drive.getDriveFolder('ok').id, driveFolder.id, 'the folder is reused');
+
+const b64 = Buffer.from('hello').toString('base64');
+const saved = drive.saveFileToDrive(driveFolder.id, "it's a.png", 'image/png', b64, 'ok');
+assert.equal(driveFiles.get(saved).parents[0], driveFolder.id);
+assert.equal(drive.saveFileToDrive(driveFolder.id, "it's a.png", 'image/png', b64, 'ok'), saved, 'a second export replaces the file, no duplicate');
+assert.equal([...driveFiles.values()].filter((f) => f.name === "it's a.png").length, 1);
+assert.throws(() => drive.saveFileToDrive('someone-elses-folder', 'a.png', 'image/png', b64, 'ok'), /Unknown Drive folder/, 'only the remembered folder');
+
+driveFiles.get(driveFolder.id).trashed = true;
+assert.notEqual(drive.getDriveFolder('ok').id, driveFolder.id, 'a trashed folder is replaced');
+props.driveFolderId = 'gone';
+assert.notEqual(drive.getDriveFolder('ok').id, 'gone', 'a deleted folder is replaced');
+
+// Both calls sit behind the paywall.
+const gated = vm.createContext({ ...driveSandbox });
+vm.runInContext(codeGs, gated);
+assert.throws(() => gated.getDriveFolder('bad'), /LICENCE_REQUIRED/);
+assert.throws(() => gated.saveFileToDrive('f1', 'a.png', 'image/png', b64, 'bad'), /LICENCE_REQUIRED/);
+console.log('Code.gs Save to Drive: all checks passed');

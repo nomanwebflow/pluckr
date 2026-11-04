@@ -34,18 +34,15 @@ export function linkMarkdownImages(markdown, pathBySourceIndex) {
 }
 
 /**
+ * Every file an export holds, as { path, data, mimeType }: the images, plus the optional metadata files and content.md.
+ * The ZIP puts images in images/ when Markdown is included; a Drive folder is flat (imageFolder ''), so its content.md
+ * links to ./name instead.
  * entries: { blob, name, original: { name, sourceIndex, altTitle, altDescription, linkUrl }, width, height, format }
- * Returns a ZIP: images (in images/ when Markdown is included), plus the optional metadata files and content.md.
  */
-export async function zipBundle(entries, { metadata = false, markdown = null } = {}) {
-  const folder = markdown ? 'images/' : '';
+export function exportFiles(entries, { metadata = false, markdown = null, imageFolder = markdown ? 'images/' : '' } = {}) {
   const names = uniqueNames(entries.map((entry) => entry.name));
-  const buffers = await Promise.all(entries.map((entry) => entry.blob.arrayBuffer()));
+  const files = names.map((name, index) => ({ path: imageFolder + name, data: entries[index].blob, mimeType: entries[index].blob.type || 'application/octet-stream' }));
 
-  const files = {};
-  names.forEach((name, index) => { files[folder + name] = new Uint8Array(buffers[index]); });
-
-  const text = (content) => [strToU8(content), { level: 6 }];
   if (metadata) {
     const rows = entries.map((entry, index) => ({
       filename: names[index],
@@ -57,16 +54,22 @@ export async function zipBundle(entries, { metadata = false, markdown = null } =
       format: entry.format,
       link_url: entry.original.linkUrl,
     }));
-    files['images-metadata.csv'] = text(metadataCsv(rows));
-    files['images-metadata.json'] = text(JSON.stringify(rows, null, 2) + '\n');
+    files.push({ path: 'images-metadata.csv', data: metadataCsv(rows), mimeType: 'text/csv' });
+    files.push({ path: 'images-metadata.json', data: JSON.stringify(rows, null, 2) + '\n', mimeType: 'application/json' });
   }
   if (markdown) {
     const paths = {};
-    entries.forEach((entry, index) => { paths[entry.original.sourceIndex] = `./images/${names[index]}`; });
-    files['content.md'] = text(linkMarkdownImages(markdown, paths));
+    entries.forEach((entry, index) => { paths[entry.original.sourceIndex] = `./${imageFolder}${names[index]}`; });
+    files.push({ path: 'content.md', data: linkMarkdownImages(markdown, paths), mimeType: 'text/markdown' });
   }
+  return files;
+}
 
-  // Images are already compressed, so they are stored; the text files above are deflated.
-  const zipped = zipSync(files, { level: 0 });
-  return new Blob([zipped], { type: 'application/zip' });
+/** Returns a ZIP of exportFiles(): the images are stored (already compressed), the text files are deflated. */
+export async function zipBundle(entries, options = {}) {
+  const zipFiles = {};
+  for (const file of exportFiles(entries, options)) {
+    zipFiles[file.path] = typeof file.data === 'string' ? [strToU8(file.data), { level: 6 }] : new Uint8Array(await file.data.arrayBuffer());
+  }
+  return new Blob([zipSync(zipFiles, { level: 0 })], { type: 'application/zip' });
 }
