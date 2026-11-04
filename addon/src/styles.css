@@ -207,7 +207,8 @@ button:focus-visible, .name-input:focus-visible { outline: 2px solid var(--white
 .alt-text .pro-badge { margin-left: 6px; }
 .alt-icon { position: relative; display: grid; flex: none; place-items: center; width: 18px; height: 18px; margin-top: -1px; border-radius: 4px; color: var(--muted); transition: color 0.15s; }
 .alt-icon:hover, .alt-icon:focus-visible { color: var(--white); }
-.alt-icon img { display: block; width: 18px; height: 18px; opacity: 0.6; filter: var(--icon-filter); transition: opacity 0.15s; }
+/* The pencil artwork fills its box more than the copy glyph does, so it is drawn smaller and nudged so its glyph is the same size and sits on the same centre as the copy icon (measured: 13px square, centred in the 18px box). */
+.alt-icon img { display: block; width: 15px; height: 15px; transform: translate(-0.9px, -0.9px); opacity: 0.6; filter: var(--icon-filter); transition: opacity 0.15s; }
 .alt-icon:hover img, .alt-icon:focus-visible img { opacity: 1; }
 .mini-button { display: inline-flex; flex: none; align-items: center; justify-content: center; padding: 6px 10px; border: 1px solid var(--edge-card); border-radius: 8px; background: var(--panel); color: var(--white); font-size: 11px; line-height: normal; text-transform: uppercase; white-space: nowrap; }
 .mini-button:hover:not(:disabled) { background: var(--hover-strong); }
