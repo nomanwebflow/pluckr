@@ -283,5 +283,11 @@ button, .secondary-button, .menu-item, .notice-agree, .select-option { -webkit-u
 .selection-bar .view-switch button { position: static; }
 @media (prefers-reduced-motion: reduce) { .selection-bar [data-tip]::after, .selection-bar [data-tip]:hover::after { transition: none; } }
 
+.action-row { display: flex; flex: none; gap: 8px; }
+.action-row .primary-button { flex: 1 1 0; min-width: 0; width: auto; }
+.drive-button { display: grid; flex: none; place-content: center; aspect-ratio: 1; align-self: stretch; border: 1px solid var(--edge-card); border-radius: 16px; background: var(--panel); color: var(--white); transition: background-color 0.15s; }
+.drive-button:hover:not(:disabled) { background: var(--hover-strong); }
+.drive-button:focus-visible { outline: 2px solid var(--white); outline-offset: 2px; }
+.drive-button:disabled { opacity: 0.4; cursor: not-allowed; }
 .drive-status { margin: 0; font-size: 12px; line-height: 1.4; color: var(--text-soft); text-align: center; }
 .drive-status a { color: var(--white); text-decoration: underline; text-underline-offset: 2px; }
