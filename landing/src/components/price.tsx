@@ -1,6 +1,6 @@
 // Plans and the comparison table follow docs/site-copy.md (pricing page copy).
 const plans = [
-  { name: "Free", price: "Free", note: ["Up to 50 images, lifetime.", "No extra features."] },
+  { name: "Free", price: "Free", note: ["Up to 50 images, lifetime."] },
   { name: "$12", price: "$12", note: ["Everything unlocked forever"] },
 ];
 
