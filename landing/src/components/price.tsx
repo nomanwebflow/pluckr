@@ -1,30 +1,56 @@
-// Feature lists follow docs/site-copy.md (the pricing page copy).
+// Plans and the comparison table follow docs/site-copy.md (pricing page copy).
 const plans = [
-  {
-    price: "Free",
-    note: ["Up to 50 images, lifetime.", "No extra features."],
-    features: [
-      "List and preview every image",
-      "Download the originals as one ZIP file",
-    ],
-  },
-  {
-    price: "$12",
-    note: ["Everything unlocked forever"],
-    features: [
-      "Everything in Free",
-      "No limit on images",
-      "Bulk rename",
-      "Alt text editing",
-      "Alt text export as CSV or JSON",
-      "Convert to WebP, AVIF, JPEG or PNG",
-      "Crop and resize",
-      "Optimize the images in your file",
-      "Markdown export with an images folder",
-      "Google Docs and Slides",
-    ],
-  },
+  { name: "Free", price: "Free", note: ["Up to 50 images, lifetime.", "No extra features."] },
+  { name: "$12", price: "$12", note: ["Everything unlocked forever"] },
 ];
+
+type Cell = boolean | string;
+
+const features: { name: string; free: Cell; pro: Cell }[] = [
+  { name: "List and preview every image", free: true, pro: true },
+  { name: "Download the originals as one ZIP file", free: true, pro: true },
+  { name: "Images you can pull", free: "50", pro: "No limit" },
+  { name: "Bulk rename", free: false, pro: true },
+  { name: "Alt text editing", free: false, pro: true },
+  { name: "Alt text export as CSV or JSON", free: false, pro: true },
+  { name: "Convert to WebP, AVIF, JPEG or PNG", free: false, pro: true },
+  { name: "Crop and resize", free: false, pro: true },
+  { name: "Optimize the images in your file", free: false, pro: true },
+  { name: "Markdown export with an images folder", free: false, pro: true },
+];
+
+function Mark({ value }: { value: Cell }) {
+  if (typeof value === "string") {
+    return <span className="text-sm">{value}</span>;
+  }
+  if (value) {
+    return (
+      <>
+        <svg
+          aria-hidden
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="mx-auto"
+        >
+          <path d="M3.5 8.5 6.5 11.5 12.5 5" />
+        </svg>
+        <span className="sr-only">Included</span>
+      </>
+    );
+  }
+  return (
+    <>
+      <span aria-hidden className="mx-auto block h-0.5 w-3 rounded-full bg-white/25" />
+      <span className="sr-only">Not included</span>
+    </>
+  );
+}
 
 export function Price() {
   return (
@@ -38,32 +64,70 @@ export function Price() {
         </p>
       </div>
 
-      <ul className="flex w-full flex-wrap items-stretch justify-center gap-4">
-        {plans.map((plan) => (
-          <li
-            key={plan.price}
-            className="flex w-full flex-col gap-2 rounded-2xl bg-[#0d0d0d] p-2 sm:w-[300px]"
-          >
-            <div className="rounded-2xl border border-white/5 bg-black p-8">
-              <p className="text-[80px] leading-none tracking-[-0.06em]">
-                {plan.price}
+      <div className="flex w-full max-w-[616px] flex-col gap-4">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {plans.map((plan) => (
+            <li
+              key={plan.name}
+              className="flex flex-col gap-2 rounded-2xl bg-[#0d0d0d] p-2"
+            >
+              <div className="rounded-2xl border border-white/5 bg-black p-8">
+                <p className="text-[80px] leading-none tracking-[-0.06em]">
+                  {plan.price}
+                </p>
+              </div>
+              <p className="font-display p-2 text-lg leading-[normal] capitalize">
+                {plan.note.map((line) => (
+                  <span key={line} className="block">
+                    {line}
+                  </span>
+                ))}
               </p>
-            </div>
-            <p className="font-display p-2 text-lg leading-[normal] capitalize sm:min-h-[calc(2lh+1rem)]">
-              {plan.note.map((line) => (
-                <span key={line} className="block">
-                  {line}
-                </span>
+            </li>
+          ))}
+        </ul>
+
+        <div className="rounded-2xl bg-[#0d0d0d] p-2">
+          <h3 className="font-display p-2 text-lg leading-[normal] capitalize">
+            What&apos;s included
+          </h3>
+          <table className="w-full border-separate border-spacing-y-1 text-left">
+            <thead>
+              <tr className="text-xs text-white/60">
+                <th scope="col" className="sr-only">
+                  Feature
+                </th>
+                <th scope="col" className="w-[76px] px-1 pb-1 text-center font-normal sm:w-20">
+                  Free
+                </th>
+                <th scope="col" className="w-[76px] px-1 pb-1 text-center font-normal sm:w-20">
+                  $12
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {features.map((f) => (
+                <tr key={f.name} className="text-sm leading-normal">
+                  <th
+                    scope="row"
+                    className="rounded-l-xl border-y border-l border-white/5 bg-black py-3.5 pr-2 pl-4 font-normal"
+                  >
+                    {f.name}
+                  </th>
+                  <td
+                    className={`border-y border-white/5 bg-black px-1 text-center ${f.free === false ? "" : "text-white/80"}`}
+                  >
+                    <Mark value={f.free} />
+                  </td>
+                  <td className="rounded-r-xl border-y border-r border-white/5 bg-black px-1 text-center">
+                    <Mark value={f.pro} />
+                  </td>
+                </tr>
               ))}
-            </p>
-            <ul className="mt-2 flex list-disc flex-col gap-2 px-2 pr-3 pb-3 pl-7 text-sm leading-normal text-white/80 marker:text-white/40">
-              {plan.features.map((feature) => (
-                <li key={feature}>{feature}</li>
-              ))}
-            </ul>
-          </li>
-        ))}
-      </ul>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </section>
   );
 }
