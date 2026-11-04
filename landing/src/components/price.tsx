@@ -1,3 +1,5 @@
+import { CtaButton } from "@/components/cta-button";
+
 // Plans and the comparison table follow docs/site-copy.md (pricing page copy).
 const plans = [
   { name: "Free", price: "Free", note: ["Up to 50 images, lifetime."] },
@@ -126,6 +128,10 @@ export function Price() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        <div className="flex justify-center pt-6">
+          <CtaButton />
         </div>
       </div>
     </section>
