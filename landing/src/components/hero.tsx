@@ -1,39 +1,12 @@
 "use client";
 
 import { useRef } from "react";
-import Link from "next/link";
 import gsap from "gsap";
 import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
 
 import { CtaButton } from "@/components/cta-button";
-
-function Mark() {
-  return (
-    <div className="relative size-9 shrink-0 overflow-clip" aria-hidden>
-      <div
-        className="absolute inset-[0.33%_0.33%_7.93%_7.93%]"
-        style={{
-          maskImage: 'url("/assets/mark-mask.svg")',
-          maskMode: "alpha",
-          maskRepeat: "no-repeat",
-          maskSize: "36px 36px",
-          maskPosition: "-2.854px -0.12px",
-        }}
-      >
-        <div className="absolute inset-[0_0_-0.66%_-0.66%]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            alt=""
-            draggable={false}
-            src="/assets/mark.svg"
-            className="block size-full max-w-none"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
+import { Logo } from "@/components/logo";
 
 gsap.registerPlugin(SplitText, useGSAP);
 
@@ -128,12 +101,7 @@ export function Hero() {
       </div>
 
       <nav data-hero="nav" className="relative flex w-full shrink-0 items-center justify-center">
-        <Link href="/" className="flex items-center gap-1" aria-label="Pluckr home">
-          <Mark />
-          <span className="font-display text-[17.455px] leading-normal">
-            Pluckr
-          </span>
-        </Link>
+        <Logo />
       </nav>
 
       <div className="relative flex shrink-0 flex-col items-center gap-8">

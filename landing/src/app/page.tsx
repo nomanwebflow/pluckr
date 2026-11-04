@@ -1,4 +1,5 @@
 import { Hero } from "@/components/hero";
+import { ClosingCta } from "@/components/closing-cta";
 import { Faq } from "@/components/faq";
 import { MarkdownExport } from "@/components/markdown-export";
 import { Price } from "@/components/price";
@@ -14,6 +15,7 @@ export default function Home() {
       <MarkdownExport />
       <Price />
       <Faq />
+      <ClosingCta />
     </main>
   );
 }
