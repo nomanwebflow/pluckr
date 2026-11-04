@@ -12,12 +12,14 @@ export function Size() {
   return (
     <section className="relative flex flex-col items-center gap-[72px] bg-gradient-to-t from-[#0d0d0d] to-black px-6 py-24 text-white md:px-16 md:py-32">
       <div className="flex flex-col items-center gap-6 text-center">
-        <h2 className="font-display w-full max-w-[488px] text-[clamp(36px,5vw,56px)] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
-          Same image, 796&nbsp;KB down to 83&nbsp;KB
+        <h2 className="font-display w-full max-w-[640px] text-[clamp(32px,5vw,56px)] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
+          <span className="block">Same image,</span>
+          <span className="block">796&nbsp;KB down to 83&nbsp;KB</span>
         </h2>
-        <p className="w-full max-w-[432px] text-base leading-normal text-balance">
-          Docs stores images as PNG. WebP looks the same at a tenth of the
-          size, so pages load faster and uploads fit.
+        <p className="w-full max-w-[480px] text-base leading-normal">
+          Docs stores images as PNG. WebP looks the same{" "}
+          <span className="whitespace-nowrap">at a tenth of the size,</span> so
+          pages load faster and uploads fit.
         </p>
       </div>
 
