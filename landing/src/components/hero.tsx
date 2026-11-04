@@ -6,10 +6,7 @@ import gsap from "gsap";
 import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
 
-import { Button } from "@/components/ui/button";
-
-const MARKETPLACE_URL =
-  "https://workspace.google.com/marketplace/app/pluckr/315157378382";
+import { CtaButton } from "@/components/cta-button";
 
 function Mark() {
   return (
@@ -146,14 +143,7 @@ export function Hero() {
           </p>
         </div>
         <div data-hero="cta">
-          <Button
-            asChild
-            className="h-auto rounded-[16px] border-0 bg-[#0062fb] px-8 py-3 text-base leading-[normal] text-white hover:bg-[#0062fb]/85 transition-colors active:translate-y-0"
-          >
-            <a href={MARKETPLACE_URL} target="_blank" rel="noopener noreferrer">
-              Add to Google Docs
-            </a>
-          </Button>
+          <CtaButton />
         </div>
       </div>
 

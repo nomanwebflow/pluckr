@@ -1,7 +1,4 @@
-import { Button } from "@/components/ui/button";
-
-const MARKETPLACE_URL =
-  "https://workspace.google.com/marketplace/app/pluckr/315157378382";
+import { CtaButton } from "@/components/cta-button";
 
 // Bar fill heights are from the Figma (PNG full, JPEG 370px of 513px, WebP
 // 97px of 513px). They are not drawn to scale with the file sizes.
@@ -61,14 +58,7 @@ export function Size() {
           and the settings. AVIF is usually smaller still; try it on your own
           images.
         </p>
-        <Button
-          asChild
-          className="font-display h-auto rounded-[16px] border-0 bg-[#0062fb] px-8 py-3 text-xs leading-[normal] text-white transition-colors hover:bg-[#0062fb]/85 active:translate-y-0"
-        >
-          <a href={MARKETPLACE_URL} target="_blank" rel="noopener noreferrer">
-            Add to Google Docs
-          </a>
-        </Button>
+        <CtaButton />
       </div>
     </section>
   );
