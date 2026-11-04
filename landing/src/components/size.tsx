@@ -1,12 +1,12 @@
 import { CtaButton } from "@/components/cta-button";
 
-// Bar fill heights are from the Figma (PNG full, JPEG 370px of 513px, WebP
-// 97px of 513px). They are not drawn to scale with the file sizes.
+// Measured on one sample photo (1000 x 562 px, quality 80, cwebp and libjpeg).
+// Bar fills are drawn to scale against the PNG.
 const formats = [
-  { name: "PNG", size: "796 KB", fill: "100%" },
-  { name: "JPEG", size: "796 KB", fill: "72.1%" },
-  { name: "WEBP", size: "83 KB", fill: "18.9%" },
-];
+  { name: "PNG", kb: 796 },
+  { name: "JPEG", kb: 104 },
+  { name: "WEBP", kb: 83 },
+].map((f) => ({ ...f, fill: `${((f.kb / 796) * 100).toFixed(2)}%` }));
 
 export function Size() {
   return (
@@ -45,7 +45,7 @@ export function Size() {
               <h3 className="font-display w-full text-[22px] leading-none capitalize [text-box:trim-both_cap_alphabetic] sm:text-[32px]">
                 {f.name}
               </h3>
-              <p className="w-full text-sm leading-normal">{f.size}</p>
+              <p className="w-full text-sm leading-normal">{f.kb} KB</p>
             </div>
           </li>
         ))}
