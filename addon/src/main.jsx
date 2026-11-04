@@ -224,6 +224,13 @@ function ImageRow({ image, result, thumbAspect, selected, onSelect, onRename, on
       .finally(() => window.setTimeout(() => setAltLabel('Copy alt'), 1500));
   };
 
+  const startAltEdit = () => {
+    if (altLocked) { onUpgrade(); return; }
+    setAltDraft(alt);
+    setAltError('');
+    setAltEditing(true);
+  };
+
   const saveAltText = async () => {
     setAltSaving(true);
     setAltError('');
@@ -308,13 +315,16 @@ function ImageRow({ image, result, thumbAspect, selected, onSelect, onRename, on
                 className={`alt-text${alt ? '' : ' is-missing'}`}
                 type="button"
                 title={alt ? `${alt}\n\nClick to edit` : 'Describe this image for screen readers'}
-                onClick={() => { if (altLocked) { onUpgrade(); return; } setAltDraft(alt); setAltError(''); setAltEditing(true); }}
+                onClick={startAltEdit}
               >
                 <span className="alt-clamp">{alt ? `Alt: ${alt}` : 'Add alt text'}</span>
                 {altLocked && <span className="pro-badge">Pro</span>}
               </button>
+              <button className="alt-icon" type="button" aria-label={alt ? 'Edit alt text' : 'Add alt text'} data-tip={alt ? 'Edit alt text' : 'Add alt text'} onClick={startAltEdit}>
+                <Asset name="edit" />
+              </button>
               {alt && (
-                <button className="alt-copy" type="button" aria-label={altLabel} title={altLabel} onClick={copyAlt}>
+                <button className="alt-icon alt-copy" type="button" aria-label={altLabel} data-tip={altLabel === 'Copy alt' ? 'Copy alt text' : altLabel} onClick={copyAlt}>
                   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     {altLabel === 'Copied' ? <path d="M5 12.5l4.5 4.5L19 7.5" /> : <><rect x="8.5" y="8.5" width="11" height="11" rx="2.5" /><path d="M15.5 8.5V6.5a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2" /></>}
                   </svg>

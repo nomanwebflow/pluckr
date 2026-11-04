@@ -199,14 +199,16 @@ button:focus-visible, .name-input:focus-visible { outline: 2px solid var(--white
 /* Light theme: the white line icons are inverted; the blue logo keeps its colours. */
 .icon-button img, .edit-button img, .chevron { filter: var(--icon-filter); }
 
-.alt-row { display: flex; align-items: flex-start; gap: 8px; }
+.alt-row { display: flex; align-items: flex-start; gap: 6px; }
 .alt-text { display: block; flex: 1; min-width: 0; padding: 0; color: var(--muted); font-size: 11px; line-height: 1.4; text-align: left; transition: color 0.15s; }
 .alt-text:hover, .alt-text:focus-visible { color: var(--white); }
 .alt-text.is-missing { color: var(--text-soft); font-size: 12px; }
 .alt-clamp { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .alt-text .pro-badge { margin-left: 6px; }
-.alt-copy { display: grid; flex: none; place-items: center; width: 18px; height: 18px; margin-top: -1px; border-radius: 4px; color: var(--muted); transition: color 0.15s; }
-.alt-copy:hover, .alt-copy:focus-visible { color: var(--white); }
+.alt-icon { position: relative; display: grid; flex: none; place-items: center; width: 18px; height: 18px; margin-top: -1px; border-radius: 4px; color: var(--muted); transition: color 0.15s; }
+.alt-icon:hover, .alt-icon:focus-visible { color: var(--white); }
+.alt-icon img { display: block; width: 18px; height: 18px; opacity: 0.6; filter: var(--icon-filter); transition: opacity 0.15s; }
+.alt-icon:hover img, .alt-icon:focus-visible img { opacity: 1; }
 .mini-button { display: inline-flex; flex: none; align-items: center; justify-content: center; padding: 6px 10px; border: 1px solid var(--edge-card); border-radius: 8px; background: var(--panel); color: var(--white); font-size: 11px; line-height: normal; text-transform: uppercase; white-space: nowrap; }
 .mini-button:hover:not(:disabled) { background: var(--hover-strong); }
 .mini-button[aria-pressed="true"] { border-color: var(--white); background: var(--selected); }
@@ -281,12 +283,12 @@ button, .secondary-button, .menu-item, .notice-agree, .select-option { -webkit-u
 .master-check:indeterminate::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round'%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round'%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3C/svg%3E"); }
 
 /* Same look as the info notes: bordered, tonal, no shadow. Each tip hangs under its control and stays inside the sidebar. */
-.selection-bar [data-tip]::after { content: attr(data-tip); position: absolute; z-index: 7; top: calc(100% + 6px); width: max-content; max-width: 200px; padding: 8px 10px; border: 1px solid var(--edge-card-strong); border-radius: 10px; background: var(--hover-strong); color: var(--text-soft); font-size: 12px; font-weight: 400; line-height: 1.35; text-align: left; white-space: normal; pointer-events: none; opacity: 0; visibility: hidden; transform: translateY(-4px); transition: opacity 0.12s ease, transform 0.12s ease, visibility 0s 0.12s; }
+.selection-bar [data-tip]::after, .alt-row [data-tip]::after { content: attr(data-tip); position: absolute; z-index: 7; top: calc(100% + 6px); width: max-content; max-width: 200px; padding: 8px 10px; border: 1px solid var(--edge-card-strong); border-radius: 10px; background: var(--hover-strong); color: var(--text-soft); font-size: 12px; font-weight: 400; line-height: 1.35; text-align: left; white-space: normal; pointer-events: none; opacity: 0; visibility: hidden; transform: translateY(-4px); transition: opacity 0.12s ease, transform 0.12s ease, visibility 0s 0.12s; }
 .selection-bar .select-all::after { left: 0; }
-.selection-bar .view-switch button::after { right: 0; }
-.selection-bar [data-tip]:hover::after, .selection-bar [data-tip]:focus-visible::after, .selection-bar .select-all:has(:focus-visible)::after { opacity: 1; visibility: visible; transform: none; transition: opacity 0.12s ease 0.35s, transform 0.12s ease 0.35s; }
+.selection-bar .view-switch button::after, .alt-row .alt-icon::after { right: 0; }
+.selection-bar [data-tip]:hover::after, .selection-bar [data-tip]:focus-visible::after, .alt-row [data-tip]:hover::after, .alt-row [data-tip]:focus-visible::after, .selection-bar .select-all:has(:focus-visible)::after { opacity: 1; visibility: visible; transform: none; transition: opacity 0.12s ease 0.35s, transform 0.12s ease 0.35s; }
 .selection-bar .view-switch button { position: static; }
-@media (prefers-reduced-motion: reduce) { .selection-bar [data-tip]::after, .selection-bar [data-tip]:hover::after { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .selection-bar [data-tip]::after, .selection-bar [data-tip]:hover::after, .alt-row [data-tip]::after, .alt-row [data-tip]:hover::after { transition: none; } }
 
 .action-row { display: flex; flex: none; gap: 8px; }
 .action-row .primary-button { flex: 1 1 0; min-width: 0; width: auto; }
