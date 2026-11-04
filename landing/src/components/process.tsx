@@ -29,9 +29,10 @@ export function Process() {
     <section className="relative flex flex-col items-center gap-[72px] bg-gradient-to-t from-black to-[#0d0d0d] px-6 py-24 text-white md:px-16 md:py-32">
       <div className="flex flex-col items-center gap-6 text-center">
         <h2 className="font-display w-full max-w-[646px] text-[clamp(36px,5vw,56px)] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
-          Three steps. No screenshots.
+          <span className="block">Three steps.</span>
+          <span className="block">No screenshots.</span>
         </h2>
-        <p className="w-full max-w-[488px] text-base leading-normal">
+        <p className="w-full max-w-[488px] text-base leading-normal text-balance">
           Extract every image from a Google Doc or Slides deck. Rename them in
           bulk, convert to WebP or AVIF, and keep the alt text
         </p>
@@ -53,7 +54,7 @@ export function Process() {
               <h3 className="font-display w-full text-[32px] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
                 {step.title}
               </h3>
-              <p className={`w-full text-sm leading-normal ${step.bodyWidth}`}>
+              <p className={`w-full text-sm leading-normal text-balance ${step.bodyWidth}`}>
                 {step.body}
               </p>
             </div>
