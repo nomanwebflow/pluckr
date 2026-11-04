@@ -1,4 +1,5 @@
 import { Hero } from "@/components/hero";
+import { Faq } from "@/components/faq";
 import { MarkdownExport } from "@/components/markdown-export";
 import { Price } from "@/components/price";
 import { Process } from "@/components/process";
@@ -12,6 +13,7 @@ export default function Home() {
       <Size />
       <MarkdownExport />
       <Price />
+      <Faq />
     </main>
   );
 }
