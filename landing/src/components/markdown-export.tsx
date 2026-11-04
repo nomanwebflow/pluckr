@@ -67,13 +67,12 @@ export function MarkdownExport() {
   return (
     <section className="relative flex flex-col items-center gap-[72px] bg-gradient-to-t from-black to-[#0d0d0d] px-6 py-24 text-white md:px-16 md:py-32">
       <div className="flex flex-col items-center gap-6 text-center">
-        <h2 className="font-display w-full max-w-[920px] text-[clamp(32px,5vw,56px)] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
-          <span className="block">Export a Google Doc as Markdown,</span>
-          <span className="block">with its images</span>
+        <h2 className="font-display w-full max-w-[820px] text-[clamp(32px,5vw,56px)] leading-none text-balance capitalize [text-box:trim-both_cap_alphabetic]">
+          Export a Google Doc as&nbsp;Markdown, with its&nbsp;images
         </h2>
-        <p className="w-full max-w-[488px] text-base leading-normal text-balance">
-          Tick one box and the download holds a content.md, an images folder and
-          the alt text, ready for a blog, a static site or Obsidian.
+        <p className="w-full max-w-[520px] text-base leading-normal text-balance">
+          Tick one box and the download holds a content.md, an images&nbsp;folder
+          and the alt&nbsp;text, ready for a blog, a static site or Obsidian.
         </p>
       </div>
 
