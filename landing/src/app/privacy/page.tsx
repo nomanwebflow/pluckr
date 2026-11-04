@@ -55,11 +55,12 @@ export default function PrivacyPage() {
           >
             {privacy.shortTitle}
           </h2>
-          <div className="rounded-2xl border border-white/5 bg-black p-4">
-            <Rich
-              html={privacy.shortBody}
-              className="font-reading block text-sm leading-normal"
-            />
+          <div className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-black p-4">
+            {privacy.shortParagraphs.map((text) => (
+              <p key={text} className="font-reading text-sm leading-normal">
+                {text}
+              </p>
+            ))}
           </div>
         </section>
 
@@ -74,7 +75,7 @@ export default function PrivacyPage() {
                   <Rich html={block.html} />
                 </p>
               ) : (
-                <ul key={i} className={`${prose} flex list-disc flex-col gap-3 pl-7`}>
+                <ul key={i} className={`${prose} flex list-disc flex-col gap-4 pl-7 [&_li:has(strong)]:text-white/80 [&_li_strong]:mb-1 [&_li_strong]:block [&_li_strong]:text-white`}>
                   {block.items.map((item, j) => (
                     <li key={j}>
                       <Rich html={item} />
