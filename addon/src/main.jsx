@@ -304,9 +304,22 @@ function ImageRow({ image, result, thumbAspect, selected, onSelect, onRename, on
             </div>
           ) : (
             <div className="alt-row">
-              <p className={`meta-note alt-text${alt ? '' : ' is-missing'}`} title={alt}>{alt ? `Alt: ${alt}` : 'No alt text'}</p>
-              {alt && <button className="mini-button" type="button" onClick={copyAlt}>{altLabel}</button>}
-              <button className="mini-button" type="button" onClick={() => { if (altLocked) { onUpgrade(); return; } setAltDraft(alt); setAltError(''); setAltEditing(true); }}>{alt ? 'Edit' : 'Add alt'}{altLocked && <span className="pro-badge">Pro</span>}</button>
+              <button
+                className={`alt-text${alt ? '' : ' is-missing'}`}
+                type="button"
+                title={alt ? `${alt}\n\nClick to edit` : 'Describe this image for screen readers'}
+                onClick={() => { if (altLocked) { onUpgrade(); return; } setAltDraft(alt); setAltError(''); setAltEditing(true); }}
+              >
+                <span className="alt-clamp">{alt ? `Alt: ${alt}` : 'Add alt text'}</span>
+                {altLocked && <span className="pro-badge">Pro</span>}
+              </button>
+              {alt && (
+                <button className="alt-copy" type="button" aria-label={altLabel} title={altLabel} onClick={copyAlt}>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    {altLabel === 'Copied' ? <path d="M5 12.5l4.5 4.5L19 7.5" /> : <><rect x="8.5" y="8.5" width="11" height="11" rx="2.5" /><path d="M15.5 8.5V6.5a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2" /></>}
+                  </svg>
+                </button>
+              )}
             </div>
           )}
         </div>

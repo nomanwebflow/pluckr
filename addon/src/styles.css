@@ -199,8 +199,14 @@ button:focus-visible, .name-input:focus-visible { outline: 2px solid var(--white
 /* Light theme: the white line icons are inverted; the blue logo keeps its colours. */
 .icon-button img, .edit-button img, .chevron { filter: var(--icon-filter); }
 
-.alt-row { display: flex; align-items: center; gap: 6px; }
-.alt-text { display: -webkit-box; flex: 1; min-width: 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.alt-row { display: flex; align-items: flex-start; gap: 8px; }
+.alt-text { display: block; flex: 1; min-width: 0; padding: 0; color: var(--muted); font-size: 11px; line-height: 1.4; text-align: left; transition: color 0.15s; }
+.alt-text:hover, .alt-text:focus-visible { color: var(--white); }
+.alt-text.is-missing { color: var(--text-soft); font-size: 12px; }
+.alt-clamp { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.alt-text .pro-badge { margin-left: 6px; }
+.alt-copy { display: grid; flex: none; place-items: center; width: 18px; height: 18px; margin-top: -1px; border-radius: 4px; color: var(--muted); transition: color 0.15s; }
+.alt-copy:hover, .alt-copy:focus-visible { color: var(--white); }
 .mini-button { display: inline-flex; flex: none; align-items: center; justify-content: center; padding: 6px 10px; border: 1px solid var(--edge-card); border-radius: 8px; background: var(--panel); color: var(--white); font-size: 11px; line-height: normal; text-transform: uppercase; white-space: nowrap; }
 .mini-button:hover:not(:disabled) { background: var(--hover-strong); }
 .mini-button[aria-pressed="true"] { border-color: var(--white); background: var(--selected); }
@@ -245,7 +251,6 @@ button, .secondary-button, .menu-item, .notice-agree, .select-option { -webkit-u
 .thumb-wrap .row-check:hover:not(:checked) { background: rgba(0, 0, 0, 0.7); border-color: #fff; }
 .thumb-wrap .row-check:focus-visible { outline-color: #fff; }
 .image-row.is-off .thumb, .image-row.is-off .image-info { opacity: 0.45; transition: opacity 0.15s; }
-.alt-text.is-missing { font-style: normal; opacity: 0.7; }
 .alt-edit { display: flex; flex-direction: column; gap: 6px; }
 .alt-input { width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid var(--edge-card); border-radius: 12px; outline: 0; background: var(--panel); font-size: 12px; line-height: 1.4; resize: none; }
 .alt-input:focus-visible { border-color: var(--white); }
