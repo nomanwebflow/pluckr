@@ -109,9 +109,8 @@ export function Hero() {
           <h1 data-hero="h1" className="font-display w-full max-w-[18ch] text-[clamp(34px,7vw,72px)] leading-none text-balance capitalize [text-box:trim-both_cap_alphabetic]">
             Download every image from a Google Doc
           </h1>
-          <p data-hero="p" className="w-full max-w-[60ch] text-base leading-normal text-balance">
-            Pull every image out of a Doc or Slides deck.{" "}
-            <span className="whitespace-nowrap">Rename in bulk,</span> convert to
+          <p data-hero="p" className="w-full max-w-[40ch] text-base leading-normal text-balance">
+            Pull every image out of a Doc or Slides deck. Rename in bulk, convert to
             WebP or AVIF, keep the alt text.
           </p>
         </div>
