@@ -150,7 +150,7 @@ export function Hero() {
 
       <div
         data-hero="panel"
-        className="relative z-10 h-[738px] w-full max-w-[1312px] shrink-0 rounded-[20px] border-2 border-white/5 bg-[#0d0d0d]"
+        className="relative z-10 aspect-video w-full max-w-[1312px] shrink-0 rounded-[20px] border-2 border-white/5 bg-[#0d0d0d]"
         role="img"
         aria-label="Product demo"
       />
