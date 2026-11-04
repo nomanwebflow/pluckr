@@ -185,13 +185,13 @@ button:focus-visible, .name-input:focus-visible { outline: 2px solid var(--white
 
 .notice-agree { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; line-height: 1.4; color: var(--text-soft); text-align: left; }
 /* Checkbox in the shadcn style: small square, hairline border, solid fill and a check when on. */
-.notice-agree input, .row-check { appearance: none; -webkit-appearance: none; display: grid; flex: none; place-content: center; width: 16px; height: 16px; margin: 1px 0 0; border: 1px solid var(--muted); border-radius: 4px; background: transparent; cursor: pointer; transition: background-color 0.15s, border-color 0.15s; }
-.notice-agree input::before, .row-check::before { content: ""; width: 12px; height: 12px; background: var(--black); transform: scale(0); transition: transform 0.12s ease-out; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center / contain no-repeat; }
-.notice-agree input:checked, .row-check:checked { border-color: var(--white); background: var(--white); }
-.notice-agree input:checked::before, .row-check:checked::before { transform: scale(1); }
-.notice-agree input:hover:not(:checked):not(:disabled), .row-check:hover:not(:checked):not(:disabled) { border-color: var(--white); }
-.notice-agree input:focus-visible, .row-check:focus-visible { outline: 2px solid var(--white); outline-offset: 2px; }
-.notice-agree input:disabled, .row-check:disabled { cursor: not-allowed; opacity: 0.4; }
+.notice-agree input, .row-check, .master-check { appearance: none; -webkit-appearance: none; display: grid; flex: none; place-content: center; width: 16px; height: 16px; margin: 1px 0 0; border: 1px solid var(--muted); border-radius: 4px; background: transparent; cursor: pointer; transition: background-color 0.15s, border-color 0.15s; }
+.notice-agree input::before, .row-check::before, .master-check::before { content: ""; width: 12px; height: 12px; background: var(--black); transform: scale(0); transition: transform 0.12s ease-out; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center / contain no-repeat; }
+.notice-agree input:checked, .row-check:checked, .master-check:checked, .master-check:indeterminate { border-color: var(--white); background: var(--white); }
+.notice-agree input:checked::before, .row-check:checked::before, .master-check:checked::before, .master-check:indeterminate::before { transform: scale(1); }
+.notice-agree input:hover:not(:checked):not(:disabled), .row-check:hover:not(:checked):not(:disabled), .master-check:hover:not(:checked):not(:disabled) { border-color: var(--white); }
+.notice-agree input:focus-visible, .row-check:focus-visible, .master-check:focus-visible { outline: 2px solid var(--white); outline-offset: 2px; }
+.notice-agree input:disabled, .row-check:disabled, .master-check:disabled { cursor: not-allowed; opacity: 0.4; }
 .notice-agree a { color: inherit; text-decoration: underline; }
 .panel-message.is-delayed { animation: checking-in 0.01s linear 0.7s both; }
 @media (prefers-reduced-motion: reduce) { .panel-message.is-delayed { animation: none; } }
@@ -254,11 +254,17 @@ button, .secondary-button, .menu-item, .notice-agree, .select-option { -webkit-u
 .mini-button:disabled { opacity: 0.4; cursor: not-allowed; }
 .meta-note.is-error { color: #ff6b6b; }
 
-/* Same 12px inset on every side as the bars below. The buttons are trimmed so the row fits the 300px Docs sidebar on one line. */
-.selection-bar { flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 8px; padding: 12px; }
-.selection-bar .selection-actions { flex: none; gap: 4px; }
-.selection-bar .mini-button { padding: 6px 7px; }
-.selection-count { flex: 0 1 auto; min-width: 0; overflow: hidden; font-size: 12px; line-height: normal; text-overflow: ellipsis; white-space: nowrap; }
+/* One row: a master checkbox that works like the one on every image, then a Show switch that filters the list. Fits the 300px Docs sidebar. */
+.selection-bar { display: flex; flex: none; align-items: center; justify-content: space-between; gap: 8px; padding: 12px; -webkit-user-select: none; user-select: none; position: relative; z-index: 6; }
+.select-all { position: relative; display: flex; min-width: 0; align-items: center; gap: 8px; font-size: 12px; line-height: normal; cursor: pointer; }
+.select-all span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.master-check { margin: 0; }
+.view-switch { position: relative; display: flex; flex: none; gap: 2px; padding: 2px; border: 1px solid var(--edge-card); border-radius: 10px; }
+.view-switch button { padding: 5px 8px; border-radius: 8px; color: var(--muted); font-size: 11px; line-height: normal; white-space: nowrap; transition: background-color 0.15s, color 0.15s; }
+.view-switch button[aria-pressed="true"] { background: var(--selected); color: var(--white); }
+.view-switch button:hover:not(:disabled):not([aria-pressed="true"]) { color: var(--white); }
+.view-switch button:disabled { opacity: 0.4; cursor: not-allowed; }
+.view-switch b { margin-left: 5px; font-weight: 500; font-variant-numeric: tabular-nums; opacity: 0.7; }
 .selection-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 
 .pro-badge { margin-left: 8px; padding: 2px 6px; border: 1px solid var(--edge-card); border-radius: 6px; color: var(--muted); font-size: 10px; letter-spacing: 0.04em; text-transform: none; }
@@ -266,3 +272,13 @@ button, .secondary-button, .menu-item, .notice-agree, .select-option { -webkit-u
 .limit-note { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--edge); border-radius: 12px; }
 .limit-note p { color: var(--muted); font-size: 12px; line-height: 1.4; text-align: center; }
 .notice-list { margin: 0; padding-left: 16px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+
+.master-check:indeterminate::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round'%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round'%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3C/svg%3E"); }
+
+/* Same look as the info notes: bordered, tonal, no shadow. Each tip hangs under its control and stays inside the sidebar. */
+.selection-bar [data-tip]::after { content: attr(data-tip); position: absolute; z-index: 7; top: calc(100% + 6px); width: max-content; max-width: 200px; padding: 8px 10px; border: 1px solid var(--edge-card-strong); border-radius: 10px; background: var(--hover-strong); color: var(--text-soft); font-size: 12px; font-weight: 400; line-height: 1.35; text-align: left; white-space: normal; pointer-events: none; opacity: 0; visibility: hidden; transform: translateY(-4px); transition: opacity 0.12s ease, transform 0.12s ease, visibility 0s 0.12s; }
+.selection-bar .select-all::after { left: 0; }
+.selection-bar .view-switch button::after { right: 0; }
+.selection-bar [data-tip]:hover::after, .selection-bar [data-tip]:focus-visible::after, .selection-bar .select-all:has(:focus-visible)::after { opacity: 1; visibility: visible; transform: none; transition: opacity 0.12s ease 0.35s, transform 0.12s ease 0.35s; }
+.selection-bar .view-switch button { position: static; }
+@media (prefers-reduced-motion: reduce) { .selection-bar [data-tip]::after, .selection-bar [data-tip]:hover::after { transition: none; } }

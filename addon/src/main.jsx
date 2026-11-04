@@ -949,13 +949,18 @@ function ExportPanel({ settings, onChange, supported, open, onToggle, extras, on
 
 /** Which images the exports, renames and optimizing apply to. The buttons act on the images currently listed. */
 function SelectionBar({ images, visible, chosenCount, allVisibleChosen, noAltCount, noAltOnly, onToggleAll, onNoAltOnly }) {
+  const master = useRef(null);
+  const partial = chosenCount > 0 && !allVisibleChosen;
+  useEffect(() => { if (master.current) master.current.indeterminate = partial; }, [partial]);
   return (
-    <section className="export selection-bar" aria-label="Selection">
-      <div className="panel-texture" aria-hidden="true" />
-      <span className="selection-count" aria-live="polite">{chosenCount} of {images.length} selected</span>
-      <div className="selection-actions">
-        <button className="mini-button" type="button" disabled={visible.length === 0} onClick={onToggleAll}>{allVisibleChosen ? 'Clear' : 'Select all'}</button>
-        <button className="mini-button" type="button" aria-pressed={noAltOnly} disabled={noAltCount === 0 && !noAltOnly} title="Show only images that have no alt text" onClick={onNoAltOnly}>No alt text ({noAltCount})</button>
+    <section className="selection-bar" aria-label="Selection">
+      <label className="select-all" data-tip={allVisibleChosen ? 'Clear the selection' : 'Select every image in the list'}>
+        <input ref={master} className="master-check" type="checkbox" checked={allVisibleChosen} disabled={visible.length === 0} onChange={onToggleAll} />
+        <span aria-live="polite">{chosenCount} of {images.length} selected</span>
+      </label>
+      <div className="view-switch" role="group" aria-label="Show">
+        <button type="button" data-tip="Show every image" aria-pressed={!noAltOnly} onClick={() => noAltOnly && onNoAltOnly()}>All<b>{images.length}</b></button>
+        <button type="button" aria-pressed={noAltOnly} disabled={noAltCount === 0 && !noAltOnly} data-tip={noAltCount === 0 ? 'Every image has alt text' : 'Show only images missing alt text'} onClick={() => !noAltOnly && onNoAltOnly()}>No alt text<b>{noAltCount}</b></button>
       </div>
     </section>
   );
