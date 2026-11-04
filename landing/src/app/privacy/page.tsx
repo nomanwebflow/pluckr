@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { ClosingCta } from "@/components/closing-cta";
 import { Logo } from "@/components/logo";
 import { privacy } from "@/content/privacy";
 
@@ -11,7 +12,9 @@ export const metadata: Metadata = {
 
 // Content is our own static policy text, so inline markup is rendered as is.
 function Rich({ html, className }: { html: string; className?: string }) {
-  return <span className={className} dangerouslySetInnerHTML={{ __html: html }} />;
+  return (
+    <span className={className} dangerouslySetInnerHTML={{ __html: html }} />
+  );
 }
 
 const prose =
@@ -19,74 +22,84 @@ const prose =
 
 export default function PrivacyPage() {
   return (
-    <main className="relative flex flex-col items-center gap-16 px-6 pt-12 pb-24 text-white md:p-16 md:pb-32">
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-t from-black to-[#0d0d0d]" />
-        <div
-          className="absolute inset-0 bg-top-left opacity-40"
-          style={{
-            backgroundImage: 'url("/assets/hero-noise.png")',
-            backgroundSize: "220px 220px",
-          }}
-        />
-      </div>
+    <>
+      <main className="relative flex flex-col items-center gap-16 px-6 pt-12 pb-24 text-white md:p-16 md:pb-32">
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-t from-black to-[#0d0d0d]" />
+          <div
+            className="absolute inset-0 bg-top-left opacity-40"
+            style={{
+              backgroundImage: 'url("/assets/hero-noise.png")',
+              backgroundSize: "220px 220px",
+              // Fade the grain out above the CTA so it does not end on a
+              // hard line.
+              maskImage:
+                "linear-gradient(to bottom, #000 calc(100% - 200px), transparent)",
+            }}
+          />
+        </div>
 
-      <nav className="relative flex w-full items-center justify-center">
-        <Logo />
-      </nav>
+        <nav className="relative flex w-full items-center justify-center">
+          <Logo />
+        </nav>
 
-      <header className="relative flex flex-col items-center gap-6 text-center">
-        <h1 className="font-display w-full text-[clamp(40px,7vw,72px)] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
-          Privacy policy
-        </h1>
-        <p className="text-base leading-normal">
-          Last updated: {privacy.updated}
-        </p>
-      </header>
+        <header className="relative flex flex-col items-center gap-6 text-center">
+          <h1 className="font-display w-full text-[clamp(40px,7vw,72px)] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
+            Privacy policy
+          </h1>
+          <p className="text-base leading-normal">
+            Last updated: {privacy.updated}
+          </p>
+        </header>
 
-      <div className="relative flex w-full max-w-[800px] flex-col gap-16">
-        <section
-          aria-labelledby="short-version"
-          className="flex flex-col gap-2 rounded-2xl border border-white/5 bg-[#0d0d0d] p-2"
-        >
-          <h2
-            id="short-version"
-            className="font-display p-2 text-lg leading-[normal] capitalize"
+        <div className="relative flex w-full max-w-[800px] flex-col gap-16">
+          <section
+            aria-labelledby="short-version"
+            className="flex flex-col gap-2 rounded-2xl border border-white/5 bg-[#0d0d0d] p-2"
           >
-            {privacy.shortTitle}
-          </h2>
-          <div className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-black p-4">
-            {privacy.shortParagraphs.map((text) => (
-              <p key={text} className="font-reading text-sm leading-normal">
-                {text}
-              </p>
-            ))}
-          </div>
-        </section>
-
-        {privacy.sections.map((section) => (
-          <section key={section.title} className="flex flex-col gap-8">
-            <h2 className="font-display text-[clamp(32px,5vw,56px)] leading-none text-balance capitalize [text-box:trim-both_cap_alphabetic]">
-              {section.title}
+            <h2
+              id="short-version"
+              className="font-display p-2 text-lg leading-[normal] capitalize"
+            >
+              {privacy.shortTitle}
             </h2>
-            {section.blocks.map((block, i) =>
-              block.type === "p" ? (
-                <p key={i} className={prose}>
-                  <Rich html={block.html} />
+            <div className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-black p-4">
+              {privacy.shortParagraphs.map((text) => (
+                <p key={text} className="font-reading text-sm leading-normal">
+                  {text}
                 </p>
-              ) : (
-                <ul key={i} className={`${prose} flex list-disc flex-col gap-4 pl-7 [&_li:has(strong)]:text-white/80 [&_li_strong]:mb-1 [&_li_strong]:block [&_li_strong]:text-white`}>
-                  {block.items.map((item, j) => (
-                    <li key={j}>
-                      <Rich html={item} />
-                    </li>
-                  ))}
-                </ul>
-              ),
-            )}
+              ))}
+            </div>
           </section>
-        ))}
-      </div>
-    </main>
+
+          {privacy.sections.map((section) => (
+            <section key={section.title} className="flex flex-col gap-8">
+              <h2 className="font-display text-[clamp(32px,5vw,56px)] leading-none text-balance capitalize [text-box:trim-both_cap_alphabetic]">
+                {section.title}
+              </h2>
+              {section.blocks.map((block, i) =>
+                block.type === "p" ? (
+                  <p key={i} className={prose}>
+                    <Rich html={block.html} />
+                  </p>
+                ) : (
+                  <ul
+                    key={i}
+                    className={`${prose} flex list-disc flex-col gap-4 pl-7 [&_li:has(strong)]:text-white/80 [&_li_strong]:mb-1 [&_li_strong]:block [&_li_strong]:text-white`}
+                  >
+                    {block.items.map((item, j) => (
+                      <li key={j}>
+                        <Rich html={item} />
+                      </li>
+                    ))}
+                  </ul>
+                ),
+              )}
+            </section>
+          ))}
+        </div>
+      </main>
+      <ClosingCta />
+    </>
   );
 }
