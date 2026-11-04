@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { SmoothScroll } from "@/components/smooth-scroll";
 
 const pangaia = localFont({
   src: "./fonts/PPPangaia-Medium.woff2",
@@ -27,7 +28,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
       className={`${pangaia.variable} ${montreal.variable} dark h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-black">{children}</body>
+      <body className="min-h-full flex flex-col bg-black">
+        <SmoothScroll />
+        {children}
+      </body>
     </html>
   );
 }
