@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Roboto_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { SmoothScroll } from "@/components/smooth-scroll";
@@ -15,6 +16,12 @@ const montreal = localFont({
   variable: "--font-montreal",
 });
 
+const mono = Roboto_Mono({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-roboto-mono",
+});
+
 export const metadata: Metadata = {
   title: "Pluckr: download every image from a Google Doc",
   description:
@@ -26,7 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${pangaia.variable} ${montreal.variable} dark h-full antialiased`}
+      className={`${pangaia.variable} ${montreal.variable} ${mono.variable} dark h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-black">
         <SmoothScroll />
