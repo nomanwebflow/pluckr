@@ -1,6 +1,6 @@
 const plans = [
-  { price: "Free", note: "Up to 50 images per export" },
-  { price: "$12", note: "Everything unlocked forever" },
+  { price: "Free", note: ["Up to 50 images, lifetime.", "No extra features."] },
+  { price: "$12", note: ["Everything unlocked forever"] },
 ];
 
 export function Price() {
@@ -15,7 +15,7 @@ export function Price() {
         </p>
       </div>
 
-      <ul className="flex w-full flex-wrap items-center justify-center gap-4">
+      <ul className="flex w-full flex-wrap items-stretch justify-center gap-4">
         {plans.map((plan) => (
           <li
             key={plan.price}
@@ -27,7 +27,11 @@ export function Price() {
               </p>
             </div>
             <p className="font-display p-2 text-lg leading-[normal] capitalize">
-              {plan.note}
+              {plan.note.map((line) => (
+                <span key={line} className="block">
+                  {line}
+                </span>
+              ))}
             </p>
           </li>
         ))}
