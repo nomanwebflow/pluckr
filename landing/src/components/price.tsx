@@ -1,6 +1,6 @@
 const plans = [
   { price: "Free", note: "Up to 50 images per export" },
-  { price: "$12", note: "Everything unlocked" },
+  { price: "$12", note: "Everything unlocked forever" },
 ];
 
 export function Price() {
