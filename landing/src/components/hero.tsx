@@ -175,15 +175,16 @@ export function Hero() {
             convert to WebP or AVIF, keep the alt text.
           </p>
         </div>
-        <Button
-          asChild
-          data-hero="cta"
-          className="h-auto rounded-[16px] border-0 bg-[#0062fb] px-8 py-3 text-base leading-[normal] text-white hover:bg-[#0062fb]/85 active:translate-y-0"
-        >
-          <a href={MARKETPLACE_URL} target="_blank" rel="noopener noreferrer">
-            Add to Google Docs
-          </a>
-        </Button>
+        <div data-hero="cta">
+          <Button
+            asChild
+            className="h-auto rounded-[16px] border-0 bg-[#0062fb] px-8 py-3 text-base leading-[normal] text-white hover:bg-[#0062fb]/85 transition-colors active:translate-y-0"
+          >
+            <a href={MARKETPLACE_URL} target="_blank" rel="noopener noreferrer">
+              Add to Google Docs
+            </a>
+          </Button>
+        </div>
       </div>
 
       <div
