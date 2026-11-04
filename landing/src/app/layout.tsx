@@ -24,6 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${pangaia.variable} ${montreal.variable} dark h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-black">{children}</body>
