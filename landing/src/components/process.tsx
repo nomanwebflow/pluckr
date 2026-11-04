@@ -43,6 +43,7 @@ export function Process() {
           <li key={step.title} className="flex w-full flex-col gap-6 sm:w-[300px]">
             <Image
               src={step.src}
+              draggable={false}
               alt={step.alt}
               width={300}
               height={400}

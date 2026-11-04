@@ -25,6 +25,7 @@ function Mark() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             alt=""
+            draggable={false}
             src="/assets/mark.svg"
             className="block size-full max-w-none"
           />
