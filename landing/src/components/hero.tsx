@@ -112,14 +112,17 @@ export function Hero() {
   return (
     <section
       ref={root}
-      className="relative flex h-svh min-h-[640px] flex-col items-center gap-16 overflow-hidden p-6 text-white md:p-16">
+      className="relative flex flex-col items-center gap-16 p-6 text-white md:p-16">
       <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-t from-black to-[#0d0d0d]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,#0d0d0d,#000_60%,#0d0d0d)]" />
         <div
           className="absolute inset-0 bg-top-left opacity-40"
           style={{
             backgroundImage: 'url("/assets/hero-noise.png")',
             backgroundSize: "220px 220px",
+            // Feather the grain out before the section edge so it does not
+            // end on a hard line against the next section.
+            maskImage: "linear-gradient(to bottom, #000 80%, transparent)",
           }}
         />
       </div>
