@@ -62,11 +62,12 @@ export function Hero() {
         const panel = q("panel");
         let scrub: gsap.core.Timeline | undefined;
 
-        // Entrance: only things already on screen move. Nothing is hidden by
-        // CSS, so with JS off the page is fully readable.
-        gsap.from(q("nav"), { y: -16, duration: 0.9, ease: "power3.out" });
+        // Entrance: fades and slides in. Nothing is hidden by CSS, so with JS
+        // off the page is fully readable; opacity is only set once GSAP runs.
+        gsap.from(q("nav"), { y: -16, opacity: 0, duration: 0.9, ease: "power3.out" });
         gsap.from(panel, {
           yPercent: 6,
+          opacity: 0,
           duration: 1.4,
           delay: 0.35,
           ease: "power3.out",
@@ -111,6 +112,7 @@ export function Hero() {
 
             return gsap.from(self.lines, {
               yPercent: 115,
+              opacity: 0,
               duration: 1.1,
               stagger: 0.12,
               ease: "power4.out",
@@ -127,6 +129,7 @@ export function Hero() {
             clearTheCut(self.masks);
             return gsap.from(self.lines, {
               yPercent: 110,
+              opacity: 0,
               duration: 0.9,
               stagger: 0.1,
               ease: "power3.out",
@@ -135,7 +138,7 @@ export function Hero() {
           },
         });
 
-        gsap.from(q("cta"), { y: 24, duration: 0.9, delay: 0.7, ease: "power3.out" });
+        gsap.from(q("cta"), { y: 24, opacity: 0, duration: 0.9, delay: 0.7, ease: "power3.out" });
       });
     },
     { scope: root },
