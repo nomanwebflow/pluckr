@@ -9,6 +9,7 @@ The Marketplace listing points at one numbered script version. HEAD is the lates
 | HEAD | latest code | Slides, alt text, Markdown, optimize, bulk rename, selection, new look. Adds the `presentations.currentonly` scope. | Testing only |
 | 3 | Marketplace 2.0: Slides, alt text, Markdown, optimize | Cut from HEAD (commit 7fc7949) on Oct 27, 2026 after the deck test passed. Adds `presentations.currentonly`. | Superseded by version 4 (not used)  (see `docs/slides-rollout.md`) | Superseded by version 4 (not used)  (see `docs/slides-rollout.md`) |
 | 4 | Marketplace 2.0: Slides, alt text, Markdown, optimize (final) | Cut from HEAD on Oct 30, 2026. Version 3 plus the rounded image sizes in Slides. | **The Slides release** (see `docs/slides-rollout.md`) |
+| 5 | Marketplace 2.1: free tier | Cut from HEAD on Nov 4, 2026. Version 4 plus the free tier (50 images per file free; bulk rename, alt editing, output settings and optimize are Pro) and the entitlement gate. | **Candidate release.** Not referenced by the Marketplace SDK yet. |
 
 Why version 2 exists: Google's review rules say menu items must appear under the Add-ons menu (Extensions in Docs). Version 1 used a top-level menu while the listing, the post install tip and the reply to the reviewers all say "Extensions > Pluckr > Extract images".
 
@@ -33,6 +34,7 @@ function onOpen() {
 | `AKfycbxcfNun…zCAiw` | @1 | Marketplace 1.0. Left untouched. |
 | `AKfycbxos6bK…bg` | @3 | Marketplace 2.0 (Slides), created Oct 30, 2026 with `clasp deploy --versionNumber 3`. Not referenced by the Marketplace SDK yet. |
 | `AKfycbx9H6t6…w0w` | @4 | Marketplace 2.0 (Slides) final, created Oct 30, 2026 with `clasp deploy --versionNumber 4`. Not referenced by the Marketplace SDK yet. |
+| `AKfycbxL4cwa…LPTg` | @5 | Marketplace 2.1 (free tier), created Nov 4, 2026 with `clasp deploy --versionNumber 5`. Not referenced by the Marketplace SDK yet. |
 | `AKfycbxGJ-Y-…tl-J` | @HEAD | Latest code, for test deployments. |
 
 Never redeploy @1 to a newer version before the new scope is verified: if the SDK reads that deployment, it would go live for existing users.
