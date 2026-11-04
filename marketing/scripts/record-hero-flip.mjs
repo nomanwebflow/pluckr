@@ -10,15 +10,18 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PAGE = resolve(__dirname, '../brand/hero-flip.html');
-const OUT = resolve(__dirname, '../brand/hero-flip.mp4');
+// HERO_FLIP_PAGE, HERO_FLIP_OUT, HERO_FLIP_W and HERO_FLIP_H record a variant, for example the 1280 x 800 brand/hero-flip-wide.html.
+const PAGE = resolve(process.env.HERO_FLIP_PAGE || resolve(__dirname, '../brand/hero-flip.html'));
+const OUT = resolve(process.env.HERO_FLIP_OUT || resolve(__dirname, '../brand/hero-flip.mp4'));
+const WIN_W = Number(process.env.HERO_FLIP_W || 900);
+const WIN_H = Number(process.env.HERO_FLIP_H || 860);
 const TMP = join(process.env.RECORD_TMP || tmpdir(), 'pluckr-hero-flip-frames');
 await rm(TMP, { recursive: true, force: true });
 await mkdir(TMP, { recursive: true });
 
 const SCALE = Number(process.env.SCALE || 2); // the window is drawn at this many times its 900 x 860
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
-const context = await browser.newContext({ viewport: { width: 900 * SCALE, height: 860 * SCALE }, deviceScaleFactor: 1 });
+const context = await browser.newContext({ viewport: { width: Math.round(WIN_W * SCALE), height: Math.round(WIN_H * SCALE) }, deviceScaleFactor: 1 });
 const page = await context.newPage();
 
 // Show only the white window, at its natural size, and note each time a loop starts (the scan message resets).
