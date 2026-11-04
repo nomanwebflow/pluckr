@@ -6,7 +6,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const SITE = resolve(__dirname, '../webflow');
+const SITE = resolve(__dirname, '../webflow-legacy');
 const ORIGIN = 'https://docpluckr.com';
 const TEMPLATE = readFileSync(`${SITE}/privacy.html`, 'utf8');
 const TODAY = '2026-10-26';

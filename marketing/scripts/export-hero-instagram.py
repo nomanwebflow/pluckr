@@ -10,7 +10,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
-FONT = ROOT / "pluckr.webflow" / "fonts" / "PPNeueMontreal-Medium.ttf"
+FONT = ROOT / "webflow-legacy" / "fonts" / "PPNeueMontreal-Medium.ttf"
 SRC = ROOT / "brand" / "hero-flip.mp4"
 LOGO = ROOT / "brand" / "pluckr-logo-120.png"
 OUT = ROOT / "brand" / "social"

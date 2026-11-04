@@ -1,5 +1,5 @@
 // Privacy policy text, rewritten in plain technical English. Original wording
-// is in marketing/webflow/privacy.html. HTML here is our own static copy
+// is in marketing/webflow-legacy/privacy.html. HTML here is our own static copy
 // (strong, a, code only), rendered by the privacy page.
 export const privacy = {
   "updated": "October 25, 2026",

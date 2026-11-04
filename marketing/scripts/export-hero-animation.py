@@ -14,7 +14,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SITE = ROOT / "webflow"
+SITE = ROOT / "webflow-legacy"
 src = (SITE / "index.html").read_text()
 
 

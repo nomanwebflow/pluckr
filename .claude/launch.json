@@ -11,25 +11,25 @@
       "port": 5173
     },
     {
-      "name": "site",
+      "name": "legacy-site",
       "runtimeExecutable": "python3",
       "runtimeArgs": [
         "-m",
         "http.server",
         "4173",
         "--directory",
-        "marketing/webflow"
+        "marketing/webflow-legacy"
       ],
       "port": 4173
     },
     {
-      "name": "landing",
+      "name": "site",
       "runtimeExecutable": "npm",
       "runtimeArgs": [
         "run",
         "dev",
         "--prefix",
-        "landing",
+        "site",
         "--",
         "-p",
         "3100"
