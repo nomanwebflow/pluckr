@@ -1,9 +1,10 @@
+import { PRICE } from "@/content/site";
 import { CtaButton } from "@/components/cta-button";
 
 // Plans and the comparison table follow docs/site-copy.md (pricing page copy).
 const plans = [
   { name: "Free", price: "Free", note: ["Up to 50 images, lifetime."] },
-  { name: "$12", price: "$12", note: ["Everything unlocked forever"] },
+  { name: PRICE, price: PRICE, note: ["Everything unlocked forever"] },
 ];
 
 type Cell = boolean | string;
@@ -109,7 +110,7 @@ export function Price() {
                   Free
                 </th>
                 <th scope="col" className="w-[76px] px-1 pb-1 text-center font-normal sm:w-20">
-                  $12
+                  {PRICE}
                 </th>
               </tr>
             </thead>
