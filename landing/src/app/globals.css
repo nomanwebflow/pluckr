@@ -9,6 +9,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-montreal), "Helvetica Neue", Arial, sans-serif;
   --font-display: var(--font-pangaia), Georgia, serif;
+  --font-reading: var(--font-montreal-regular), "Helvetica Neue", Arial, sans-serif;
   --font-heading: var(--font-display);
   --font-mono: var(--font-roboto-mono), ui-monospace, monospace;
   --color-sidebar-ring: var(--sidebar-ring);

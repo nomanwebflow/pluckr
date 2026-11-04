@@ -16,6 +16,13 @@ const montreal = localFont({
   variable: "--font-montreal",
 });
 
+// Regular weight, used for long-form reading text (the privacy page).
+const montrealRegular = localFont({
+  src: "./fonts/PPNeueMontreal-Regular.ttf",
+  weight: "400",
+  variable: "--font-montreal-regular",
+});
+
 const mono = Roboto_Mono({
   subsets: ["latin"],
   weight: "400",
@@ -33,7 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${pangaia.variable} ${montreal.variable} ${mono.variable} dark h-full antialiased`}
+      className={`${pangaia.variable} ${montreal.variable} ${montrealRegular.variable} ${mono.variable} dark h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-black">
         <SmoothScroll />
