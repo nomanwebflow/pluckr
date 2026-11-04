@@ -138,12 +138,13 @@ export function Hero() {
 
       <div className="relative flex shrink-0 flex-col items-center gap-8">
         <div className="flex flex-col items-center gap-6 text-center">
-          <h1 data-hero="h1" className="font-display w-full max-w-[818px] text-[clamp(40px,7vw,72px)] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
+          <h1 data-hero="h1" className="font-display w-full max-w-[18ch] text-[clamp(34px,7vw,72px)] leading-none text-balance capitalize [text-box:trim-both_cap_alphabetic]">
             Download every image from a Google Doc
           </h1>
-          <p data-hero="p" className="w-full max-w-[392px] text-base leading-normal">
-            Pull every image out of a Doc or Slides deck. Rename in bulk,
-            convert to WebP or AVIF, keep the alt text.
+          <p data-hero="p" className="w-full max-w-[60ch] text-base leading-normal text-balance">
+            Pull every image out of a Doc or Slides deck.{" "}
+            <span className="whitespace-nowrap">Rename in bulk,</span> convert to
+            WebP or AVIF, keep the alt text.
           </p>
         </div>
         <div data-hero="cta">
