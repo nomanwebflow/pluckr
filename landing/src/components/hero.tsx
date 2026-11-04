@@ -3,7 +3,6 @@
 import { useRef } from "react";
 import Link from "next/link";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
 
@@ -38,7 +37,7 @@ function Mark() {
   );
 }
 
-gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
+gsap.registerPlugin(SplitText, useGSAP);
 
 // Line masks clip at the line box, which shaves descenders (g, y) and
 // ascenders. Pad each mask clear of the cut and pull the layout back.
@@ -60,7 +59,6 @@ export function Hero() {
         const q = (name: string) =>
           root.current!.querySelector<HTMLElement>(`[data-hero="${name}"]`)!;
         const panel = q("panel");
-        let scrub: gsap.core.Timeline | undefined;
 
         // Entrance: fades and slides in. Nothing is hidden by CSS, so with JS
         // off the page is fully readable; opacity is only set once GSAP runs.
@@ -74,42 +72,11 @@ export function Hero() {
         });
 
         SplitText.create(q("h1"), {
-          type: "lines,words",
+          type: "lines",
           mask: "lines",
           autoSplit: true,
           onSplit(self) {
             clearTheCut(self.masks);
-            scrub?.scrollTrigger?.kill();
-            scrub?.kill();
-
-            // Scroll: pin the hero, the headline words climb out of their
-            // line masks, the demo panel rises over the copy.
-            scrub = gsap.timeline({
-              defaults: { ease: "none" },
-              scrollTrigger: {
-                trigger: root.current,
-                start: "top top",
-                end: "+=80%",
-                pin: true,
-                scrub: 0.8,
-                invalidateOnRefresh: true,
-              },
-            });
-            scrub
-              .to(self.words, { yPercent: -170, stagger: 0.08, duration: 0.5 }, 0)
-              .to(
-                panel,
-                {
-                  y: () =>
-                    -Math.max(
-                      0,
-                      panel.offsetTop + panel.offsetHeight + 64 - window.innerHeight,
-                    ),
-                  duration: 1,
-                },
-                0,
-              );
-
             return gsap.from(self.lines, {
               yPercent: 115,
               opacity: 0,
