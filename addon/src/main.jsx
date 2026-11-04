@@ -1214,6 +1214,14 @@ function App() {
 
   useEffect(() => { detectSupportedFormats().then(setSupported); }, []);
 
+  // The Drive confirmation floats over the page, so it clears itself and never moves the layout.
+  const driveDone = Boolean(drive) && drive.done === drive.total;
+  useEffect(() => {
+    if (!driveDone) return undefined;
+    const timer = window.setTimeout(() => setDrive(null), 10000);
+    return () => window.clearTimeout(timer);
+  }, [driveDone]);
+
   const updateSettings = (patch) => {
     if (patch.format === 'avif') prefetchAvifCodec();
     setSettings((current) => ({ ...current, ...patch }));
@@ -1287,6 +1295,7 @@ function App() {
     setZipping(false);
   };
 
+  const saving = Boolean(drive) && drive.done < drive.total;
   const busyAny = extractor.chosen.length === 0 || extractor.loading || extractor.downloading || zipping || busy;
   const label = (() => {
     if (extractor.downloading || (zipping && !drive)) return 'Preparing download…';
@@ -1366,18 +1375,18 @@ function App() {
               <span className="trim">{label}</span>
             </button>
             {!locked && (
-              <button className="drive-button" type="button" aria-label="Save to Google Drive" title="Save to Google Drive" onClick={() => runExport(true)} disabled={busyAny}>
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12.01 1.485c-2.082 0-3.754.02-3.743.047.01.02 1.708 3.001 3.774 6.62l3.76 6.574h3.76c2.081 0 3.753-.02 3.742-.047-.005-.02-1.708-3.001-3.775-6.62l-3.76-6.574zm-4.76 1.73a789.828 789.861 0 0 0-3.63 6.319L0 15.868l1.89 3.298 1.885 3.297 3.62-6.335 3.618-6.33-1.88-3.287C8.1 4.704 7.255 3.22 7.25 3.214zm2.259 12.653-.203.348c-.114.198-.96 1.672-1.88 3.287a423.93 423.948 0 0 1-1.698 2.97c-.01.026 3.24.042 7.222.042h7.244l1.796-3.157c.992-1.734 1.85-3.23 1.906-3.323l.104-.167h-7.249z" /></svg>
+              <button className="drive-button" type="button" aria-label={saving ? `Saving ${drive.done + 1} of ${drive.total} to Google Drive` : 'Save to Google Drive'} title="Save to Google Drive" onClick={() => runExport(true)} disabled={busyAny}>
+                {saving ? <span className="drive-count">{drive.done + 1}/{drive.total}</span> : <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12.01 1.485c-2.082 0-3.754.02-3.743.047.01.02 1.708 3.001 3.774 6.62l3.76 6.574h3.76c2.081 0 3.753-.02 3.742-.047-.005-.02-1.708-3.001-3.775-6.62l-3.76-6.574zm-4.76 1.73a789.828 789.861 0 0 0-3.63 6.319L0 15.868l1.89 3.298 1.885 3.297 3.62-6.335 3.618-6.33-1.88-3.287C8.1 4.704 7.255 3.22 7.25 3.214zm2.259 12.653-.203.348c-.114.198-.96 1.672-1.88 3.287a423.93 423.948 0 0 1-1.698 2.97c-.01.026 3.24.042 7.222.042h7.244l1.796-3.157c.992-1.734 1.85-3.23 1.906-3.323l.104-.167h-7.249z" /></svg>}
               </button>
             )}
+            {drive && !saving && (
+              <p className="drive-toast" role="status">
+                <span>Saved {drive.total} {drive.total === 1 ? 'file' : 'files'} to Drive</span>
+                <a href={drive.url} target="_blank" rel="noopener noreferrer">Open folder</a>
+                <button type="button" onClick={() => setDrive(null)}>Dismiss</button>
+              </p>
+            )}
           </div>
-          {drive && (
-            <p className="drive-status" role="status">
-              {drive.done < drive.total
-                ? `Saving ${drive.done + 1} of ${drive.total} to Drive…`
-                : <>Saved {drive.total} {drive.total === 1 ? 'file' : 'files'} to your Drive. <a href={drive.url} target="_blank" rel="noopener noreferrer">Open folder in Drive</a></>}
-            </p>
-          )}
           </>
         )}
       </div>

@@ -289,5 +289,10 @@ button, .secondary-button, .menu-item, .notice-agree, .select-option { -webkit-u
 .drive-button:hover:not(:disabled) { background: var(--hover-strong); }
 .drive-button:focus-visible { outline: 2px solid var(--white); outline-offset: 2px; }
 .drive-button:disabled { opacity: 0.4; cursor: not-allowed; }
-.drive-status { margin: 0; font-size: 12px; line-height: 1.4; color: var(--text-soft); text-align: center; }
-.drive-status a { color: var(--white); text-decoration: underline; text-underline-offset: 2px; }
+.action-row { position: relative; }
+.drive-count { font-size: 11px; font-variant-numeric: tabular-nums; line-height: 1; }
+/* Floats above the buttons like the info notes, so it never pushes the list around. */
+.drive-toast { position: absolute; z-index: 6; right: 0; bottom: calc(100% + 8px); left: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 0; padding: 10px 12px; border: 1px solid var(--edge-card-strong); border-radius: 12px; background: var(--hover-strong); color: var(--text-soft); font-size: 12px; line-height: 1.4; }
+.drive-toast a { color: var(--white); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
+.drive-toast button { margin-left: auto; color: var(--muted); font-size: 12px; }
+.drive-toast button:hover { color: var(--white); }
