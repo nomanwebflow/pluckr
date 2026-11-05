@@ -31,11 +31,12 @@ export function Hero() {
           root.current!.querySelector<HTMLElement>(`[data-hero="${name}"]`)!;
         const panel = q("panel");
 
-        // Entrance: fades and slides in. Nothing is hidden by CSS, so with JS
+        // Entrance: slides in. Nothing is hidden by CSS, so with JS
         // off the page is fully readable; opacity is only set once GSAP runs.
+        // Slide only, no fade: the panel holds the largest image, and an
+        // element at opacity 0 does not count as painted for LCP.
         gsap.from(panel, {
           yPercent: 6,
-          opacity: 0,
           duration: 0.9,
           delay: 0.2,
           ease: "power3.out",
