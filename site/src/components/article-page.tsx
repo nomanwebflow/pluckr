@@ -250,7 +250,7 @@ export function ArticleCard({ article }: { article: Article }) {
         <h3 className="font-display text-lg leading-[normal] capitalize transition-colors group-hover:text-white/70">
           {article.title}
         </h3>
-        <p className="font-reading text-xs leading-normal text-white/50">
+        <p className="font-reading text-xs leading-normal text-white">
           {formatDate(article.updated)} · {article.readingMinutes} min read
         </p>
       </div>
