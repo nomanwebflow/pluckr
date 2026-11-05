@@ -1,6 +1,6 @@
 import { ClosingCta } from "@/components/closing-cta";
 import { Nav } from "@/components/nav";
-import { PRICE } from "@/content/site";
+import { Rich, leadList, prose } from "@/components/prose";
 
 export type LegalBlock =
   | { readonly type: "p"; readonly html: string }
@@ -15,19 +15,6 @@ export type LegalDoc = {
     readonly blocks: readonly LegalBlock[];
   }[];
 };
-
-// Content is our own static policy text, so inline markup is rendered as is.
-function Rich({ html, className }: { html: string; className?: string }) {
-  return (
-    <span
-      className={className}
-      dangerouslySetInnerHTML={{ __html: html.replaceAll("{{price}}", PRICE) }}
-    />
-  );
-}
-
-const prose =
-  "font-reading text-lg leading-[1.7] [&_a]:underline [&_a]:underline-offset-4 [&_code]:rounded [&_code]:bg-white/10 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.85em] [&_strong]:font-medium";
 
 export function LegalPage({ title, doc }: { title: string; doc: LegalDoc }) {
   return (
@@ -91,7 +78,7 @@ export function LegalPage({ title, doc }: { title: string; doc: LegalDoc }) {
                 ) : (
                   <ul
                     key={i}
-                    className={`${prose} flex list-disc flex-col gap-4 pl-7 [&_li:has(strong)]:text-white/80 [&_li_strong]:mb-1 [&_li_strong]:block [&_li_strong]:text-white`}
+                    className={`${prose} flex list-disc flex-col gap-4 pl-7 ${leadList}`}
                   >
                     {block.items.map((item, j) => (
                       <li key={j}>

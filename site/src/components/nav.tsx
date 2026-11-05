@@ -1,13 +1,12 @@
 import { Logo } from "@/components/logo";
 
-// Guides has one page so far. It lives on the legacy site until it moves here.
 type NavLink = { label: string; href: string; hideBelow?: boolean };
 
 const links: NavLink[] = [
   { label: "Home", href: "/", hideBelow: true },
   { label: "Price", href: "/#price" },
   { label: "Features", href: "/#features" },
-  { label: "Guides", href: "/guides/download-all-images-from-google-docs" },
+  { label: "Guides", href: "/guides" },
 ];
 
 // One bar for the top nav and the footer. The footer flips the gradient so
