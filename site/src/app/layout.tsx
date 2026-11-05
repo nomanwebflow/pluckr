@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Roboto_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Footer } from "@/components/nav";
 import { SmoothScroll } from "@/components/smooth-scroll";
 
 const pangaia = localFont({
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col bg-black">
         <SmoothScroll />
         {children}
+        <Footer />
       </body>
     </html>
   );
