@@ -65,8 +65,8 @@ function Arrow() {
   );
 }
 
-// A dark-mode Google Doc, built in markup. It shows the same text that the
-// content.md preview on the right is made from.
+// A dark-mode Google Doc, kept simple: a title bar and one page. It shows the
+// same text that the content.md preview on the right is made from.
 function DocWindow() {
   return (
     <div
@@ -74,7 +74,7 @@ function DocWindow() {
       aria-label="A Google Doc in dark mode with a heading, a paragraph and an image"
       className="flex min-h-[320px] flex-1 flex-col bg-[#131314] font-[Arial,Helvetica,sans-serif]"
     >
-      <div className="flex items-center gap-2.5 px-3 pt-3">
+      <div className="flex items-center gap-3 px-4 py-3">
         <Image
           src="/md/docs-icon.png"
           alt=""
@@ -83,89 +83,44 @@ function DocWindow() {
           draggable={false}
           className="h-6 w-auto shrink-0"
         />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[11px] leading-tight text-white/90">
-            Blog draft: image SEO
-          </p>
-          <p className="mt-0.5 flex gap-2 text-[9px] leading-tight text-white/50">
-            <span>File</span>
-            <span>Edit</span>
-            <span>View</span>
-            <span>Insert</span>
-            <span>Format</span>
-            <span>Tools</span>
-          </p>
-        </div>
-        <span className="rounded-full bg-[#a8c7fa] px-3 py-1 text-[9px] leading-none font-medium text-[#062e6f]">
+        <p className="min-w-0 flex-1 truncate text-xs leading-tight text-white/90">
+          Blog draft: image SEO
+        </p>
+        <span className="rounded-full bg-[#a8c7fa] px-3.5 py-1.5 text-[10px] leading-none font-medium text-[#062e6f]">
           Share
         </span>
       </div>
 
-      <div className="mx-3 mt-2.5 flex items-center gap-2 rounded-full bg-[#1e1f20] px-3 py-1.5 text-[9px] leading-none text-white/70">
-        <span>100%</span>
-        <span className="text-white/20">|</span>
-        <span>Normal text</span>
-        <span className="text-white/20">|</span>
-        <span>Arial</span>
-        <span className="text-white/20">|</span>
-        <span>11</span>
-        <span className="ml-1 font-bold text-white/90">B</span>
-        <span className="italic">I</span>
-        <span className="underline">U</span>
-      </div>
-
-      <div className="mt-2.5 flex min-h-0 flex-1 px-3">
-        <div className="mx-auto flex w-full max-w-[420px] flex-col gap-2 overflow-clip rounded-t-[3px] bg-[#1f1f1f] px-5 pt-5">
-          <h4 className="text-[12px] leading-snug font-bold text-[#8ab4f8]">
+      <div className="flex min-h-0 flex-1 px-4">
+        <div className="mx-auto flex w-full max-w-[360px] flex-col gap-3 overflow-clip rounded-t-[4px] bg-[#1f1f1f] p-6 pb-0">
+          <h4 className="text-[13px] leading-snug font-bold text-[#8ab4f8]">
             5 Ways to Speed Up Your Site With Better Images
           </h4>
-          <p className="text-[10px] leading-snug text-white/90">
-            Draft for review. Target keyword: image optimization for SEO.
-          </p>
-          <p className="text-[10px] leading-snug text-white/90">
+          <p className="text-[11px] leading-relaxed text-white/90">
             Images are usually the heaviest part of a page. A slow hero image
-            pushes back your Largest Contentful Paint, and Google measures it.
-            The fix is rarely a redesign: it is smaller files, honest names and
-            a sentence of alt text.
+            pushes back your Largest Contentful Paint.
           </p>
-          <div className="relative aspect-[3.4/1] w-full shrink-0 overflow-clip rounded-[2px]">
+          <div className="relative aspect-[3/2] w-full shrink-0 overflow-clip rounded-[3px]">
             <Image
               src="/md/doc-image.jpg"
               alt=""
               fill
-              sizes="420px"
+              sizes="320px"
               draggable={false}
-              className="object-cover object-top"
+              className="object-cover"
             />
           </div>
-          <p className="text-[10px] leading-snug text-white/90">
-            1. Name every file after what it shows.
-          </p>
-          <p className="text-[10px] leading-snug text-white/90">
-            2. Convert to WebP. A 796 KB PNG becomes 83 KB.
-          </p>
-          <p className="text-[10px] leading-snug text-white/90">
-            3. Write one sentence of alt text for each image.
-          </p>
         </div>
       </div>
     </div>
   );
 }
 
-const tree = [
-  "content.md",
-  "images/",
-  "  5-ways-to-speed-up-01.webp",
-  "  5-ways-to-speed-up-02.webp",
-  "  5-ways-to-speed-up-03.webp",
-];
+const tree = ["content.md", "images/", "  5-ways-to-speed-up-01.webp"];
 
 const markdown = `# 5 Ways to Speed Up Your Site With Better Images
 
-Draft for review. Target keyword: image optimization for SEO.
-
-Images are usually the heaviest part of a page. A slow hero image pushes back your Largest Contentful Paint...
+Images are usually the heaviest part of a page. A slow hero image pushes back your Largest Contentful Paint.
 
 ![Analytics dashboard on a laptop](./images/5-ways-to-speed-up-01.webp)`;
 
