@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Roboto_Mono } from "next/font/google";
 import localFont from "next/font/local";
+import Script from "next/script";
 import "./globals.css";
 import { Footer } from "@/components/nav";
 import { SmoothScroll } from "@/components/smooth-scroll";
@@ -44,6 +45,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${pangaia.variable} ${montreal.variable} ${montrealRegular.variable} ${mono.variable} dark h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-black">
+        <Script
+          async
+          src="https://www.googletagmanager.com/gtm.js?id=GTM-5X78MZ7Z"
+          strategy="afterInteractive"
+        />
+        <Script id="google-tag-manager" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+          `}
+        </Script>
         <SmoothScroll />
         {children}
         <Footer />

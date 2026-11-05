@@ -127,7 +127,7 @@ const esc = (text) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(
 const b64 = (buffer) => buffer.toString('base64');
 
 async function build() {
-  const font = b64(await readFile(resolve('marketing/webflow-legacy/fonts/PPNeueMontreal-Medium.ttf')));
+  const font = b64(await readFile(resolve('site/src/app/fonts/PPNeueMontreal-Medium.ttf')));
   const image = async (id, theme) => {
     const png = join(RAW, `${id}-${theme}.png`);
     const webp = png.replace(/\.png$/, '.webp');

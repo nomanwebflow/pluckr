@@ -11,18 +11,6 @@
       "port": 5173
     },
     {
-      "name": "legacy-site",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": [
-        "-m",
-        "http.server",
-        "4173",
-        "--directory",
-        "marketing/webflow-legacy"
-      ],
-      "port": 4173
-    },
-    {
       "name": "site",
       "runtimeExecutable": "npm",
       "runtimeArgs": [

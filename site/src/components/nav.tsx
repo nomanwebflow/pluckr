@@ -1,9 +1,10 @@
 import { Logo } from "@/components/logo";
+import { NavMenu } from "@/components/nav-menu";
 
-type NavLink = { label: string; href: string; hideBelow?: boolean };
+type NavLink = { label: string; href: string };
 
 const links: NavLink[] = [
-  { label: "Home", href: "/", hideBelow: true },
+  { label: "Home", href: "/" },
   { label: "Price", href: "/#price" },
   { label: "Features", href: "/#features" },
   { label: "Guides", href: "/guides" },
@@ -16,14 +17,16 @@ function Bar({
   links,
   label,
   flip = false,
+  menu = false,
 }: {
   as: "header" | "footer";
   links: NavLink[];
   label: string;
   flip?: boolean;
+  menu?: boolean;
 }) {
   return (
-    <Tag className="relative flex items-center justify-between px-6 py-4 text-white md:px-16">
+    <Tag className="relative z-40 flex items-center justify-between px-6 py-4 text-white md:px-16">
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div
           className={`absolute inset-0 from-[#0d0d0d] to-black ${flip ? "bg-gradient-to-b" : "bg-gradient-to-t"}`}
@@ -41,15 +44,12 @@ function Bar({
         <Logo size="sm" />
       </div>
 
-      <nav aria-label={label} className="relative">
+      {menu && <NavMenu items={links} />}
+
+      <nav aria-label={label} className={`relative ${menu ? "hidden sm:block" : ""}`}>
         <ul className="flex items-start gap-5 text-sm leading-normal sm:gap-10 sm:text-base">
           {links.map((link) => (
-            <li
-              key={link.label}
-              className={
-                link.hideBelow ? "hidden min-[380px]:block" : undefined
-              }
-            >
+            <li key={link.label}>
               <a
                 href={link.href}
                 className="transition-colors hover:text-white/60 focus-visible:text-white/60"
@@ -65,7 +65,7 @@ function Bar({
 }
 
 export function Nav() {
-  return <Bar as="header" links={links} label="Main" />;
+  return <Bar as="header" links={links} label="Main" menu />;
 }
 
 const footerLinks: NavLink[] = [
