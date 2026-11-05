@@ -90,7 +90,7 @@ export function Hero() {
   return (
     <section
       ref={root}
-      className="relative flex flex-col items-center gap-16 p-6 text-white md:p-16"
+      className="relative flex flex-col items-center gap-16 px-6 py-14 text-white md:p-16"
     >
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-[linear-gradient(to_bottom,#0d0d0d,#000_60%,#0d0d0d)]" />
