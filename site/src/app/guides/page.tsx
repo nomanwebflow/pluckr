@@ -4,6 +4,7 @@ import { ArticleIndex } from "@/components/article-page";
 import { byKind } from "@/content/articles";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/guides" },
   title: "Guides | Pluckr",
   description:
     "Step-by-step ways to get the images out of Google Docs and Slides, and what to do with them.",

@@ -18,6 +18,7 @@ export async function generateMetadata({
   return {
     title: `${article.title} | Pluckr`,
     description: article.description,
+    alternates: { canonical: `/guides/${article.slug}` },
     robots: article.draft ? { index: false } : undefined,
   };
 }

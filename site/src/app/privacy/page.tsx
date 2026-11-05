@@ -4,6 +4,7 @@ import { LegalPage } from "@/components/legal-page";
 import { privacy } from "@/content/privacy";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/privacy" },
   title: "Privacy Policy | Pluckr",
   description:
     "How Pluckr handles the images and account details it accesses in Google Docs and Slides.",

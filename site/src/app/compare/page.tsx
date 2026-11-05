@@ -4,6 +4,7 @@ import { ArticleIndex } from "@/components/article-page";
 import { byKind } from "@/content/articles";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/compare" },
   title: "Comparisons | Pluckr",
   description:
     "How Pluckr stacks up against the other ways to extract and convert Google Docs images.",
