@@ -203,7 +203,7 @@ function Check({
   dim?: boolean;
 }) {
   return (
-    <div className={`flex items-start gap-2 ${dim ? "opacity-30" : ""}`}>
+    <div className={`flex items-start gap-2 ${dim ? "opacity-60" : ""}`}>
       <span className="flex size-4 shrink-0 items-center justify-center rounded-[4px] border border-white bg-white">
         {checked && (
           <svg
@@ -223,7 +223,7 @@ function Check({
           </svg>
         )}
       </span>
-      <span className="text-xs leading-[1.4] text-white/80">{label}</span>
+      <span className="text-xs leading-[1.4] text-white">{label}</span>
     </div>
   );
 }

@@ -26,7 +26,7 @@ export function LegalPage({ title, doc }: { title: string; doc: LegalDoc }) {
           <div
             className="absolute inset-0 bg-top-left opacity-40"
             style={{
-              backgroundImage: 'url("/assets/hero-noise.png")',
+              backgroundImage: 'url("/assets/hero-noise.webp")',
               backgroundSize: "220px 220px",
               // Fade the grain out above the CTA so it does not end on a
               // hard line.

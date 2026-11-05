@@ -48,9 +48,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Script
           async
           src="https://www.googletagmanager.com/gtm.js?id=GTM-5X78MZ7Z"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
-        <Script id="google-tag-manager" strategy="afterInteractive">
+        <Script id="google-tag-manager" strategy="lazyOnload">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}

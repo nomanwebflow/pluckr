@@ -36,8 +36,8 @@ export function Hero() {
         gsap.from(panel, {
           yPercent: 6,
           opacity: 0,
-          duration: 1.4,
-          delay: 0.35,
+          duration: 0.9,
+          delay: 0.2,
           ease: "power3.out",
         });
 
@@ -45,6 +45,7 @@ export function Hero() {
           type: "lines",
           mask: "lines",
           autoSplit: true,
+          aria: "none",
           onSplit(self) {
             clearTheCut(self.masks);
             return gsap.from(self.lines, {
@@ -62,6 +63,7 @@ export function Hero() {
           type: "lines",
           mask: "lines",
           autoSplit: true,
+          aria: "none",
           onSplit(self) {
             clearTheCut(self.masks);
             return gsap.from(self.lines, {
@@ -97,7 +99,7 @@ export function Hero() {
         <div
           className="absolute inset-0 bg-top-left opacity-40"
           style={{
-            backgroundImage: 'url("/assets/hero-noise.png")',
+            backgroundImage: 'url("/assets/hero-noise.webp")',
             backgroundSize: "220px 220px",
             // Feather the grain out before the section edge so it does not
             // end on a hard line against the next section.

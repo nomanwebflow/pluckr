@@ -9,7 +9,7 @@ export function ClosingCta() {
         <div
           className="absolute inset-0 bg-top-left opacity-40"
           style={{
-            backgroundImage: 'url("/assets/hero-noise.png")',
+            backgroundImage: 'url("/assets/hero-noise.webp")',
             backgroundSize: "220px 220px",
             // Fade the grain in from the section above so it does not start
             // on a hard line.

@@ -34,7 +34,7 @@ export function Size() {
                 aria-hidden
                 className="pointer-events-none absolute inset-0 opacity-40"
                 style={{
-                  backgroundImage: 'url("/assets/hero-noise.png")',
+                  backgroundImage: 'url("/assets/hero-noise.webp")',
                   backgroundSize: "220px 220px",
                 }}
               />
