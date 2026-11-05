@@ -97,18 +97,14 @@ export function Price() {
         </ul>
 
         <div className="rounded-2xl bg-[#0d0d0d] p-2">
-          <h3 className="font-display p-2 text-lg leading-[normal] capitalize sm:hidden">
-            What&apos;s included
-          </h3>
           <table className="w-full border-separate border-spacing-y-1 text-left">
             <thead>
               <tr className="text-xs text-white/60">
                 <th
                   scope="col"
-                  className="p-2 text-left align-middle font-normal text-white sm:text-lg"
+                  className="p-2 text-left align-middle font-normal text-white"
                 >
-                  <span className="sr-only sm:hidden">Feature</span>
-                  <span className="font-display hidden leading-[normal] capitalize sm:inline">
+                  <span className="font-display text-lg leading-[normal] whitespace-nowrap capitalize">
                     What&apos;s included
                   </span>
                 </th>
