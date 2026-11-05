@@ -1,5 +1,5 @@
 import { ClosingCta } from "@/components/closing-cta";
-import { Logo } from "@/components/logo";
+import { Nav } from "@/components/nav";
 import { PRICE } from "@/content/site";
 
 export type LegalBlock =
@@ -32,6 +32,7 @@ const prose =
 export function LegalPage({ title, doc }: { title: string; doc: LegalDoc }) {
   return (
     <>
+      <Nav />
       <main className="relative flex flex-col items-center gap-16 px-6 pt-12 pb-24 text-white md:p-16 md:pb-32">
         <div aria-hidden className="pointer-events-none absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-t from-black to-[#0d0d0d]" />
@@ -47,10 +48,6 @@ export function LegalPage({ title, doc }: { title: string; doc: LegalDoc }) {
             }}
           />
         </div>
-
-        <nav className="relative flex w-full items-center justify-center">
-          <Logo />
-        </nav>
 
         <header className="relative flex flex-col items-center gap-6 text-center">
           <h1 className="font-display w-full text-[clamp(40px,7vw,72px)] leading-none capitalize [text-box:trim-both_cap_alphabetic]">

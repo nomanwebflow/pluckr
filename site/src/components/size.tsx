@@ -55,9 +55,9 @@ export function Size() {
 
       <div className="flex flex-col items-center gap-6">
         <p className="w-full max-w-[576px] text-center text-xs leading-normal text-balance">
-          One of our sample photos, cropped to 16:9 (1000 × 562 px), quality
-          80, measured with cwebp and libjpeg. Your results depend on the image
-          and the settings. AVIF is usually smaller still; try it on your own
+          One of our sample photos, cropped to 16:9 (1000 × 562 px), quality 80,
+          measured with cwebp and libjpeg. Your results depend on the image and
+          the settings. AVIF is usually smaller still; try it on your own
           images.
         </p>
         <CtaButton />

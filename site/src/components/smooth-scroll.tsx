@@ -17,5 +17,7 @@ export function SmoothScroll() {
     return () => mq.removeEventListener("change", update);
   }, []);
 
-  return enabled ? <ReactLenis root options={{ lerp: 0.1 }} /> : null;
+  return enabled ? (
+    <ReactLenis root options={{ lerp: 0.1, anchors: true }} />
+  ) : null;
 }

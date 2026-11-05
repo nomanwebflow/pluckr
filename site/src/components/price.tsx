@@ -49,7 +49,10 @@ function Mark({ value }: { value: Cell }) {
   }
   return (
     <>
-      <span aria-hidden className="mx-auto block h-0.5 w-3 rounded-full bg-white/25" />
+      <span
+        aria-hidden
+        className="mx-auto block h-0.5 w-3 rounded-full bg-white/25"
+      />
       <span className="sr-only">Not included</span>
     </>
   );
@@ -57,7 +60,10 @@ function Mark({ value }: { value: Cell }) {
 
 export function Price() {
   return (
-    <section className="relative flex flex-col items-center gap-[72px] bg-gradient-to-t from-[#0d0d0d] to-black px-6 py-24 text-white md:px-16 md:py-32">
+    <section
+      id="price"
+      className="relative flex flex-col items-center gap-[72px] bg-gradient-to-t from-[#0d0d0d] to-black px-6 py-24 text-white md:px-16 md:py-32"
+    >
       <div className="flex flex-col items-center gap-6 text-center">
         <h2 className="font-display w-full max-w-[18ch] text-[clamp(34px,5vw,56px)] leading-none text-balance capitalize [text-box:trim-both_cap_alphabetic]">
           One price, paid once
@@ -106,10 +112,16 @@ export function Price() {
                     What&apos;s included
                   </span>
                 </th>
-                <th scope="col" className="w-[76px] px-1 pb-1 text-center font-normal sm:w-20">
+                <th
+                  scope="col"
+                  className="w-[76px] px-1 pb-1 text-center font-normal sm:w-20"
+                >
                   Free
                 </th>
-                <th scope="col" className="w-[76px] px-1 pb-1 text-center font-normal sm:w-20">
+                <th
+                  scope="col"
+                  className="w-[76px] px-1 pb-1 text-center font-normal sm:w-20"
+                >
                   {PRICE}
                 </th>
               </tr>

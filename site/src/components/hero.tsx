@@ -6,7 +6,6 @@ import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
 
 import { CtaButton } from "@/components/cta-button";
-import { Logo } from "@/components/logo";
 
 gsap.registerPlugin(SplitText, useGSAP);
 
@@ -33,7 +32,6 @@ export function Hero() {
 
         // Entrance: fades and slides in. Nothing is hidden by CSS, so with JS
         // off the page is fully readable; opacity is only set once GSAP runs.
-        gsap.from(q("nav"), { y: -16, opacity: 0, duration: 0.9, ease: "power3.out" });
         gsap.from(panel, {
           yPercent: 6,
           opacity: 0,
@@ -76,7 +74,13 @@ export function Hero() {
           },
         });
 
-        gsap.from(q("cta"), { y: 24, opacity: 0, duration: 0.9, delay: 0.7, ease: "power3.out" });
+        gsap.from(q("cta"), {
+          y: 24,
+          opacity: 0,
+          duration: 0.9,
+          delay: 0.7,
+          ease: "power3.out",
+        });
       });
     },
     { scope: root },
@@ -85,7 +89,8 @@ export function Hero() {
   return (
     <section
       ref={root}
-      className="relative flex flex-col items-center gap-16 p-6 text-white md:p-16">
+      className="relative flex flex-col items-center gap-16 p-6 text-white md:p-16"
+    >
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-[linear-gradient(to_bottom,#0d0d0d,#000_60%,#0d0d0d)]" />
         <div
@@ -100,18 +105,20 @@ export function Hero() {
         />
       </div>
 
-      <nav data-hero="nav" className="relative flex w-full shrink-0 items-center justify-center">
-        <Logo />
-      </nav>
-
       <div className="relative flex shrink-0 flex-col items-center gap-8">
         <div className="flex flex-col items-center gap-6 text-center">
-          <h1 data-hero="h1" className="font-display w-full max-w-[18ch] text-[clamp(34px,7vw,72px)] leading-none text-balance capitalize [text-box:trim-both_cap_alphabetic]">
+          <h1
+            data-hero="h1"
+            className="font-display w-full max-w-[18ch] text-[clamp(34px,7vw,72px)] leading-none text-balance capitalize [text-box:trim-both_cap_alphabetic]"
+          >
             Download every image from a Google Doc
           </h1>
-          <p data-hero="p" className="w-full max-w-[40ch] text-base leading-normal text-balance">
-            Pull every image out of a Doc or Slides deck. Rename in bulk, convert to
-            WebP or AVIF, keep the alt text.
+          <p
+            data-hero="p"
+            className="w-full max-w-[40ch] text-base leading-normal text-balance"
+          >
+            Pull every image out of a Doc or Slides deck. Rename in bulk,
+            convert to WebP or AVIF, keep the alt text.
           </p>
         </div>
         <div data-hero="cta">

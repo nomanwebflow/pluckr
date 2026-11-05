@@ -29,8 +29,8 @@ export function ClosingCta() {
           </h2>
           <p className="w-full max-w-[60ch] text-base leading-normal text-balance">
             Pull every image out of a Doc or Slides deck.{" "}
-            <span className="whitespace-nowrap">Rename in bulk,</span> convert to
-            WebP or AVIF, keep the alt text.
+            <span className="whitespace-nowrap">Rename in bulk,</span> convert
+            to WebP or AVIF, keep the alt text.
           </p>
         </div>
         <CtaButton />

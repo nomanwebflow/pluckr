@@ -26,7 +26,10 @@ const steps = [
 
 export function Process() {
   return (
-    <section className="relative flex flex-col items-center gap-[72px] bg-gradient-to-t from-black to-[#0d0d0d] px-6 py-24 text-white md:px-16 md:py-32">
+    <section
+      id="features"
+      className="relative flex flex-col items-center gap-[72px] bg-gradient-to-t from-black to-[#0d0d0d] px-6 py-24 text-white md:px-16 md:py-32"
+    >
       <div className="flex flex-col items-center gap-6 text-center">
         <h2 className="font-display w-full max-w-[646px] text-[clamp(36px,5vw,56px)] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
           <span className="block">Three steps.</span>
@@ -40,7 +43,10 @@ export function Process() {
 
       <ol className="flex w-full flex-wrap items-start justify-center gap-4">
         {steps.map((step) => (
-          <li key={step.title} className="flex w-full flex-col gap-6 sm:w-[300px]">
+          <li
+            key={step.title}
+            className="flex w-full flex-col gap-6 sm:w-[300px]"
+          >
             <Image
               src={step.src}
               draggable={false}
@@ -55,7 +61,9 @@ export function Process() {
               <h3 className="font-display w-full text-[32px] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
                 {step.title}
               </h3>
-              <p className={`w-full text-sm leading-normal text-balance ${step.bodyWidth}`}>
+              <p
+                className={`w-full text-sm leading-normal text-balance ${step.bodyWidth}`}
+              >
                 {step.body}
               </p>
             </div>

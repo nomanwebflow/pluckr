@@ -27,11 +27,32 @@ function Mark() {
   );
 }
 
-export function Logo() {
+export function Logo({ size = "md" }: { size?: "sm" | "md" }) {
+  if (size === "sm") {
+    return (
+      <Link
+        href="/"
+        className="flex items-center gap-[3.111px]"
+        aria-label="Pluckr home"
+      >
+        {/* The mark is drawn at 36px, so scale it down to 28px. */}
+        <span className="block size-7">
+          <span className="block origin-top-left scale-[0.7778]">
+            <Mark />
+          </span>
+        </span>
+        <span className="font-display text-[13.576px] leading-normal">
+          Pluckr
+        </span>
+      </Link>
+    );
+  }
   return (
     <Link href="/" className="flex items-center gap-1" aria-label="Pluckr home">
       <Mark />
-      <span className="font-display text-[17.455px] leading-normal">Pluckr</span>
+      <span className="font-display text-[17.455px] leading-normal">
+        Pluckr
+      </span>
     </Link>
   );
 }
