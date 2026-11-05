@@ -43,6 +43,14 @@ export type Article = {
   }[];
   // Optional. Rendered as an accordion and as FAQPage structured data.
   readonly faq?: readonly { readonly q: string; readonly a: string }[];
+  // Optional picture for the index and "Keep reading" cards. Without one the
+  // card shows the description in large type.
+  readonly cover?: {
+    readonly src: string;
+    readonly alt: string;
+    readonly width: number;
+    readonly height: number;
+  };
   // Slugs of other articles to link at the end.
   readonly related?: readonly string[];
   // Draft pages build but are marked noindex.

@@ -7,6 +7,12 @@ export const article: Article = {
   description:
     "Google Docs has no save-all-images button. Four ways to get every image out of a Doc, with what each one costs you.",
   updated: "2026-10-30",
+  cover: {
+    src: "/guides/pluckr-image-list.webp",
+    alt: "The Pluckr sidebar next to a Google Doc listing each image with a preview, name and file size",
+    width: 1280,
+    height: 800,
+  },
   readingMinutes: 5,
   summary: [
     "Google Docs has no “save all images” button. There are four ways around it.",
@@ -69,7 +75,7 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "A short script can loop over the document and save each image to Google Drive. <a href=\"https://labnol.org/extract-images-google-docs-slides-230913\" target=\"_blank\" rel=\"noopener\">Amit Agarwal’s guide on Digital Inspiration</a> walks through a fuller version. The core idea looks like this:",
+          html: 'A short script can loop over the document and save each image to Google Drive. <a href="https://labnol.org/extract-images-google-docs-slides-230913" target="_blank" rel="noopener">Amit Agarwal’s guide on Digital Inspiration</a> walks through a fuller version. The core idea looks like this:',
         },
         {
           type: "code",
@@ -105,7 +111,7 @@ export const article: Article = {
         },
         {
           type: "p",
-          html: "<strong>Good:</strong> you see the images first, you choose the names, and you can shrink or reshape them in the same step. <strong>Not so good:</strong> it costs {{price}}, once. You can read how it handles <a href=\"/extract-images-from-google-docs\">extracting images from Google Docs</a> or <a href=\"/convert-google-docs-images-to-webp\">converting them to WebP or AVIF</a> on their own pages.",
+          html: '<strong>Good:</strong> you see the images first, you choose the names, and you can shrink or reshape them in the same step. <strong>Not so good:</strong> it costs {{price}}, once. You can read how it handles <a href="/extract-images-from-google-docs">extracting images from Google Docs</a> or <a href="/convert-google-docs-images-to-webp">converting them to WebP or AVIF</a> on their own pages.',
         },
         {
           type: "image",

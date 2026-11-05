@@ -222,6 +222,42 @@ function Block({ block }: { block: ArticleBlock }) {
   }
 }
 
+// Card used on the index pages and in "Keep reading". Same pattern as the
+// other cards on the site: a dark outer card, a black panel, a title bar.
+export function ArticleCard({ article }: { article: Article }) {
+  return (
+    <Link
+      href={`/${sectionOf(article.kind)}/${article.slug}`}
+      className="group flex h-full flex-col gap-2 rounded-2xl bg-[#0d0d0d] p-2 transition-colors hover:bg-[#141414]"
+    >
+      <div className="relative aspect-[8/5] overflow-clip rounded-2xl border border-white/5 bg-black">
+        {article.cover ? (
+          <Image
+            src={article.cover.src}
+            alt={article.cover.alt}
+            fill
+            sizes="(min-width: 1024px) 560px, 100vw"
+            draggable={false}
+            className="object-cover object-top"
+          />
+        ) : (
+          <p className="font-display flex h-full items-end p-6 text-2xl leading-[1.15] text-balance sm:text-[28px]">
+            {article.description}
+          </p>
+        )}
+      </div>
+      <div className="flex flex-col gap-1 p-2">
+        <h3 className="font-display text-lg leading-[normal] capitalize transition-colors group-hover:text-white/70">
+          {article.title}
+        </h3>
+        <p className="font-reading text-xs leading-normal text-white/50">
+          {formatDate(article.updated)} · {article.readingMinutes} min read
+        </p>
+      </div>
+    </Link>
+  );
+}
+
 function Related({ article }: { article: Article }) {
   const items = (article.related ?? [])
     .map((slug) => articles.find((a) => a.slug === slug))
@@ -232,20 +268,10 @@ function Related({ article }: { article: Article }) {
       <h2 className="font-display text-[32px] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
         Keep reading
       </h2>
-      <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <ul className="flex flex-wrap gap-4">
         {items.map((item) => (
-          <li key={item.slug}>
-            <Link
-              href={`/${sectionOf(item.kind)}/${item.slug}`}
-              className="flex h-full flex-col gap-2 rounded-2xl bg-[#0d0d0d] p-2 transition-colors hover:bg-[#141414]"
-            >
-              <span className="font-display p-2 pb-0 text-lg leading-[normal] capitalize">
-                {item.title}
-              </span>
-              <span className="font-reading px-2 pb-2 text-sm leading-normal text-white/70">
-                {item.description}
-              </span>
-            </Link>
+          <li key={item.slug} className="w-full sm:w-[calc(50%-8px)]">
+            <ArticleCard article={item} />
           </li>
         ))}
       </ul>
@@ -411,23 +437,10 @@ export function ArticleIndex({
           {intro}
         </p>
       </header>
-      <ul className="relative flex w-full max-w-[800px] flex-col gap-2">
+      <ul className="relative flex w-full max-w-[1180px] flex-wrap justify-center gap-4">
         {items.map((item) => (
-          <li key={item.slug}>
-            <Link
-              href={`/${sectionOf(item.kind)}/${item.slug}`}
-              className="flex flex-col gap-2 rounded-2xl bg-[#0d0d0d] p-2 transition-colors hover:bg-[#141414]"
-            >
-              <span className="font-display p-2 pb-0 text-lg leading-[normal] capitalize">
-                {item.title}
-              </span>
-              <span className="font-reading px-2 text-sm leading-normal text-white/70">
-                {item.description}
-              </span>
-              <span className="font-reading px-2 pb-2 text-xs text-white/50">
-                {item.readingMinutes} min read
-              </span>
-            </Link>
+          <li key={item.slug} className="w-full md:w-[calc(50%-8px)]">
+            <ArticleCard article={item} />
           </li>
         ))}
       </ul>

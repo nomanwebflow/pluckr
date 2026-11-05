@@ -20,7 +20,13 @@ export const article: Article = {
       blocks: [
         {
           type: "table",
-          columns: ["", "Web page (.zip)", "Word (.docx)", "Apps Script", "Pluckr"],
+          columns: [
+            "",
+            "Web page (.zip)",
+            "Word (.docx)",
+            "Apps Script",
+            "Pluckr",
+          ],
           highlight: 4,
           rows: [
             ["Free", true, true, true, "One-time {{price}}"],
