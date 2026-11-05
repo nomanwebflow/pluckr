@@ -78,8 +78,8 @@ function DocWindow() {
         <Image
           src="/md/docs-icon.png"
           alt=""
-          width={64}
-          height={78}
+          width={52}
+          height={71}
           draggable={false}
           className="h-6 w-auto shrink-0"
         />
