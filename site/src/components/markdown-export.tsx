@@ -1,17 +1,13 @@
 import Image from "next/image";
 
-import { ArrowDown, Merge, Split } from "@/components/flow-connectors";
-
-// A titled card with a black inner panel. Used for every box in the flow.
+// A titled card with a black inner panel. Used for every box in this section.
 function Card({
   title,
   className = "",
-  panelClassName = "",
   children,
 }: {
   title: string;
   className?: string;
-  panelClassName?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -21,45 +17,63 @@ function Card({
       <h3 className="font-display p-2 text-lg leading-[normal] capitalize">
         {title}
       </h3>
-      <div
-        className={`flex-1 overflow-clip rounded-2xl border border-white/5 bg-black ${panelClassName}`}
-      >
-        {children}
-      </div>
+      {children}
     </div>
   );
 }
 
-function Check({ checked, label, dim }: { checked: boolean; label: string; dim?: boolean }) {
+function Panel({
+  label,
+  children,
+}: {
+  label?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className={`flex items-start gap-2 ${dim ? "opacity-10" : ""}`}>
-      <span className="flex size-4 shrink-0 items-center justify-center rounded-[4px] border border-white bg-white">
-        {checked && (
-          <svg aria-hidden width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path
-              d="M8.8 3.825L4.95 7.675L3.2 5.925"
-              stroke="black"
-              strokeWidth="1.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        )}
-      </span>
-      <span className="text-xs leading-[1.4] text-white/80">{label}</span>
+    <div className="overflow-clip rounded-2xl border border-white/5 bg-black">
+      {label && (
+        <p className="px-4 pt-3 text-xs leading-normal text-white/60">{label}</p>
+      )}
+      {children}
     </div>
   );
 }
 
-const files = [
+// Open arrow. Points right on desktop and down when the layout stacks.
+function Arrow() {
+  return (
+    <svg
+      aria-hidden
+      width="32"
+      height="16"
+      viewBox="0 0 32 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="shrink-0 rotate-90 text-white/70 md:rotate-0"
+    >
+      <path d="M2 8h28M24 2.5 30 8l-6 5.5" />
+    </svg>
+  );
+}
+
+const tree = [
   "content.md",
-  "images-metadata.csv",
-  "images-metadata.json",
   "images/",
-  "  west-coast-road-trip-01.webp",
-  "  west-coast-road-trip-02.webp",
-  "  west-coast-road-trip-03.webp",
+  "  5-ways-to-speed-up-01.webp",
+  "  5-ways-to-speed-up-02.webp",
+  "  5-ways-to-speed-up-03.webp",
 ];
+
+const markdown = `# 5 Ways to Speed Up Your Site With Better Images
+
+Draft for review. Target keyword: image optimization for SEO.
+
+Images are usually the heaviest part of a page. A slow hero image pushes back your Largest Contentful Paint...
+
+![Analytics dashboard on a laptop](./images/5-ways-to-speed-up-01.webp)`;
 
 const readyFor = ["A blog", "A static site", "Obsidian"];
 
@@ -76,61 +90,59 @@ export function MarkdownExport() {
         </p>
       </div>
 
-      <div className="flex w-full max-w-[616px] flex-col items-center gap-8">
-        <Card title="In the Google Doc" className="w-full" panelClassName="">
-          <Image
-            src="/md/doc-screenshot.png"
-            alt="A Google Doc open in the editor with a heading, a paragraph and an image"
-            width={3840}
-            height={2160}
-            sizes="(min-width: 640px) 600px, 100vw"
-            draggable={false}
-            className="aspect-[3840/2160] w-full opacity-45"
-          />
-        </Card>
+      <div className="flex w-full max-w-[1180px] flex-col gap-4">
+        <div className="grid grid-cols-1 items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
+          <Card title="Your Google Doc">
+            <Panel>
+              <div className="relative aspect-[1.68/1] w-full overflow-clip">
+                <Image
+                  src="/md/doc-screenshot.png"
+                  alt="A Google Doc with a heading, a paragraph and an image"
+                  width={3840}
+                  height={2160}
+                  sizes="(min-width: 1024px) 560px, 100vw"
+                  draggable={false}
+                  className="absolute top-[-41.7%] left-[-27.9%] max-w-none"
+                  style={{ width: "147%" }}
+                />
+              </div>
+            </Panel>
+          </Card>
 
-        <ArrowDown />
-
-        <div className="w-full max-w-[300px] bg-black p-2">
-          <div className="relative flex flex-col gap-4 overflow-clip rounded-2xl border border-white/5 bg-[#0d0d0d] p-3">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -inset-px opacity-40"
-              style={{
-                backgroundImage: 'url("/assets/hero-noise.png")',
-                backgroundSize: "220px 220px",
-              }}
-            />
-            <div className="relative flex flex-col gap-4">
-              <Check checked dim label="Add alt text files (CSV and JSON)" />
-              <Check checked label="Add the Doc as Markdown (content.md)" />
+          <div className="flex flex-col items-center gap-3 md:flex-row">
+            <Arrow />
+            <div className="w-[280px] max-w-full rounded-2xl border border-white/5 bg-[#0d0d0d] p-3">
+              <p className="mb-3 text-xs leading-normal text-white/60">
+                In the Pluckr sidebar
+              </p>
+              <div className="flex flex-col gap-3">
+                <Check label="Add alt text files (CSV and JSON)" checked dim />
+                <Check label="Add the Doc as Markdown (content.md)" checked />
+              </div>
             </div>
+            <Arrow />
           </div>
-        </div>
 
-        <Split />
-
-        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
-          <Card title="content.md" className="w-full">
-            <pre className="font-mono p-4 text-[10px] leading-[1.75] whitespace-pre-wrap">
-              {"# West Coast Road Trip\n\nSeventy-two hours, four people and one car.\n\n![Rocky coast at sunset](./images/west-coast-road-trip-01.webp)"}
-            </pre>
-          </Card>
-          <Card title="In your download" className="w-full">
-            <pre className="font-mono p-4 text-[10px] leading-[1.75] whitespace-pre-wrap">
-              {files.join("\n")}
-            </pre>
+          <Card title="Your download">
+            <Panel label="content.md">
+              <pre className="font-mono p-4 pt-2 text-[11px] leading-[1.75] whitespace-pre-wrap">
+                {markdown}
+              </pre>
+            </Panel>
+            <Panel label="Files">
+              <pre className="font-mono p-4 pt-2 text-[11px] leading-[1.75] whitespace-pre-wrap">
+                {tree.join("\n")}
+              </pre>
+            </Panel>
           </Card>
         </div>
 
-        <Merge />
-
-        <Card title="Ready for" className="w-full max-w-[300px]" panelClassName="border-0 bg-transparent">
-          <ul className="flex flex-col gap-2">
+        <Card title="Ready for">
+          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {readyFor.map((item) => (
               <li
                 key={item}
-                className="rounded-2xl border border-white/5 bg-black p-4 text-base leading-[1.2] whitespace-nowrap"
+                className="rounded-2xl border border-white/5 bg-black p-4 text-base leading-[1.2]"
               >
                 {item}
               </li>
@@ -139,5 +151,34 @@ export function MarkdownExport() {
         </Card>
       </div>
     </section>
+  );
+}
+
+function Check({
+  label,
+  checked,
+  dim,
+}: {
+  label: string;
+  checked?: boolean;
+  dim?: boolean;
+}) {
+  return (
+    <div className={`flex items-start gap-2 ${dim ? "opacity-30" : ""}`}>
+      <span className="flex size-4 shrink-0 items-center justify-center rounded-[4px] border border-white bg-white">
+        {checked && (
+          <svg aria-hidden width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path
+              d="M8.8 3.825L4.95 7.675L3.2 5.925"
+              stroke="black"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        )}
+      </span>
+      <span className="text-xs leading-[1.4] text-white/80">{label}</span>
+    </div>
   );
 }
