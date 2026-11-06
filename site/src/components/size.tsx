@@ -60,6 +60,12 @@ export function Size() {
           the settings. AVIF is usually smaller still; try it on your own
           images.
         </p>
+        <a
+          href="/guides/convert-google-docs-images-to-webp"
+          className="text-sm leading-normal underline underline-offset-4 transition-colors hover:text-white/60 focus-visible:text-white/60"
+        >
+          Convert Google Docs images to WebP or AVIF
+        </a>
         <CtaButton />
       </div>
     </section>

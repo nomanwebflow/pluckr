@@ -73,6 +73,7 @@ The Pluckr site uses Simplified Technical English (ASD-STE100 derivative). This 
 - **NO Contractions**: Write `do not` instead of `don't`, `it is` instead of `it's`, `cannot` instead of `can't`.
 - **NO Fluff Modals**: Do not use `should`, `would`, `could`, `may`, or `might`. Use only **can** (possibility), **will** (future), or **must** (rule/necessity).
 - **NO AI Clichés**: Avoid words like "crucial", "delve", "seamlessly", "revolutionize", "utilize", "prior to".
+- **One action verb per sentence for synonyms**: Do not pair `save` and `download` (or similar synonyms) in one sentence, title, description or FAQ question, like "download or save". Pick one. To target both search terms, use each word in a different sentence.
 
 ### Price Token Rule
 - **NEVER hardcode dollar prices** (like `$5` or `$12`) in body copy.

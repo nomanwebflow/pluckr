@@ -33,9 +33,9 @@ const mono = Roboto_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://docpluckr.com"),
-  title: "Pluckr: download every image from a Google Doc",
+  title: "Pluckr: Extract and Download Images from Google Docs",
   description:
-    "Pull every image out of a Doc or Slides deck. Rename in bulk, convert to WebP or AVIF, keep the alt text.",
+    "Extract every image from a Google Doc or Slides deck in one ZIP. Rename in bulk, convert to WebP or AVIF, keep alt text. Free for 50 images.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

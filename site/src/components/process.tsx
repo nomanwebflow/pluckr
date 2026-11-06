@@ -39,6 +39,12 @@ export function Process() {
           Extract every image from a Google Doc or Slides deck. Rename them in
           bulk, convert to WebP or AVIF, and keep the alt text
         </p>
+        <a
+          href="/guides/download-all-images-from-google-docs"
+          className="text-sm leading-normal underline underline-offset-4 transition-colors hover:text-white/60 focus-visible:text-white/60"
+        >
+          How to download all images from a Google Doc, four ways
+        </a>
       </div>
 
       <ol className="flex w-full flex-wrap items-start justify-center gap-4">

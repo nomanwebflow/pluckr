@@ -6,7 +6,8 @@ import {
 } from "@/components/ui/accordion";
 
 // Answers follow docs/site-copy.md. The first answer is the Figma copy.
-const faqs = [
+// Exported so the homepage FAQPage JSON-LD mirrors the visible questions.
+export const faqs = [
   {
     q: "How do I download all images from a Google Doc?",
     a: "Open the Doc, choose Extensions, Pluckr, Extract images, then press Download originals to get every image in one ZIP. Google Docs has no built-in button for this.",

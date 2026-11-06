@@ -5,8 +5,8 @@ export const article: Article = {
   slug: "download-all-images-from-google-docs",
   title: "How to download all images from a Google Doc",
   description:
-    "Google Docs has no save-all-images button. Four ways to get every image out of a Doc, with what each one costs you.",
-  updated: "2026-10-30",
+    "Google Docs has no button to save all images. Learn four ways to download every image from a Google Doc, and what each method costs you.",
+  updated: "2026-11-06",
   cover: {
     src: "/guides/pluckr-image-list.webp",
     alt: "The Pluckr sidebar next to a Google Doc listing each image with a preview, name and file size",
@@ -15,21 +15,21 @@ export const article: Article = {
   },
   readingMinutes: 5,
   summary: [
-    "Google Docs has no “save all images” button. There are four ways around it.",
-    "The free methods work but give you generic file names and a bit of cleanup. Pluckr lists the images, lets you rename and convert them, and saves everything in one go for a one-time {{price}}.",
+    "Google Docs has no button to save all images at once. You can use four methods to download every image from a Google Doc.",
+    "The free methods work, but they give you generic file names and extra cleanup. Pluckr lists every picture, lets you rename and convert them, and saves the batch in one ZIP for a one-time {{price}}.",
   ],
   sections: [
     {
       id: "the-problem",
-      title: "The problem",
+      title: "Why you cannot save all images from a Google Doc directly",
       blocks: [
         {
           type: "p",
-          html: "You need the pictures from a Google Doc: a blog draft, a client brief, a report with screenshots. Docs lets you download the document as a file, but it does not offer a folder of the images.",
+          html: "You need to save the pictures from a Google Doc: a blog draft, a client brief, or a report with screenshots. Docs lets you download the whole document, but it gives you no direct button to download a folder of images.",
         },
         {
           type: "p",
-          html: "These are the four routes people use, in order of effort, with the honest downside of each. Nobody needs to publish the Doc for any of them.",
+          html: "If you only need to save a single image from a Google Doc, right-click the picture and choose <strong>Save to Keep</strong>. For a full document, use one of the four methods below. None of them require you to publish the Doc.",
         },
       ],
     },
@@ -53,7 +53,7 @@ export const article: Article = {
     },
     {
       id: "method-2",
-      title: "Method 2: download as Word and open the ZIP inside",
+      title: "Method 2: save as Word and open the ZIP inside",
       blocks: [
         {
           type: "ol",
@@ -89,7 +89,7 @@ export const article: Article = {
     },
     {
       id: "method-4",
-      title: "Method 4: use Pluckr",
+      title: "Method 4: extract and download all images with Pluckr",
       blocks: [
         {
           type: "ol",
@@ -111,7 +111,7 @@ export const article: Article = {
         },
         {
           type: "p",
-          html: '<strong>Good:</strong> you see the images first, you choose the names, and you can shrink or reshape them in the same step. <strong>Not so good:</strong> it costs {{price}}, once. You can read how Pluckr handles <a href="/guides/convert-google-docs-images-to-webp">converting images to WebP or AVIF</a> on its own page.',
+          html: '<strong>Good:</strong> you see the images first, you choose the names, and you can shrink or reshape them in the same step. <strong>Not so good:</strong> Pro costs {{price}}, once (free up to 50 images). You can read how Pluckr handles <a href="/guides/convert-google-docs-images-to-webp">converting images to WebP or AVIF</a> or <a href="/guides/export-google-docs-to-markdown-with-images">exporting a Doc to Markdown with images</a>.',
         },
         {
           type: "image",
@@ -126,7 +126,7 @@ export const article: Article = {
     },
     {
       id: "which-one",
-      title: "Which one should you use",
+      title: "How to choose a download method",
       blocks: [
         {
           type: "ul",
@@ -140,7 +140,7 @@ export const article: Article = {
     },
     {
       id: "after",
-      title: "After you have the files",
+      title: "After you save the image files",
       blocks: [
         {
           type: "p",
@@ -150,6 +150,10 @@ export const article: Article = {
     },
   ],
   faq: [
+    {
+      q: "How do I save a single image from a Google Doc?",
+      a: "Right-click the image and choose Save to Keep. Right-click the picture in the Keep sidebar to save it to your computer. With Pluckr, you can click Download next to any image in the sidebar.",
+    },
     {
       q: "Do I need to publish the Doc to download its images?",
       a: "No. None of these methods needs you to publish the Doc.",

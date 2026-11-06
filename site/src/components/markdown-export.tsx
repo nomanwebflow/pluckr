@@ -138,6 +138,12 @@ export function MarkdownExport() {
           images&nbsp;folder and the alt&nbsp;text, ready for a blog, a static
           site or Obsidian.
         </p>
+        <a
+          href="/guides/export-google-docs-to-markdown-with-images"
+          className="text-sm leading-normal underline underline-offset-4 transition-colors hover:text-white/60 focus-visible:text-white/60"
+        >
+          Export Google Docs to Markdown with images
+        </a>
       </div>
 
       <div className="flex w-full max-w-[1180px] flex-col gap-4">

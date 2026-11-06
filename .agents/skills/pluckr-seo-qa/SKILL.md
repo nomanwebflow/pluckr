@@ -81,3 +81,4 @@ Only when both Section 1, Section 2, and Section 3 pass:
 1. Update `site/public/sitemap.xml` with `<loc>https://docpluckr.com/<kind>/<slug></loc>`.
 2. Run `./marketing/scripts/deploy-site.sh` to publish live to Cloudflare Pages.
 3. Test the live page with `curl -sI https://docpluckr.com/<kind>/<slug> | head -n 5`.
+4. Submit the updated sitemap and inspect URLs in Google Search Console with `npm run seo:gsc -- --submit`.

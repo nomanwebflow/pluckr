@@ -47,7 +47,7 @@ function Bar({
       {menu && <NavMenu items={links} />}
 
       <nav aria-label={label} className={`relative ${menu ? "hidden sm:block" : ""}`}>
-        <ul className="flex items-start gap-5 text-sm leading-normal sm:gap-10 sm:text-base">
+        <ul className="flex flex-wrap items-start justify-end gap-x-5 gap-y-2 text-sm leading-normal sm:gap-x-10 sm:text-base">
           {links.map((link) => (
             <li key={link.label}>
               <a
@@ -69,6 +69,8 @@ export function Nav() {
 }
 
 const footerLinks: NavLink[] = [
+  { label: "Guides", href: "/guides" },
+  { label: "Compare", href: "/compare" },
   { label: "Privacy", href: "/privacy" },
   { label: "Terms", href: "/terms" },
 ];
