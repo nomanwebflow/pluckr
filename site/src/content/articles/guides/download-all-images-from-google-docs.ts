@@ -47,7 +47,7 @@ export const article: Article = {
         },
         {
           type: "p",
-          html: "<strong>Good:</strong> nothing to install, and it is free. <strong>Not so good:</strong> the files have generic names like image1.png, you cannot see which is which until you open them, and the folder sits next to an HTML file you did not want.",
+          html: "<strong>Good:</strong> nothing to install, and it is free. <strong>Not so good:</strong> the files have generic names like image1.png. You cannot see which is which until you open them, and the folder sits next to an unwanted HTML file.",
         },
       ],
     },
@@ -111,7 +111,7 @@ export const article: Article = {
         },
         {
           type: "p",
-          html: '<strong>Good:</strong> you see the images first, you choose the names, and you can shrink or reshape them in the same step. <strong>Not so good:</strong> it costs {{price}}, once. You can read how it handles <a href="/extract-images-from-google-docs">extracting images from Google Docs</a> or <a href="/convert-google-docs-images-to-webp">converting them to WebP or AVIF</a> on their own pages.',
+          html: '<strong>Good:</strong> you see the images first, you choose the names, and you can shrink or reshape them in the same step. <strong>Not so good:</strong> it costs {{price}}, once. You can read how Pluckr handles <a href="/guides/convert-google-docs-images-to-webp">converting images to WebP or AVIF</a> on its own page.',
         },
         {
           type: "image",
@@ -175,5 +175,9 @@ export const article: Article = {
       a: "Not in Pluckr yet. It reads inline images. Images set to float in front of or behind text are not listed.",
     },
   ],
-  related: ["pluckr-vs-google-docs-built-in-downloads"],
+  related: [
+    "convert-google-docs-images-to-webp",
+    "extract-images-from-google-slides",
+    "pluckr-vs-google-docs-built-in-downloads",
+  ],
 };

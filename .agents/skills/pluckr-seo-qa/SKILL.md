@@ -55,6 +55,8 @@ After the automated script passes, verify the qualitative requirements:
 5. **SEO Meta**:
    - Title must be under 60 characters and front-load target verbs/nouns.
    - Description must be under 155 characters.
+6. **Card Thumbnail Illustration**:
+   - Verify that `site/src/components/article-illustration.tsx` includes a tailored dark-mode schematic illustration for the article's `slug` (using `#000`/`#0d0d0d` surfaces, `font-mono` labels, and `#0062fb` accents), rather than displaying a raw screenshot on the card thumbnail.
 
 ---
 

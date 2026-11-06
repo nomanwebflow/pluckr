@@ -86,12 +86,26 @@ Only use blocks defined in `site/src/content/articles/types.ts`:
 4. `{ type: "ol", items: ["...", "..."] }`
 5. `{ type: "callout", title: "...", html: "..." }`
 6. `{ type: "table", columns: [...], rows: [...], highlight: number }`
-7. `{ type: "image", src: "/guides/name.webp", alt: "...", width: 1200, height: 675, caption: "..." }`
+7. `{ type: "image", src: "/guides/name.webp", alt: "...", width: 1200, height: 675, caption: "..." }` (Used inside article body sections only, never as the card thumbnail)
 8. `{ type: "code", code: "..." }`
 
 ---
 
-## 3. Step-by-Step Writing Workflow
+## 3. Card Thumbnail Illustrations
+
+Index cards (`/guides`, `/compare`) and "Keep reading" cards do **not** use raster screenshots for thumbnails. Instead, [`ArticleCard`](file:///Users/noman/Projects/WIP/pluckr/site/src/components/article-page.tsx) renders a dark-mode vector/UI schematic illustration from `site/src/components/article-illustration.tsx`.
+
+When adding a new article:
+1. Open `site/src/components/article-illustration.tsx`.
+2. Create a schematic illustration component for the new `slug` that visually represents the workflow or comparison in the `8/5` card frame:
+   - **Surfaces**: `#000` background with `/assets/hero-noise.webp` texture, `#0d0d0d` inner panels, and `border-white/10` or `border-white/5` borders.
+   - **Typography**: `font-mono` (`text-[9px]` to `text-[10px]`) for filenames, tags, and metrics; `font-display` for big numbers/stats.
+   - **Accents**: Pluckr brand blue (`#0062fb` / `#6ea8fe`) for active states, badges, and output cards, paired with the open arrow (`Arrow`) between before/after states.
+3. Register the component in `ArticleIllustration` under `slug === "<your-slug>"`.
+
+---
+
+## 4. Step-by-Step Writing Workflow
 
 1. **Pick the Keyword & Intent**: Determine if it belongs in `guides/` (how-to intent) or `compare/` (comparison intent).
 2. **Review Existing References**: Inspect `site/src/content/articles/guides/download-all-images-from-google-docs.ts` or `site/src/content/articles/compare/pluckr-vs-google-docs-built-in-downloads.ts`.
@@ -100,5 +114,6 @@ Only use blocks defined in `site/src/content/articles/types.ts`:
    - Ensure the `summary` card answers the title immediately.
    - Every paragraph must make sense alone if extracted by a search engine (repeat nouns rather than ambiguous pronouns like "it").
 5. **Add FAQs**: Add 3 to 6 genuine search questions with concise, standalone answers.
-6. **Register the Article**: Import and add the article to `articles` in `site/src/content/articles/index.ts`.
-7. **Run QA**: Hand off to the QA skill (`pluckr-seo-qa`) or execute the verification script.
+6. **Add the Card Illustration**: Add a tailored schematic illustration for the new `slug` in `site/src/components/article-illustration.tsx`.
+7. **Register the Article**: Import and add the article to `articles` in `site/src/content/articles/index.ts`.
+8. **Run QA**: Hand off to the QA skill (`pluckr-seo-qa`) or execute the verification script.

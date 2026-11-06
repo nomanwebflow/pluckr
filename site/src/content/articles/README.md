@@ -11,12 +11,13 @@ This folder holds every guide and comparison page on the site. Each page is one 
 
 The index pages are `/guides` and `/compare`. Each page also shows a "Keep reading" row of related pages.
 
-## Add a page in four steps
+## Add a page in five steps
 
 1. Copy a file that exists. Copy `guides/download-all-images-from-google-docs.ts` for a guide. Copy `compare/pluckr-vs-google-docs-built-in-downloads.ts` for a comparison.
 2. Rename the file to the slug. The slug is the end of the URL. Use lowercase words with hyphens, for example `convert-google-docs-images-to-webp.ts`.
 3. Change the content. The field list and the block list are below.
-4. Open `index.ts`. Import the new file and add it to the `articles` list.
+4. Add a card thumbnail illustration for the new `slug` in `src/components/article-illustration.tsx`.
+5. Open `index.ts`. Import the new file and add it to the `articles` list.
 
 ```ts
 import { article as convertToWebp } from "./guides/convert-google-docs-images-to-webp";
@@ -93,14 +94,20 @@ The first column names the row. The other columns are the options. A cell can be
 
 Set `highlight` to the column number of Pluckr, which starts at 0. The first column of a comparison needs an empty header: `columns: ["", "Option A", "Pluckr"]`.
 
-### Images
+### Images and card illustrations
+
+Use screenshots inside the article body (`{ type: "image", ... }`) to show real steps in the add-on:
 
 1. Put the file in `public/guides/`. Use WebP.
 2. Write the real `width` and `height`.
 3. Write alt text that says what the picture shows. Do not start with "image of".
 4. Write a caption that says why the picture matters.
 
-For a card cover, use the same shape in the `cover` field. A page with no cover shows its description in large type on the card.
+For the card thumbnail on `/guides`, `/compare` and "Keep reading", do not use a screenshot. Add a dark-mode schematic illustration in `src/components/article-illustration.tsx` and match it to `article.slug`:
+
+1. Use the site's dark surfaces (`bg-black`, `bg-[#0d0d0d]`, `border-white/10`) and the `/assets/hero-noise.webp` texture.
+2. Show the core job of the page (for example, `doc.gdoc` -> `images.zip`, or `796 KB PNG` -> `83 KB WEBP`) with `font-mono` labels and `#0062fb` accents.
+3. Map the new `slug` in `ArticleIllustration` so the card renders the schematic in its `8/5` frame.
 
 ### Links to other pages
 
@@ -222,6 +229,7 @@ Read the page once before you push. Look for each item.
 - [ ] Every outside fact has a source link.
 - [ ] The price shows as `{{price}}`.
 - [ ] Every image has alt text, a caption and the real size.
+- [ ] `src/components/article-illustration.tsx` has a card illustration for the `slug`.
 - [ ] The page has a `faq` with 3 to 6 questions.
 - [ ] The page passes the quote test and the self-check.
 - [ ] `related` lists 1 or 2 other pages.

@@ -70,7 +70,7 @@ Intent clusters, in priority order. "Page" is where each should land.
 
 ## 3. Pages to build (static HTML like the rest of the site)
 
-Each page: one H1 with the target phrase, a 400 to 900 word answer with a real screenshot or short clip of the sidebar, a "How Pluckr does it" section, 3 to 5 FAQs (marked up as FAQPage), links to 2 sibling pages and the homepage, and a clear button.
+Each page: one H1 with the target phrase, a 400 to 900 word answer with a real screenshot or short clip of the sidebar inside the body, a dark-mode schematic card thumbnail illustration in `site/src/components/article-illustration.tsx` (instead of a raster screenshot on the index card), a "How Pluckr does it" section, 3 to 5 FAQs (marked up as FAQPage), links to 2 sibling pages and the homepage, and a clear button.
 
 | Priority | URL | Title tag (under 60 chars) | Core content |
 |---|---|---|---|

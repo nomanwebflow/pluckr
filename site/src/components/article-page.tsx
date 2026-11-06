@@ -7,6 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { ArticleIllustration } from "@/components/article-illustration";
 import { ClosingCta } from "@/components/closing-cta";
 import { Nav } from "@/components/nav";
 import { Rich, prose } from "@/components/prose";
@@ -231,20 +232,7 @@ export function ArticleCard({ article }: { article: Article }) {
       className="group flex h-full flex-col gap-2 rounded-2xl bg-[#0d0d0d] p-2 transition-colors hover:bg-[#141414]"
     >
       <div className="relative aspect-[8/5] overflow-clip rounded-2xl border border-white/5 bg-black">
-        {article.cover ? (
-          <Image
-            src={article.cover.src}
-            alt={article.cover.alt}
-            fill
-            sizes="(min-width: 1024px) 560px, 100vw"
-            draggable={false}
-            className="object-cover object-top"
-          />
-        ) : (
-          <p className="font-display flex h-full items-end p-6 text-2xl leading-[1.15] text-balance sm:text-[28px]">
-            {article.description}
-          </p>
-        )}
+        <ArticleIllustration slug={article.slug} kind={article.kind} />
       </div>
       <div className="flex flex-col gap-1 p-2">
         <h3 className="font-display text-lg leading-[normal] capitalize transition-colors group-hover:text-white/70">
