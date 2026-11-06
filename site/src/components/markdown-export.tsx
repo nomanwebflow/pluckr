@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 // A titled card with a black inner panel. Used for every box in this section.
 function Card({
@@ -138,12 +139,12 @@ export function MarkdownExport() {
           images&nbsp;folder and the alt&nbsp;text, ready for a blog, a static
           site or Obsidian.
         </p>
-        <a
+        <Link
           href="/guides/export-google-docs-to-markdown-with-images"
           className="text-sm leading-normal underline underline-offset-4 transition-colors hover:text-white/60 focus-visible:text-white/60"
         >
           Export Google Docs to Markdown with images
-        </a>
+        </Link>
       </div>
 
       <div className="flex w-full max-w-[1180px] flex-col gap-4">
