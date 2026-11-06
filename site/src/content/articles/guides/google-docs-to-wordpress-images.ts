@@ -19,15 +19,11 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "Writers often draft articles in Google Docs and copy the content into the WordPress block editor. This workflow seems fast, but it creates two serious problems for your website.",
+          html: "Pasting Google Docs images into WordPress causes two problems. WordPress can link to temporary Google addresses instead of hosting the images, so the images break when an address expires. Direct pasting can also create heavy uncompressed PNG files with generic names like image1.png, which slow your pages and tell search engines nothing.",
         },
         {
           type: "p",
-          html: "First, WordPress frequently hotlinks images to temporary Google user content web addresses instead of hosting them on your server. When Google expires the temporary web address, the image breaks on your live website.",
-        },
-        {
-          type: "p",
-          html: "Second, direct pasting often converts your graphics into heavy uncompressed PNG files. Heavy PNG files slow down your pages and hurt your Core Web Vitals score. Google Docs also assigns generic file names like image1.png, which harms your search engine rankings.",
+          html: "Heavy PNG files also hurt your Core Web Vitals score.",
         },
       ],
     },
@@ -37,7 +33,7 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "You can extract the raw pictures from Google Docs without installing an add-on.",
+          html: "You can move Google Docs images to WordPress for free with the zipped web page download. You get the raw pictures in an images folder, then rename and convert them yourself and upload them to the Media Library. Renaming generic files like image1.png by hand takes time, and you need a separate WebP tool.",
         },
         {
           type: "ol",
@@ -52,10 +48,6 @@ export const article: Article = {
             "Drag the converted files into the upload area.",
           ],
         },
-        {
-          type: "p",
-          html: "<strong>Good:</strong> this method is free and requires no extra software. <strong>Not so good:</strong> renaming generic files like image1.png by hand takes time. You also need a separate tool to convert images to WebP.",
-        },
       ],
     },
     {
@@ -64,7 +56,7 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "Pluckr automates image extraction, file renaming, and WebP conversion inside Google Docs. You prepare the whole batch before you upload to WordPress.",
+          html: "Pluckr renames and converts every Google Docs image to WebP inside the Doc, so the whole batch is ready before you upload to WordPress. Pluckr runs in your web browser with WebAssembly, so your images do not go to an external server. Pluckr costs a one-time {{price}} with no subscription.",
         },
         {
           type: "ol",
@@ -79,10 +71,6 @@ export const article: Article = {
           ],
         },
         {
-          type: "p",
-          html: "Pluckr runs entirely in your web browser with WebAssembly. Your document text and images never travel to an external server. You pay a one-time {{price}} fee with no recurring subscription.",
-        },
-        {
           type: "callout",
           title: "Add clean Markdown for WordPress",
           html: "If you publish through a static site generator or the WordPress REST API, tick <strong>Add the Doc as Markdown</strong> in Output settings. Pluckr generates a clean content.md file with relative links to your WebP images.",
@@ -91,21 +79,13 @@ export const article: Article = {
     },
     {
       id: "wordpress-image-best-practices",
-      title: "Best practices for WordPress blog images",
+      title: "What are the best practices for WordPress blog images?",
       blocks: [
         {
           type: "p",
-          html: "Follow these four practices to help your WordPress articles load fast and rank well in Google Images.",
+          html: "WordPress blog images load fast when you follow four practices. Use descriptive file names with lowercase letters and hyphens, for example wordpress-seo-settings.webp. Use a modern format such as WebP. Resize each image to the maximum content width of your theme. Write concise alt text in the WordPress media settings.",
         },
-        {
-          type: "ul",
-          items: [
-            "Use descriptive file names with lowercase letters and hyphens (for example, wordpress-seo-settings.webp).",
-            "Convert images to modern formats like WebP to cut file sizes by 30 to 80 percent.",
-            "Resize images to your theme maximum content width before you upload.",
-            "Write concise alternative text in the WordPress media settings for accessibility and search engines.",
-          ],
-        },
+        { type: "h3", text: "How do the methods compare?" },
         {
           type: "table",
           columns: [

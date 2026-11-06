@@ -121,8 +121,8 @@ Answer engines are tools such as Google AI Overviews, ChatGPT and Perplexity. Th
 
 ### Page rules
 
-1. **Answer first.** The "short version" card must answer the question in the title. A reader must get the answer in the first 2 sentences.
-2. **Use the question as the heading.** Write a section title the way a person asks the question, for example "How do I convert Docs images to WebP?"
+1. **Answer first.** The "short version" card must answer the question in the title, in 40 to 60 words. Every section must also open with a paragraph of 40 to 60 words that gives the answer before any list, table or detail.
+2. **Use the question as the heading.** Write a section title the way a person asks the question, for example "How do I convert Docs images to WebP?" Method steps can use an instruction as the heading.
 3. **Make each passage stand alone.** Repeat the noun. Write "Pluckr converts images to WebP", not "It converts them".
 4. **Use the list that fits.** Use `ol` for steps. Use `ul` for options. Use a `table` for a comparison.
 5. **Write facts, not claims.** Give a number with its unit. Say how you measured it and when. For example: "A 796 KB PNG became 83 KB as WebP at quality 80."

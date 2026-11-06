@@ -6,7 +6,7 @@ export const article: Article = {
   title: "How to convert Google Docs images to WebP",
   description:
     "Google Docs does not export WebP images. Learn how to convert document images to WebP or AVIF without external upload tools.",
-  updated: "2026-11-05",
+  updated: "2026-11-06",
   cover: {
     src: "/guides/pluckr-converted-sizes.webp",
     alt: "The Pluckr sidebar showing converted WebP image file sizes next to original Google Docs images",
@@ -15,8 +15,8 @@ export const article: Article = {
   },
   readingMinutes: 4,
   summary: [
-    "Google Docs does not offer a WebP export option. You can convert images manually with third-party converters or automatically in your browser with Pluckr.",
-    "WebP reduces image file sizes by up to 80 percent compared to PNG. Pluckr converts images client-side for a one-time {{price}}.",
+    "Google Docs does not export images as WebP. You can convert images manually with a third-party converter, or in your browser with Pluckr.",
+    "In a Pluckr test, a 796 KB PNG from a Google Doc became an 83 KB WebP at quality 80, about 90 percent smaller. Pluckr costs a one-time {{price}}.",
   ],
   sections: [
     {
@@ -25,16 +25,21 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "Websites need fast images. Google Docs stores most pictures as heavy PNG or JPEG files. WebP gives the same visual quality at a fraction of the weight.",
+          html: "Convert Google Docs images to WebP because WebP files are much smaller than PNG files at a similar visual quality. Smaller images help your Largest Contentful Paint score, save bandwidth for your visitors and fit CMS upload limits. Google Docs stores most pictures as PNG or JPEG files, so the saving is often large.",
+        },
+        {
+          type: "table",
+          columns: ["One test image from a Google Doc", "File size", "Smaller than the PNG"],
+          highlight: 1,
+          rows: [
+            ["PNG", "796 KB", "-"],
+            ["JPEG", "104 KB", "87 percent"],
+            ["WebP at quality 80", "83 KB", "90 percent"],
+          ],
         },
         {
           type: "p",
-          html: "Smaller images improve your Largest Contentful Paint score in Google Search. WebP also saves bandwidth for your visitors and fits CMS upload limits.",
-        },
-        {
-          type: "callout",
-          title: "Real test numbers",
-          html: "In our sample test, a 796 KB PNG image from a Google Doc became an 83 KB WebP image at quality 80. The image kept its sharp look.",
+          html: "The saving depends on the image. In a second Pluckr test, a 213.3 KB image became a 105.8 KB WebP, about 50 percent smaller.",
         },
       ],
     },
@@ -44,7 +49,7 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "You can get original images out of Google Docs without add-ons by using the built-in HTML download option.",
+          html: "You can convert Google Docs images to WebP for free with the built-in zipped web page download and an online converter such as Squoosh. The method needs no install, but it takes several steps and the files have generic names. Some online converters upload your pictures, so check the policy of the site first.",
         },
         {
           type: "ol",
@@ -57,10 +62,6 @@ export const article: Article = {
             "Select WebP format and download each converted file.",
           ],
         },
-        {
-          type: "p",
-          html: "<strong>Good:</strong> this method is free and needs no software install. <strong>Downside:</strong> it takes several steps, files have generic names, and third-party sites can store your pictures.",
-        },
       ],
     },
     {
@@ -69,7 +70,7 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "Pluckr adds image conversion directly inside Google Docs. You can preview, resize, and convert images to WebP in one step.",
+          html: "Pluckr converts Google Docs images to WebP inside the Doc, so you do not upload files to a converter. You can preview, rename and resize every image, and Pluckr shows the converted size before you download. Every picture converts locally in your browser, and Pluckr never uploads your images to external servers.",
         },
         {
           type: "ol",
@@ -83,10 +84,6 @@ export const article: Article = {
           ],
         },
         {
-          type: "p",
-          html: "Every picture converts locally in your browser. Pluckr never uploads your images to external servers.",
-        },
-        {
           type: "image",
           src: "/guides/pluckr-converted-sizes.webp",
           alt: "The Pluckr sidebar showing image list with original sizes and estimated converted WebP sizes",
@@ -98,14 +95,18 @@ export const article: Article = {
     },
     {
       id: "comparison",
-      title: "Comparing WebP conversion methods",
+      title: "How do the WebP conversion methods compare?",
       blocks: [
+        {
+          type: "p",
+          html: "Both methods produce WebP files. An online converter is free, but it works outside your Doc and you rename the files by hand. Pluckr costs {{price}} once and adds batch conversion, bulk renaming, a maximum width, an aspect-ratio crop and alt text export in one sidebar inside Google Docs.",
+        },
         {
           type: "table",
           columns: ["", "Manual Online Converter", "Pluckr"],
           rows: [
             ["One-click batch conversion", false, true],
-            ["Client-side conversion privacy", false, true],
+            ["Client-side conversion privacy", "Depends on the site", true],
             ["Bulk rename files", false, true],
             ["Set maximum width", false, true],
             ["Crop to aspect ratio", false, true],
@@ -120,11 +121,11 @@ export const article: Article = {
   faq: [
     {
       q: "Can Google Docs save images as WebP natively?",
-      a: "No. Google Docs only allows downloading documents as PDF, Word, EPUB, or HTML zip archives. It does not export WebP files directly.",
+      a: "No. Google Docs downloads documents in formats such as PDF, Word, EPUB, Markdown and zipped HTML. None of these formats gives you WebP image files.",
     },
     {
       q: "Does converting to WebP reduce image quality?",
-      a: "WebP uses modern compression algorithms. At quality 80, visual quality matches the original image while reducing file size by 60 to 80 percent.",
+      a: "WebP at quality 80 is lossy, so keep your originals. In a Pluckr test at quality 80, a 796 KB PNG became an 83 KB WebP and kept its sharp look.",
     },
     {
       q: "Does Pluckr also support AVIF?",

@@ -73,10 +73,15 @@ function AccordionContent({
   return (
     <AccordionPrimitive.Content
       data-slot="accordion-content"
-      className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+      // Keep closed answers in the HTML so crawlers and answer engines can
+      // read them. Radix unmounts closed content by default.
+      forceMount
+      className="grid transition-[grid-template-rows,visibility] duration-200 ease-out data-[state=closed]:invisible data-[state=closed]:grid-rows-[0fr] data-[state=open]:grid-rows-[1fr]"
       {...props}
     >
-      <div className={cn("pt-2", className)}>{children}</div>
+      <div className="min-h-0 overflow-hidden">
+        <div className={cn("pt-2", className)}>{children}</div>
+      </div>
     </AccordionPrimitive.Content>
   )
 }

@@ -15,8 +15,8 @@ export const article: Article = {
   },
   readingMinutes: 4,
   summary: [
-    "Google Slides has no button to save a single picture or download all slide images at once. You can extract images for free with the PowerPoint ZIP trick or Google Keep, or download every picture in one step with Pluckr.",
-    "Pluckr lists every picture across all slides and groups for free up to 50 images. Pro adds bulk renaming and WebP or AVIF conversion for a one-time {{price}}.",
+    "Google Slides has no button to save one picture or all slide images. The free options are the PowerPoint ZIP trick and Google Keep.",
+    "Pluckr downloads every picture in one ZIP, including pictures in groups, for free up to 50 images. Pro adds bulk renaming and WebP or AVIF conversion for a one-time {{price}}.",
   ],
   sections: [
     {
@@ -25,11 +25,7 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "Google Slides does not offer a Save Image As option when you right-click a picture. Selecting File and Download only exports the full slide as a PNG, JPEG, or PDF.",
-        },
-        {
-          type: "p",
-          html: "Taking a screenshot or exporting a full slide lowers image resolution and captures text boxes over the photo. The three methods below extract the original image files stored inside your presentation.",
+          html: "Google Slides has no Save Image As option when you right-click a picture, and File &gt; Download exports the full slide as a PNG, JPEG or PDF. A screenshot or a full-slide export lowers the resolution and captures text boxes over the photo. The three methods below extract the original image files.",
         },
       ],
     },
@@ -39,7 +35,7 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "A PowerPoint (.pptx) file is a ZIP archive. You can download your presentation as a PowerPoint file and open the media folder inside.",
+          html: "A PowerPoint (.pptx) file is a ZIP archive, so you can extract every Google Slides picture at full resolution for free. Download the deck as a PowerPoint file, rename it to .zip and open the ppt/media folder. The files get generic names like image1.png, and Windows or macOS can hide the file extension.",
         },
         {
           type: "ol",
@@ -50,10 +46,6 @@ export const article: Article = {
             "Open the ZIP archive and open the <strong>ppt &gt; media</strong> folder to find your original images.",
           ],
         },
-        {
-          type: "p",
-          html: "<strong>Good:</strong> this method is free and extracts every picture at full resolution. <strong>Not so good:</strong> files get generic names like image1.png, and Windows or macOS hides file extensions by default.",
-        },
       ],
     },
     {
@@ -62,7 +54,7 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "When you only need one or two pictures from a slide deck, you can send them to the Google Keep side panel.",
+          html: "Google Keep is the free way to save one or two pictures from a Google Slides deck. Right-click a picture, send it to the Keep side panel, and save it from there. The method needs no file renaming, but you repeat it for each image, and grouped pictures need ungrouping first.",
         },
         {
           type: "ol",
@@ -73,10 +65,6 @@ export const article: Article = {
             "Right-click the image inside the Keep note and choose <strong>Save image as</strong>.",
           ],
         },
-        {
-          type: "p",
-          html: "<strong>Good:</strong> this method requires no file renaming and works for a single picture. <strong>Not so good:</strong> you must repeat the process one image at a time, and grouped pictures require ungrouping first.",
-        },
       ],
     },
     {
@@ -85,7 +73,7 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "Pluckr opens a sidebar inside Google Slides and lists every picture across every slide in order. Pluckr also finds pictures nested inside slide groups.",
+          html: "Pluckr opens a sidebar inside Google Slides and lists every picture across every slide in order, including pictures inside groups. You see a preview, the pixel dimensions and the file size of each picture, then download all pictures in one ZIP. Pluckr is free for up to 50 images per presentation.",
         },
         {
           type: "ol",
@@ -107,7 +95,7 @@ export const article: Article = {
         },
         {
           type: "p",
-          html: 'Pluckr is free for up to 50 images per presentation. Pro costs {{price}} once and unlocks bulk file patterns like <code>{deck}-{n}</code>, alt text editing, and conversion to <a href="/guides/convert-google-docs-images-to-webp">WebP or AVIF</a>.',
+          html: 'Pro costs {{price}} once and unlocks bulk file patterns like <code>{deck}-{n}</code>, alt text editing, and conversion to <a href="/guides/convert-google-docs-images-to-webp">WebP or AVIF</a>.',
         },
         {
           type: "callout",
@@ -120,6 +108,10 @@ export const article: Article = {
       id: "comparison",
       title: "How do the Google Slides extraction methods compare?",
       blocks: [
+        {
+          type: "p",
+          html: "The PowerPoint ZIP gets every slide image for free, but it needs a file rename and gives generic names. Save to Keep is free but handles one image at a time. Pluckr downloads all images with previews, including grouped pictures, and Pro adds bulk renaming and WebP or AVIF conversion for {{price}} once.",
+        },
         {
           type: "table",
           columns: ["", "PowerPoint (.pptx) ZIP", "Save to Keep", "Pluckr"],

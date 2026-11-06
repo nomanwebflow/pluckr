@@ -9,6 +9,10 @@ import {
 // Exported so the homepage FAQPage JSON-LD mirrors the visible questions.
 export const faqs = [
   {
+    q: "What is Pluckr?",
+    a: "Pluckr is a Google Docs and Google Slides add-on that extracts every image into one ZIP file. It renames images in bulk, converts them to WebP or AVIF, and exports a Doc as Markdown with an images folder. Conversion runs in your browser, so no image is uploaded.",
+  },
+  {
     q: "How do I download all images from a Google Doc?",
     a: "Open the Doc, choose Extensions, Pluckr, Extract images, then press Download originals to get every image in one ZIP. Google Docs has no built-in button for this.",
   },

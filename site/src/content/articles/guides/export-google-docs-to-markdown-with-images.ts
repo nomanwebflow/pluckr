@@ -25,11 +25,7 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "Google Docs includes a built-in Markdown export under <strong>File &gt; Download &gt; Markdown (.md)</strong>. This option works well for text-only documents.",
-        },
-        {
-          type: "p",
-          html: "When your Google Doc contains pictures, Google Docs converts each picture into a base64 string inside the Markdown file. Base64 strings make the file huge and hard to edit in code editors, static site generators, or Obsidian.",
+          html: "Google Docs exports a Markdown file under <strong>File &gt; Download &gt; Markdown (.md)</strong>, and this export works well for text-only documents. When a Doc contains pictures, Google Docs converts each picture into a base64 string inside the file. Base64 strings make the file huge and hard to edit in code editors, static site generators or Obsidian.",
         },
       ],
     },
@@ -39,7 +35,7 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "You can assemble a clean Markdown folder manually by combining two built-in Google Docs downloads.",
+          html: "You can build a clean Markdown folder for free by combining two built-in Google Docs downloads: the Markdown file for the text and the zipped web page for the images. You then delete the base64 data and point each image link to a file. Matching generic names like image1.png to each paragraph is slow.",
         },
         {
           type: "ol",
@@ -53,7 +49,7 @@ export const article: Article = {
         },
         {
           type: "p",
-          html: "<strong>Good:</strong> this method is free and requires no add-on. <strong>Not so good:</strong> matching generic names like image1.png to each paragraph is slow. You also need a separate tool to convert PNGs to WebP.",
+          html: "To convert the PNG files to WebP with this method, you need a separate tool.",
         },
       ],
     },
@@ -63,7 +59,7 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "Pluckr bundles your document text and extracted image files into one clean ZIP download. Every image tag in the Markdown file points directly to the matching file in the images folder.",
+          html: "Pluckr exports a Google Doc as one ZIP file that holds content.md and an images folder. Every image tag in content.md points to the matching file in the images folder, and Pluckr keeps the alt text of each image. You can also rename the files and convert them to WebP in the same step.",
         },
         {
           type: "ol",
@@ -91,7 +87,7 @@ export const article: Article = {
         },
         {
           type: "p",
-          html: "Pluckr preserves the alt text from each Google Docs image inside the Markdown image tag. You can also tick <strong>Add alt text files (CSV and JSON)</strong> to include structured metadata.",
+          html: "To include structured metadata, tick <strong>Add alt text files (CSV and JSON)</strong>.",
         },
         {
           type: "callout",
@@ -104,6 +100,10 @@ export const article: Article = {
       id: "comparison",
       title: "How do the Google Docs Markdown export methods compare?",
       blocks: [
+        {
+          type: "p",
+          html: "Three methods export a Google Doc to Markdown. The built-in .md download is free but embeds images as base64. The manual method is free and gives separate images after hand edits. Pluckr costs {{price}} once and gives clean relative links, bulk renaming and WebP or AVIF conversion with no hand edits.",
+        },
         {
           type: "table",
           columns: [

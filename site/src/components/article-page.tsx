@@ -12,6 +12,7 @@ import { ClosingCta } from "@/components/closing-cta";
 import { Nav } from "@/components/nav";
 import { Rich, prose } from "@/components/prose";
 import { articles, sectionOf } from "@/content/articles";
+import { PRICE } from "@/content/site";
 import type { Article, ArticleBlock } from "@/content/articles/types";
 
 const dateFormat = new Intl.DateTimeFormat("en-US", {
@@ -152,7 +153,9 @@ function Block({ block }: { block: ArticleBlock }) {
     case "table":
       return (
         <div className="relative -mx-2 overflow-x-auto px-2">
-          <table className="w-full min-w-[560px] border-separate border-spacing-y-1 text-left">
+          <table
+            className={`w-full border-separate border-spacing-y-1 text-left ${block.columns.length > 3 ? "min-w-[560px]" : ""}`}
+          >
             <thead>
               <tr className="text-xs text-white/60">
                 {block.columns.map((col, i) => (
@@ -277,20 +280,61 @@ function Related({ article }: { article: Article }) {
   );
 }
 
+const SITE_URL = "https://docpluckr.com";
+const PUBLISHER = { "@type": "Organization", name: "Pluckr", url: SITE_URL };
+
+// Content strings hold light markup and the {{price}} token. Structured data
+// and FAQ answers need the plain text.
+const plainText = (html: string) =>
+  html
+    .replaceAll("{{price}}", PRICE)
+    .replace(/<[^>]+>/g, "")
+    .replaceAll("&gt;", ">");
+
 export function ArticlePage({ article }: { article: Article }) {
   const headings = [
     ...article.sections.map((s) => ({ id: s.id, title: s.title })),
     ...(article.faq ? [{ id: "questions", title: "Questions" }] : []),
   ];
+  const url = `${SITE_URL}/${sectionOf(article.kind)}/${article.slug}`;
+  const howToSections = article.sections.flatMap((s) => {
+    const steps = s.blocks.flatMap((b) => (b.type === "ol" ? b.items : []));
+    return steps.length
+      ? [
+          {
+            "@type": "HowToSection",
+            name: s.title,
+            itemListElement: steps.map((text) => ({
+              "@type": "HowToStep",
+              text: plainText(text),
+            })),
+          },
+        ]
+      : [];
+  });
   const jsonLd = [
     {
       "@context": "https://schema.org",
-      "@type": article.kind === "guide" ? "HowTo" : "Article",
+      "@type": "Article",
       headline: article.title,
-      name: article.title,
       description: article.description,
       dateModified: article.updated,
+      mainEntityOfPage: url,
+      author: PUBLISHER,
+      publisher: PUBLISHER,
+      ...(article.cover ? { image: `${SITE_URL}${article.cover.src}` } : {}),
     },
+    ...(howToSections.length
+      ? [
+          {
+            "@context": "https://schema.org",
+            "@type": "HowTo",
+            name: article.title,
+            description: article.description,
+            step: howToSections,
+          },
+        ]
+      : []),
     ...(article.faq
       ? [
           {
@@ -299,7 +343,7 @@ export function ArticlePage({ article }: { article: Article }) {
             mainEntity: article.faq.map((f) => ({
               "@type": "Question",
               name: f.q,
-              acceptedAnswer: { "@type": "Answer", text: f.a },
+              acceptedAnswer: { "@type": "Answer", text: plainText(f.a) },
             })),
           },
         ]
@@ -319,8 +363,8 @@ export function ArticlePage({ article }: { article: Article }) {
           {article.title}
         </h1>
         <p className="font-reading text-base leading-normal text-white/70">
-          Updated {formatDate(article.updated)} · {article.readingMinutes} min
-          read
+          By Pluckr · Updated {formatDate(article.updated)} ·{" "}
+          {article.readingMinutes} min read
         </p>
       </header>
 
@@ -394,7 +438,7 @@ export function ArticlePage({ article }: { article: Article }) {
                   <AccordionContent>
                     <div className="rounded-2xl border border-white/5 bg-black p-6">
                       <p className="font-reading text-base leading-normal">
-                        {f.a}
+                        {plainText(f.a)}
                       </p>
                     </div>
                   </AccordionContent>
