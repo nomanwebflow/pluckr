@@ -304,6 +304,60 @@ function CompareIllustration() {
   );
 }
 
+function WordpressExportIllustration() {
+  return (
+    <div className="flex size-full items-center justify-center gap-3 px-5 py-4 sm:gap-4 sm:px-7">
+      {/* Google Doc source card */}
+      <div className="flex h-[80%] w-[46%] max-w-[185px] flex-col justify-between rounded-xl border border-white/10 bg-[#0d0d0d] p-3">
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-[10px] text-white/60">Google Docs</span>
+          <span className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[9px] text-white/70">
+            RAW
+          </span>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between rounded-lg border border-white/5 bg-black px-2.5 py-1.5">
+            <span className="truncate font-mono text-[9px] text-white/60">image1.png</span>
+            <span className="font-mono text-[9px] text-white/40">2.4 MB</span>
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-white/5 bg-black px-2.5 py-1.5">
+            <span className="truncate font-mono text-[9px] text-white/60">image2.png</span>
+            <span className="font-mono text-[9px] text-white/40">1.8 MB</span>
+          </div>
+        </div>
+        <div className="rounded border border-red-500/20 bg-red-500/10 px-2 py-1 text-center font-mono text-[9px] text-red-300">
+          Heavy &amp; generic
+        </div>
+      </div>
+
+      <Arrow />
+
+      {/* WordPress Media Library card */}
+      <div className="flex h-[80%] w-[48%] max-w-[195px] flex-col justify-between rounded-xl border border-[#0062fb]/40 bg-[#0d0d0d] p-3">
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-[10px] text-[#6ea8fe]">WP Media</span>
+          <span className="rounded bg-[#0062fb] px-1.5 py-0.5 font-mono text-[9px] text-white">
+            WEBP
+          </span>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between rounded-lg border border-white/5 bg-black px-2.5 py-1.5">
+            <span className="truncate font-mono text-[9px] text-[#6ea8fe]">hero-banner.webp</span>
+            <span className="font-mono text-[9px] text-white/70">84 KB</span>
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-white/5 bg-black px-2.5 py-1.5">
+            <span className="truncate font-mono text-[9px] text-[#6ea8fe]">chart-data.webp</span>
+            <span className="font-mono text-[9px] text-white/70">52 KB</span>
+          </div>
+        </div>
+        <div className="rounded border border-[#0062fb]/30 bg-[#0062fb]/10 px-2 py-1 text-center font-mono text-[9px] text-[#6ea8fe]">
+          SEO keywords + alt
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ArticleIllustration({
   slug,
   kind,
@@ -332,6 +386,8 @@ export function ArticleIllustration({
           <ExtractSlidesIllustration />
         ) : slug === "export-google-docs-to-markdown-with-images" ? (
           <ExportMarkdownIllustration />
+        ) : slug === "google-docs-to-wordpress-images" ? (
+          <WordpressExportIllustration />
         ) : kind === "compare" ? (
           <CompareIllustration />
         ) : (
