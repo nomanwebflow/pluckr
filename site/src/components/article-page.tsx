@@ -225,7 +225,14 @@ function Block({ block }: { block: ArticleBlock }) {
 
 // Card used on the index pages and in "Keep reading". Same pattern as the
 // other cards on the site: a dark outer card, a black panel, a title bar.
-export function ArticleCard({ article }: { article: Article }) {
+export function ArticleCard({
+  article,
+  headingLevel = "h3",
+}: {
+  article: Article;
+  headingLevel?: "h2" | "h3";
+}) {
+  const Heading = headingLevel;
   return (
     <Link
       href={`/${sectionOf(article.kind)}/${article.slug}`}
@@ -234,11 +241,14 @@ export function ArticleCard({ article }: { article: Article }) {
       <div className="relative aspect-[8/5] overflow-clip rounded-2xl border border-white/5 bg-black">
         <ArticleIllustration slug={article.slug} kind={article.kind} />
       </div>
-      <div className="flex flex-col gap-1 p-2">
-        <h3 className="font-display text-lg leading-[normal] capitalize transition-colors group-hover:text-white/70">
+      <div className="flex flex-col gap-1.5 p-2">
+        <Heading className="font-display text-lg leading-[normal] capitalize transition-colors group-hover:text-white/70">
           {article.title}
-        </h3>
-        <p className="font-reading text-xs leading-normal text-white">
+        </Heading>
+        <p className="font-reading text-sm leading-normal text-white/70 line-clamp-2">
+          {article.description}
+        </p>
+        <p className="font-reading mt-0.5 text-xs leading-normal text-white/50">
           {formatDate(article.updated)} · {article.readingMinutes} min read
         </p>
       </div>
@@ -410,10 +420,14 @@ export function ArticleIndex({
   title,
   intro,
   items,
+  listHeading,
+  children,
 }: {
   title: string;
-  intro: string;
+  intro: string | React.ReactNode;
   items: readonly Article[];
+  listHeading?: string;
+  children?: React.ReactNode;
 }) {
   return (
     <ArticleFrame>
@@ -421,17 +435,33 @@ export function ArticleIndex({
         <h1 className="font-display w-full text-[clamp(40px,7vw,72px)] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
           {title}
         </h1>
-        <p className="font-reading max-w-[48ch] text-base leading-normal text-balance">
-          {intro}
-        </p>
+        {typeof intro === "string" ? (
+          <p className="font-reading max-w-[56ch] text-base leading-normal text-balance text-white/80">
+            {intro}
+          </p>
+        ) : (
+          intro
+        )}
       </header>
-      <ul className="relative flex w-full max-w-[1180px] flex-wrap justify-center gap-4">
-        {items.map((item) => (
-          <li key={item.slug} className="w-full md:w-[calc(50%-8px)]">
-            <ArticleCard article={item} />
-          </li>
-        ))}
-      </ul>
+
+      <section className="relative flex w-full max-w-[1180px] flex-col gap-6">
+        <h2 className="font-display text-[28px] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
+          {listHeading ?? `All ${title}`}
+        </h2>
+        <ul className="flex w-full flex-wrap justify-center gap-4">
+          {items.map((item) => (
+            <li key={item.slug} className="w-full md:w-[calc(50%-8px)]">
+              <ArticleCard article={item} headingLevel="h3" />
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {children && (
+        <div className="relative flex w-full max-w-[1180px] flex-col gap-16">
+          {children}
+        </div>
+      )}
     </ArticleFrame>
   );
 }

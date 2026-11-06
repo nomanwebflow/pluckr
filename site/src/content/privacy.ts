@@ -196,7 +196,7 @@ export const privacy = {
         },
         {
           "type": "p",
-          "html": "To delete your record, email <a href=\"mailto:support@docpluckr.com\">support@docpluckr.com</a>. When we delete it, your license ends. We cannot restore it without proof of purchase. Polar keeps payment and tax records for the period that the law sets. Polar uses its own policy for this."
+          "html": "To delete your record, email <!--email_off--><a href=\"mailto:support@docpluckr.com\">support@docpluckr.com</a><!--/email_off-->. When we delete it, your license ends. We cannot restore it without proof of purchase. Polar keeps payment and tax records for the period that the law sets. Polar uses its own policy for this."
         }
       ]
     },
@@ -258,7 +258,7 @@ export const privacy = {
         },
         {
           "type": "p",
-          "html": "After you revoke access, Pluckr does not have access to the current document. Pluckr does not delete your license record. To delete it, email <a href=\"mailto:support@docpluckr.com\">support@docpluckr.com</a>."
+          "html": "After you revoke access, Pluckr does not have access to the current document. Pluckr does not delete your license record. To delete it, email <!--email_off--><a href=\"mailto:support@docpluckr.com\">support@docpluckr.com</a><!--/email_off-->."
         }
       ]
     },
@@ -285,7 +285,7 @@ export const privacy = {
       "blocks": [
         {
           "type": "p",
-          "html": "Email <a href=\"mailto:support@docpluckr.com\">support@docpluckr.com</a> with questions or privacy requests."
+          "html": "Email <!--email_off--><a href=\"mailto:support@docpluckr.com\">support@docpluckr.com</a><!--/email_off--> with questions or privacy requests."
         }
       ]
     }

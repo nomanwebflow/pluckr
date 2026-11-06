@@ -83,7 +83,7 @@ export const terms = {
             "<strong>What you get.</strong> You get one license for one Google account. The license lasts for as long as Pluckr is on offer.",
             "<strong>Payment.</strong> Polar (polar.sh) processes the payments. Polar handles your payment details. The terms of Polar apply to the purchase. We do not receive your card details.",
             "<strong>License.</strong> Your license is personal. You cannot transfer it. It belongs to the Google account that you bought it with. You can use it on any device where you sign in with that account. Do not share or resell it.",
-            "<strong>Refunds.</strong> You can ask for a refund within 14 days of the purchase. To do this, email <a href=\"mailto:support@docpluckr.com\">support@docpluckr.com</a>. Polar processes the refund. After a refund, your license ends.",
+            "<strong>Refunds.</strong> You can ask for a refund within 14 days of the purchase. To do this, email <!--email_off--><a href=\"mailto:support@docpluckr.com\">support@docpluckr.com</a><!--/email_off-->. Polar processes the refund. After a refund, your license ends.",
             "<strong>Price changes.</strong> If we change the price, the change does not affect licenses that you already bought."
           ]
         }
@@ -255,7 +255,7 @@ export const terms = {
       "blocks": [
         {
           "type": "p",
-          "html": "Email <a href=\"mailto:support@docpluckr.com\">support@docpluckr.com</a> with questions about these Terms."
+          "html": "Email <!--email_off--><a href=\"mailto:support@docpluckr.com\">support@docpluckr.com</a><!--/email_off--> with questions about these Terms."
         }
       ]
     }

@@ -5,7 +5,7 @@ import type { Article } from "../types";
 export const article: Article = {
   kind: "compare",
   slug: "pluckr-vs-google-docs-built-in-downloads",
-  title: "Pluckr vs the built-in ways to download Google Doc images",
+  title: "Pluckr vs Built-In Google Docs Image Downloads",
   description:
     "A side-by-side look at the zipped web page, the Word trick, an Apps Script and Pluckr for getting images out of a Google Doc.",
   updated: "2026-11-05",
