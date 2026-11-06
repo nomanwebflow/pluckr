@@ -48,7 +48,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col bg-black">
         <Script
           async
-          src="https://www.googletagmanager.com/gtm.js?id=GTM-5X78MZ7Z"
+          src="https://www.googletagmanager.com/gtm.js?id=GTM-NQ6J77D4"
           strategy="lazyOnload"
         />
         <Script id="google-tag-manager" strategy="lazyOnload">
