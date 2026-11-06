@@ -282,6 +282,14 @@ function Related({ article }: { article: Article }) {
 
 const SITE_URL = "https://docpluckr.com";
 const PUBLISHER = { "@type": "Organization", name: "Pluckr", url: SITE_URL };
+const AUTHOR_NAME = "Noman Ahmed";
+const AUTHOR_URL = "https://www.linkedin.com/in/thewebflowguy/";
+const AUTHOR = {
+  "@type": "Person",
+  name: AUTHOR_NAME,
+  url: AUTHOR_URL,
+  sameAs: [AUTHOR_URL],
+};
 
 // Content strings hold light markup and the {{price}} token. Structured data
 // and FAQ answers need the plain text.
@@ -320,7 +328,7 @@ export function ArticlePage({ article }: { article: Article }) {
       description: article.description,
       dateModified: article.updated,
       mainEntityOfPage: url,
-      author: PUBLISHER,
+      author: AUTHOR,
       publisher: PUBLISHER,
       ...(article.cover ? { image: `${SITE_URL}${article.cover.src}` } : {}),
     },
@@ -363,7 +371,16 @@ export function ArticlePage({ article }: { article: Article }) {
           {article.title}
         </h1>
         <p className="font-reading text-base leading-normal text-white/70">
-          By Pluckr · Updated {formatDate(article.updated)} ·{" "}
+          By{" "}
+          <a
+            href={AUTHOR_URL}
+            target="_blank"
+            rel="author noopener"
+            className="underline decoration-white/30 underline-offset-4 transition-colors hover:text-white"
+          >
+            {AUTHOR_NAME}
+          </a>{" "}
+          · Updated {formatDate(article.updated)} ·{" "}
           {article.readingMinutes} min read
         </p>
       </header>
