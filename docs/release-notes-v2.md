@@ -8,7 +8,7 @@ Pluckr 2 adds Google Slides. Pull every picture out of a deck, convert it, renam
 
 ## What's new
 
-- **Google Slides.** Every picture on every slide, including grouped ones. Same sidebar, same one-time $5 for Docs and Slides.
+- **Google Slides.** Every picture on every slide, including grouped ones. Same sidebar, same one-time $12 for Docs and Slides.
 - **Select what you need.** Tick images, then download, convert or rename only those.
 - **Bulk rename.** Patterns like `{doc}-{n}` with a live preview.
 - **Alt text.** See which images have none, write it in the sidebar, save it to the file, or export it as CSV and JSON.

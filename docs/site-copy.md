@@ -2,7 +2,7 @@
 
 Written Nov 2, 2026. Copy for the rebuilt site in `docs/website-plan.md`. It covers the free tier added in v2.
 
-Plan: Free = list, preview and download originals for up to 50 images in each Doc or deck. Pro = $5 once: bulk rename, alt text editing, convert, crop, resize, optimize and Markdown export.
+Plan: Free = list, preview and download originals for up to 50 images in each Doc or deck. Pro = $12 once: bulk rename, alt text editing, convert, crop, resize, optimize and Markdown export.
 
 ## Keywords
 
@@ -40,7 +40,7 @@ Use these exact words in H1s and titles: "extract images", "download all images"
 ## Home (`/`)
 
 **Title:** Extract and Convert Images from Google Docs | Pluckr
-**Description:** Pull every image out of a Google Doc or Slides deck. Rename them, convert to WebP or AVIF, keep alt text. 50 images free. Pro is $5 once.
+**Description:** Pull every image out of a Google Doc or Slides deck. Rename them, convert to WebP or AVIF, keep alt text. 50 images free. Pro is $12 once.
 
 ### Nav
 Docs · Slides · Pricing · Guides · [Add to Google Docs]
@@ -49,7 +49,7 @@ Docs · Slides · Pricing · Guides · [Add to Google Docs]
 **H1:** Get every image out of a Google Doc.
 **Sub:** Pluckr lists the images in your Doc or Slides deck. Pick them, rename them, convert them, and download them at one time.
 **Button:** Add to Google Docs
-**Trust line:** Free for 50 images in a file. Pro is $5 once. Your images stay in your browser.
+**Trust line:** Free for 50 images in a file. Pro is $12 once. Your images stay in your browser.
 **Works in:** Google Docs · Google Slides
 
 ### Before and after
@@ -95,7 +95,7 @@ Each file has a name from one pattern, for example west-coast-road-trip-01.webp.
 **Link:** Privacy policy
 
 ### Pricing
-**Headline:** Start free. Pay $5 once for Pro.
+**Headline:** Start free. Pay $12 once for Pro.
 **Free:** List, preview and download up to 50 images in each Doc or deck.
 **Pro:** Bulk rename, alt text editing, convert, crop, resize, optimize and Markdown export. One purchase covers Docs and Slides.
 **Lines:** No subscription. You can get a refund in 14 days.
@@ -116,11 +116,11 @@ Yes, with Pro. Choose WebP, AVIF, JPEG or PNG. Set the quality, the aspect ratio
 No. Conversion runs in your browser. Pluckr sends a Google sign-in token to its licence service to check your licence. It sends no image and no text.
 
 **How much does Pluckr cost? Is there a subscription?**
-Pluckr is free for up to 50 images in each file. Pro costs $5 once. There is no subscription. You can get a refund in 14 days.
+Pluckr is free for up to 50 images in each file. Pro costs $12 once. There is no subscription. You can get a refund in 14 days.
 
 ### Closing
 **Headline:** Your next Doc can ship with named, small images.
-**Body:** Add Pluckr to Google Docs and Slides. List the images, pick the ones you need, and download them in one ZIP file. Pluckr is free for 50 images in each file. Pro is $5 once.
+**Body:** Add Pluckr to Google Docs and Slides. List the images, pick the ones you need, and download them in one ZIP file. Pluckr is free for 50 images in each file. Pro is $12 once.
 **Button:** Add Pluckr to Google Docs
 **Under the button:** No account. Your images stay in your browser.
 
@@ -149,12 +149,12 @@ Trademark line: Google Docs and Google Slides are trademarks of Google LLC. Pluc
 **FAQ**
 - *Do I need to publish the deck?* No. Pluckr reads the deck in the open file.
 - *Does Pluckr change my slides?* Only when you press Save or confirm Optimize.
-- *Is it free?* Yes, for up to 50 images in each deck. Pro costs $5 once.
+- *Is it free?* Yes, for up to 50 images in each deck. Pro costs $12 once.
 
 ## Markdown (`/export-google-docs-to-markdown-with-images`)
 
 **Title:** Export Google Docs to Markdown with Images
-**Description:** One download with content.md, an images folder and alt text. For blogs, static sites and Obsidian. Pro is $5 once.
+**Description:** One download with content.md, an images folder and alt text. For blogs, static sites and Obsidian. Pro is $12 once.
 **H1:** Export a Google Doc to Markdown, with the images.
 **Lead:** Pluckr gives you content.md and an images folder in one ZIP file. Each link in the Markdown points to a real file.
 
@@ -173,7 +173,7 @@ Trademark line: Google Docs and Google Slides are trademarks of Google LLC. Pluc
 ## Alt text (`/export-google-docs-alt-text`)
 
 **Title:** Export Alt Text from Google Docs
-**Description:** See which Doc images have no alt text. Write it in a sidebar and export it as CSV or JSON. Pro is $5 once.
+**Description:** See which Doc images have no alt text. Write it in a sidebar and export it as CSV or JSON. Pro is $12 once.
 **H1:** Find and fix missing alt text in a Google Doc.
 **Lead:** Pluckr shows every image and its alt text. Filter to the images that have none.
 
@@ -189,13 +189,13 @@ Trademark line: Google Docs and Google Slides are trademarks of Google LLC. Pluc
 
 ## Pricing (`/pricing`)
 
-**Title:** Pluckr Pricing: Free, and $5 Once for Pro
-**Description:** Free for 50 images in each file. Pro is one $5 purchase for Google Docs and Slides. No subscription. 14-day refunds.
-**H1:** Start free. Pay $5 once for Pro.
+**Title:** Pluckr Pricing: Free, and $12 Once for Pro
+**Description:** Free for 50 images in each file. Pro is one $12 purchase for Google Docs and Slides. No subscription. 14-day refunds.
+**H1:** Start free. Pay $12 once for Pro.
 
 **Free:** List and preview the images. Download the originals as one ZIP file. Up to 50 images in each Doc or deck.
 
-**Pro, $5 once:** Bulk rename. Alt text editing. Convert to WebP, AVIF, JPEG or PNG. Crop and resize. Optimize the images in the file. Markdown export. No limit on images.
+**Pro, $12 once:** Bulk rename. Alt text editing. Convert to WebP, AVIF, JPEG or PNG. Crop and resize. Optimize the images in the file. Markdown export. No limit on images.
 
 **Terms:** One purchase covers one Google account, Docs and Slides. There is no subscription. Email support@docpluckr.com in 14 days for a refund.
 

@@ -2,11 +2,11 @@
 // is in marketing/webflow-legacy/privacy.html. HTML here is our own static copy
 // (strong, a, code only), rendered by the privacy page.
 export const privacy = {
-  "updated": "October 25, 2026",
+  "updated": "November 6, 2026",
   "shortTitle": "The short version:",
   "shortParagraphs": [
-    "Pluckr reads the inline images in the Google Doc where you open it. Apps Script reads the image data and makes the ZIP files of originals. Your browser converts the images.",
-    "Pluckr is a one-time purchase. To check your license, Pluckr reads your Google account email address. Pluckr’s license service and Polar, our payment provider, handle the check and your purchase record.",
+    "Pluckr reads the inline images in the Google Doc, or the pictures in the Google Slides deck, where you open it. Apps Script reads the image data and makes the ZIP files of originals. Your browser converts the images. If you choose Save to Drive, Pluckr saves the files in a folder in your Google Drive.",
+    "Pluckr is free for up to 50 images in each file. Pro is a one-time purchase. To check your license, Pluckr reads your Google account email address. Pluckr’s license service and Polar, our payment provider, handle the check and your purchase record.",
     "Pluckr never sends your document images to its servers."
   ],
   "sections": [
@@ -47,7 +47,7 @@ export const privacy = {
         },
         {
           "type": "p",
-          "html": "Pluckr is a one-time purchase. To find out if you bought it, Pluckr asks Google for an identity token for your account. Pluckr sends the token to its license service. The license service replies if a paid license exists for your account."
+          "html": "Pluckr is free for up to 50 images in each file. Pro is a one-time purchase. To find out if you bought it, Pluckr asks Google for an identity token for your account. Pluckr sends the token to its license service. The license service replies if a paid license exists for your account."
         }
       ]
     },
@@ -58,6 +58,7 @@ export const privacy = {
           "type": "ul",
           "items": [
             "<strong>Images in the current document.</strong> After you choose to scan or refresh a scan, Apps Script reads the inline images in the body of the document. This includes images in tables and in document tabs. Apps Script reads the image bytes, file type, and dimensions of each image. It also reads the alt text (title and description) and the link address of each image. Pluckr uses this data to show and export the images. Pluckr does not extract floating images or images in headers, footers, or footnotes at this time.",
+            "<strong>Pictures in the current presentation.</strong> In Google Slides, after you choose to scan or refresh a scan, Apps Script reads the pictures on each slide. This includes pictures inside groups.",
             "<strong>Document text and structure (Markdown export only).</strong> Pluckr reads this data only if you tick the Markdown option. Apps Script reads the text, headings, lists, tables, links, and basic formatting of each document tab. Apps Script sends this data to the sidebar. The sidebar builds the content.md file in your browser. Pluckr does not read this data if you do not choose the option.",
             "<strong>Alt text changes (only when you choose them).</strong> If you press Save to Doc on the alt text of an image, Pluckr writes that text to the image. Pluckr changes nothing else.",
             "<strong>Optimize changes (only when you choose them).</strong> If you confirm the optimize step, Pluckr replaces the images in the open document with smaller JPEG or PNG copies. Pluckr replaces the images one by one. Each copy keeps the size that the image already has on the page. Each copy also keeps the alt text and the link of the image. Pluckr does not change anything else in the document.",
@@ -65,7 +66,7 @@ export const privacy = {
             "<strong>Document name.</strong> Apps Script uses the name of the document to name the ZIP file of original images.",
             "<strong>Google account identity and email.</strong> When you open Pluckr, it asks Google for an identity token. The token contains your Google account ID. Pluckr asks for the email scope, so the token also contains your email address. Pluckr uses the account ID and the email address only to check and record your license.",
             "<strong>License and purchase record.</strong> Pluckr’s license service stores your Google account ID and your email address. It also stores if you have a paid license and the date of purchase. It stores the order and customer references from Polar. It records the time when your Google account agreed to the Privacy Policy and the Terms before checkout. It does not store document content or your identity token.",
-            "<strong>Authorization.</strong> Pluckr asks for access to the current document. It asks for permission to show a Google Docs sidebar. It also asks for your Google account identity and email to check your license. The manifest uses the <code>documents.currentonly</code>, <code>script.container.ui</code>, <code>openid</code> and <code>userinfo.email</code> scopes. Pluckr does not ask for access to browse all of your Google Drive."
+            "<strong>Authorization.</strong> Pluckr asks for access to the current document. It asks for permission to show a sidebar in Google Docs and Google Slides. It also asks for your Google account identity and email to check your license. For Save to Drive, it asks for access only to the Drive files that Pluckr creates. The manifest uses the <code>documents.currentonly</code>, <code>presentations.currentonly</code>, <code>script.container.ui</code>, <code>drive.file</code>, <code>openid</code> and <code>userinfo.email</code> scopes. Pluckr does not ask for access to browse all of your Google Drive."
           ]
         }
       ]
@@ -106,6 +107,23 @@ export const privacy = {
         {
           "type": "p",
           "html": "Website hosting providers and content-delivery providers can receive ordinary connection information when you visit docpluckr.com. The section Website and third-party services describes this. These providers do not receive document image data through Pluckr."
+        }
+      ]
+    },
+    {
+      "title": "Files saved to your Google Drive",
+      "blocks": [
+        {
+          "type": "p",
+          "html": "Save to Drive is a Pro feature. Pluckr uses it only when you choose it. Apps Script then creates a folder named after your file in your My Drive, and saves the files that you selected in that folder. Google Drive stores the files. Pluckr’s servers do not receive them."
+        },
+        {
+          "type": "p",
+          "html": "The <code>drive.file</code> scope lets Pluckr reach only the files and folders that it creates. Pluckr stores the ID of the folder in the properties of your document, so that a second save uses the same folder. If a file with the same name is in the folder, Pluckr replaces that file."
+        },
+        {
+          "type": "p",
+          "html": "The files stay in your Google Drive until you delete them. Pluckr does not delete them for you."
         }
       ]
     },

@@ -10,6 +10,8 @@ The Marketplace listing points at one numbered script version. HEAD is the lates
 | 3 | Marketplace 2.0: Slides, alt text, Markdown, optimize | Cut from HEAD (commit 7fc7949) on Oct 27, 2026 after the deck test passed. Adds `presentations.currentonly`. | Superseded by version 4 (not used)  (see `docs/slides-rollout.md`) | Superseded by version 4 (not used)  (see `docs/slides-rollout.md`) |
 | 4 | Marketplace 2.0: Slides, alt text, Markdown, optimize (final) | Cut from HEAD on Oct 30, 2026. Version 3 plus the rounded image sizes in Slides. | **The Slides release** (see `docs/slides-rollout.md`) |
 | 5 | Marketplace 2.1: free tier | Cut from HEAD on Nov 4, 2026. Version 4 plus the free tier (50 images per file free; bulk rename, alt editing, output settings and optimize are Pro) and the entitlement gate. | **Candidate release.** Not referenced by the Marketplace SDK yet. |
+| 6 | Marketplace 2.2: Save to Drive, faster scan | Cut from HEAD. Version 5 plus Save to Drive (adds `drive.file`) and the faster scan. Shows the $5 label. | Superseded by version 7 (not submitted) |
+| 7 | Marketplace 2.3: $12 price | Version 6 with the price label changed to $12. No other change. | **Candidate release.** Point App Configuration here. |
 
 Why version 2 exists: Google's review rules say menu items must appear under the Add-ons menu (Extensions in Docs). Version 1 used a top-level menu while the listing, the post install tip and the reply to the reviewers all say "Extensions > Pluckr > Extract images".
 

@@ -2,11 +2,11 @@
 // marketing/webflow-legacy/terms.html. HTML here is our own static copy
 // (strong and a only). {{price}} is replaced with PRICE from site.ts.
 export const terms = {
-  "updated": "October 25, 2026",
+  "updated": "November 6, 2026",
   "shortTitle": "The short version:",
   "shortParagraphs": [
     "Pluckr is an add-on for Google Docs and Google Slides. It extracts, downloads, and converts images from the document where you open it. Apps Script reads the document images and makes the downloads of original images. Your browser converts the images.",
-    "Pluckr is a one-time paid add-on. Use Pluckr only with content that you are authorized to access. We give the Service “as is”, without warranty."
+    "Pluckr is free for up to 50 images in each file. Pro is a one-time purchase. Use Pluckr only with content that you are authorized to access. We give the Service “as is”, without warranty."
   ],
   "sections": [
     {
@@ -69,7 +69,7 @@ export const terms = {
         },
         {
           "type": "p",
-          "html": "To use Pluckr, you need a paid license. Pluckr checks your license with its license service. It uses your Google account email address for this check. The Privacy Policy describes the check."
+          "html": "Pluckr is free for up to 50 images in each file. Bulk rename, alt text editing, output settings, Optimize and Save to Drive need a paid license. Pluckr checks your license with its license service. It uses your Google account email address for this check. The Privacy Policy describes the check."
         }
       ]
     },
@@ -79,7 +79,7 @@ export const terms = {
         {
           "type": "ul",
           "items": [
-            "<strong>Price.</strong> Pluckr is a one-time purchase of {{price}} USD. Taxes that we calculate at checkout are extra. There is no subscription and no recurring charge.",
+            "<strong>Price.</strong> Pluckr Pro is a one-time purchase of {{price}} USD. Taxes that we calculate at checkout are extra. There is no subscription and no recurring charge.",
             "<strong>What you get.</strong> You get one license for one Google account. The license lasts for as long as Pluckr is on offer.",
             "<strong>Payment.</strong> Polar (polar.sh) processes the payments. Polar handles your payment details. The terms of Polar apply to the purchase. We do not receive your card details.",
             "<strong>License.</strong> Your license is personal. You cannot transfer it. It belongs to the Google account that you bought it with. You can use it on any device where you sign in with that account. Do not share or resell it.",

@@ -31,6 +31,8 @@ export function Process() {
       id="features"
       className="relative flex flex-col items-center gap-[72px] bg-gradient-to-t from-black to-[#0d0d0d] px-6 py-24 text-white md:px-16 md:py-32"
     >
+      {/* The Marketplace listing's Help URL points here. */}
+      <span id="how-it-works" aria-hidden className="absolute top-0" />
       <div className="flex flex-col items-center gap-6 text-center">
         <h2 className="font-display w-full max-w-[646px] text-[clamp(36px,5vw,56px)] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
           <span className="block">Three steps.</span>

@@ -9,11 +9,11 @@ Properties), the updated privacy policy and the updated terms are all deployed.
 |---|---|
 | Convex production deployment | `kindly-hawk-555` (EU). Site URL: https://kindly-hawk-555.eu-west-1.convex.site. A dev deployment, `courteous-butterfly-858`, is for experiments only. |
 | Convex env (prod) | `ENTITLEMENT_SECRET` (copy in `.secrets/entitlement-secret.txt`, git-ignored; the same value is in Apps Script Script Properties), `POLAR_PRODUCT_ID`, `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`, `GOOGLE_CLIENT_ID` (the token audience; issuer https://accounts.google.com). |
-| Polar organisation | `pluckr`. Product "Life Time Access" (`c6f6026a-717a-464c-992e-818f2bc18ea2`), **$5**, one-time. |
+| Polar organisation | `pluckr`. Product "Life Time Access" (`c6f6026a-717a-464c-992e-818f2bc18ea2`), **$12**, one-time (it was $5 until Nov 6, 2026; confirm the price in Polar). |
 | Polar token | `pluckr-convex-licences`, scope `checkouts:write` only, expires Oct 20, 2027 (create a new one and reset `POLAR_ACCESS_TOKEN` before then). |
 | Polar webhook | `pluckr-licences` -> `/polar-webhook`, events `order.paid` and `order.refunded`, raw format. |
 | Manifest | `openid` and `userinfo.email` in `apps-script/appsscript.json`. |
-| Sidebar | `.env.production` holds the production URL and the `$5` label. Keep it equal to the Polar price. |
+| Sidebar | `.env.production` holds the production URL and the `$12` label. Keep it equal to the Polar price. |
 
 OAuth verification:
 - Approved for the sensitive scope `script.container.ui`. `documents.currentonly`, `openid` and `userinfo.email` are non-sensitive.
@@ -61,7 +61,7 @@ against entitlements signed by the Convex code.
 
 ### A. Polar (use the sandbox first: sandbox.polar.sh)
 
-1. Create a product "Pluckr", one-time price $5. Copy its product ID.
+1. Create a product "Pluckr", one-time price $12. Copy its product ID.
 2. Settings > Developers: create an Organization Access Token with the `checkouts:write` scope.
 3. After the Convex production deployment exists, add a webhook endpoint
    `https://<production-deployment>.convex.site/polar-webhook` for the events `order.paid` and `order.refunded`.
@@ -103,7 +103,7 @@ Create `.env.production` (not committed) with the production site URL, then `npm
 
 ```
 VITE_PLUCKR_LICENCE_URL=https://<production-deployment>.convex.site
-VITE_PRICE_LABEL=$5
+VITE_PRICE_LABEL=$12
 ```
 
 Without `VITE_PLUCKR_LICENCE_URL` the sidebar shows no paywall.

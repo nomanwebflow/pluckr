@@ -36,7 +36,7 @@ const addAlt = async (page, index, text) => {
 };
 
 const GROUPS = [
-  ['unlock', 'Unlock', 'Shown until the licence check passes. A one-time $5 purchase unlocks Docs and Slides.'],
+  ['unlock', 'Unlock', 'Shown until the licence check passes. A one-time $12 purchase unlocks Docs and Slides.'],
   ['scan', 'Scanning', 'What the list shows before it has images.'],
   ['list', 'Image list', 'One card per image. The tick on the thumbnail decides what downloads, converts, renames and optimizes.'],
   ['selection', 'Selection', 'The bar above the list. Its buttons act on the images currently listed.'],

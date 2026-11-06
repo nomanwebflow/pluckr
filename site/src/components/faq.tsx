@@ -36,7 +36,7 @@ export const faqs = [
 
 export function Faq() {
   return (
-    <section className="relative flex flex-col items-center gap-[72px] bg-gradient-to-t from-black to-[#0d0d0d] px-6 py-24 text-white md:px-16 md:py-32">
+    <section id="faqs" className="relative flex flex-col items-center gap-[72px] bg-gradient-to-t from-black to-[#0d0d0d] px-6 py-24 text-white md:px-16 md:py-32">
       <h2 className="font-display w-full max-w-[18ch] text-center text-[clamp(34px,5vw,56px)] leading-none text-balance capitalize [text-box:trim-both_cap_alphabetic]">
         Frequently&nbsp;asked questions
       </h2>

@@ -36,7 +36,7 @@ Subject: Re: Review of Pluckr (315157378382)
 >
 > Thanks for starting the review of Pluckr.
 >
-> **Test access.** Pluckr has no separate sign-in or API token: it uses the user's Google account. It is a paid add-on (one-time $5), so I have given your test account **gsmtestuser@marketplacetest.net** a free licence. Please use that account and no payment is needed. I have also shared a test Doc with it: [LINK TO THE SHARED DOC].
+> **Test access.** Pluckr has no separate sign-in or API token: it uses the user's Google account. It is a paid add-on (one-time $12), so I have given your test account **gsmtestuser@marketplacetest.net** a free licence. Please use that account and no payment is needed. I have also shared a test Doc with it: [LINK TO THE SHARED DOC].
 >
 > **How to test**
 > 1. Open the shared Doc (it has several inline images, one inside a table).
