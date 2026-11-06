@@ -41,7 +41,7 @@ export default function Page() {
       title="Guides"
       intro="Step-by-step guides to extract, rename, convert, and publish images from Google Docs and Google Slides."
       items={byKind("guide")}
-      listHeading="Featured Guides"
+      listHeading="All Guides"
     >
       <section className="relative flex w-full max-w-[1180px] flex-col items-center gap-[72px]">
         <div className="flex flex-col items-center gap-6 text-center">

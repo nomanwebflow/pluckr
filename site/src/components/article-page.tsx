@@ -444,14 +444,10 @@ export function ArticleIndex({
         )}
       </header>
 
-      <section className="relative flex w-full max-w-[1180px] flex-col items-center gap-[72px]">
-        {listHeading && (
-          <div className="flex flex-col items-center gap-6 text-center">
-            <h2 className="font-display w-full max-w-[646px] text-[clamp(32px,5vw,56px)] leading-none text-balance capitalize [text-box:trim-both_cap_alphabetic]">
-              {listHeading}
-            </h2>
-          </div>
-        )}
+      <section className="relative flex w-full max-w-[1180px] flex-col items-center">
+        <h2 className="sr-only">
+          {listHeading ?? `All ${title}`}
+        </h2>
         <ul className="flex w-full flex-wrap justify-center gap-4">
           {items.map((item) => (
             <li key={item.slug} className="w-full md:w-[calc(50%-8px)]">

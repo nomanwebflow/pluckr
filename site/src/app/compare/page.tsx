@@ -69,7 +69,7 @@ export default function Page() {
       title="Comparisons"
       intro="Compare Pluckr with built-in workarounds and tools for extracting images from Google Docs."
       items={byKind("compare")}
-      listHeading="Comparison Articles"
+      listHeading="All Comparisons"
     >
       <section className="relative flex w-full max-w-[1180px] flex-col items-center gap-[72px]">
         <div className="flex flex-col items-center gap-6 text-center">
