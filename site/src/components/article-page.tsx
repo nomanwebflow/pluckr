@@ -432,11 +432,11 @@ export function ArticleIndex({
   return (
     <ArticleFrame>
       <header className="relative flex flex-col items-center gap-6 pt-8 text-center">
-        <h1 className="font-display w-full text-[clamp(40px,7vw,72px)] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
+        <h1 className="font-display w-full max-w-[820px] text-[clamp(40px,7vw,72px)] leading-none text-balance capitalize [text-box:trim-both_cap_alphabetic]">
           {title}
         </h1>
         {typeof intro === "string" ? (
-          <p className="font-reading max-w-[56ch] text-base leading-normal text-balance text-white/80">
+          <p className="w-full max-w-[520px] text-base leading-normal text-balance text-white/80">
             {intro}
           </p>
         ) : (
@@ -444,10 +444,14 @@ export function ArticleIndex({
         )}
       </header>
 
-      <section className="relative flex w-full max-w-[1180px] flex-col gap-6">
-        <h2 className="font-display text-[28px] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
-          {listHeading ?? `All ${title}`}
-        </h2>
+      <section className="relative flex w-full max-w-[1180px] flex-col items-center gap-[72px]">
+        {listHeading && (
+          <div className="flex flex-col items-center gap-6 text-center">
+            <h2 className="font-display w-full max-w-[646px] text-[clamp(32px,5vw,56px)] leading-none text-balance capitalize [text-box:trim-both_cap_alphabetic]">
+              {listHeading}
+            </h2>
+          </div>
+        )}
         <ul className="flex w-full flex-wrap justify-center gap-4">
           {items.map((item) => (
             <li key={item.slug} className="w-full md:w-[calc(50%-8px)]">
@@ -458,7 +462,7 @@ export function ArticleIndex({
       </section>
 
       {children && (
-        <div className="relative flex w-full max-w-[1180px] flex-col gap-16">
+        <div className="relative flex w-full flex-col items-center gap-24 md:gap-32">
           {children}
         </div>
       )}

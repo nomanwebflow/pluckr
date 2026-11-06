@@ -71,132 +71,171 @@ export default function Page() {
       items={byKind("compare")}
       listHeading="Comparison Articles"
     >
-      <section className="flex flex-col gap-6">
-        <h2 className="font-display text-[28px] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
-          Overview of Google Docs Image Download Methods
-        </h2>
-        <div className="flex flex-col gap-4 text-white/80">
-          <p className="font-reading text-base leading-relaxed">
-            Google Docs does not include a direct &ldquo;Download all
-            images&rdquo; command in its interface. Because of this limitation,
-            users rely on workarounds such as downloading zipped HTML web pages,
-            renaming Word (.docx) archive files, sending individual pictures to
-            Google Keep, or using dedicated Google Workspace add-ons like
-            Pluckr.
-          </p>
-          <p className="font-reading text-base leading-relaxed">
-            Each method comes with clear trade-offs between manual effort, file
-            naming convenience, image compression options, and data privacy.
-            Review the breakdown below to choose the most effective approach for
-            your publishing or design workflow.
+      <section className="relative flex w-full max-w-[1180px] flex-col items-center gap-[72px]">
+        <div className="flex flex-col items-center gap-6 text-center">
+          <h2 className="font-display w-full max-w-[720px] text-[clamp(32px,5vw,56px)] leading-none text-balance capitalize [text-box:trim-both_cap_alphabetic]">
+            Overview of Download Methods
+          </h2>
+          <p className="w-full max-w-[520px] text-base leading-normal text-balance text-white/80">
+            Google Docs has no single button to save all images. Review the
+            trade-offs between manual workarounds and dedicated tools.
           </p>
         </div>
-      </section>
 
-      <section className="flex flex-col gap-6">
-        <h2 className="font-display text-[28px] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
-          Comparing the Four Primary Methods
-        </h2>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-[#0d0d0d] p-6">
-            <h3 className="font-display text-lg text-white">
-              1. Zipped Web Page Download (.html)
-            </h3>
-            <p className="font-reading text-sm leading-relaxed text-white/70">
-              Choose File &gt; Download &gt; Web Page (.html, zipped). Google
-              Docs produces an unpacked ZIP file containing an images folder.
-              While completely free and built-in, files receive generic names
-              like image1.png with no previews or format options.
-            </p>
+        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="flex flex-col gap-2 rounded-2xl bg-[#0d0d0d] p-2">
+            <div className="flex flex-1 flex-col gap-3 rounded-2xl border border-white/5 bg-black p-6 md:p-8">
+              <h3 className="font-display text-lg leading-normal text-white capitalize">
+                1. Zipped Web Page Download (.html)
+              </h3>
+              <p className="font-reading text-sm leading-relaxed text-white/70">
+                Choose File &gt; Download &gt; Web Page (.html, zipped). Google
+                Docs produces an unpacked ZIP file containing an images folder.
+                While completely free and built-in, files receive generic names
+                like image1.png with no previews or format options.
+              </p>
+            </div>
           </div>
 
-          <div className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-[#0d0d0d] p-6">
-            <h3 className="font-display text-lg text-white">
-              2. Word (.docx) Archive Rename Trick
-            </h3>
-            <p className="font-reading text-sm leading-relaxed text-white/70">
-              Download your document as a Microsoft Word file (.docx), change
-              the file extension to .zip on your computer, and unpack the
-              word/media folder. Effective for offline extraction, but requires
-              cumbersome manual renaming and external conversion tools.
-            </p>
+          <div className="flex flex-col gap-2 rounded-2xl bg-[#0d0d0d] p-2">
+            <div className="flex flex-1 flex-col gap-3 rounded-2xl border border-white/5 bg-black p-6 md:p-8">
+              <h3 className="font-display text-lg leading-normal text-white capitalize">
+                2. Word (.docx) Archive Rename Trick
+              </h3>
+              <p className="font-reading text-sm leading-relaxed text-white/70">
+                Download your document as a Microsoft Word file (.docx), change
+                the file extension to .zip on your computer, and unpack the
+                word/media folder. Effective for offline extraction, but requires
+                cumbersome manual renaming and external conversion tools.
+              </p>
+            </div>
           </div>
 
-          <div className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-[#0d0d0d] p-6">
-            <h3 className="font-display text-lg text-white">
-              3. Google Keep Side Panel
-            </h3>
-            <p className="font-reading text-sm leading-relaxed text-white/70">
-              Right-click an individual image in Google Docs and choose Save to
-              Keep. Open the note in a new tab to save the graphic. Convenient
-              for retrieving a single picture, but impractical for documents
-              with dozens of photos or diagrams.
-            </p>
+          <div className="flex flex-col gap-2 rounded-2xl bg-[#0d0d0d] p-2">
+            <div className="flex flex-1 flex-col gap-3 rounded-2xl border border-white/5 bg-black p-6 md:p-8">
+              <h3 className="font-display text-lg leading-normal text-white capitalize">
+                3. Google Keep Side Panel
+              </h3>
+              <p className="font-reading text-sm leading-relaxed text-white/70">
+                Right-click an individual image in Google Docs and choose Save to
+                Keep. Open the note in a new tab to save the graphic. Convenient
+                for retrieving a single picture, but impractical for documents
+                with dozens of photos or diagrams.
+              </p>
+            </div>
           </div>
 
-          <div className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-[#0d0d0d] p-6">
-            <h3 className="font-display text-lg text-white">
-              4. Pluckr Browser Add-On
-            </h3>
-            <p className="font-reading text-sm leading-relaxed text-white/70">
-              Opens directly in your Google Docs sidebar. Displays image
-              previews, dimensions, and file sizes. Enables pattern-based bulk
-              renaming, client-side WebP/AVIF compression, and one-click ZIP
-              bundling for a one-time {PRICE} fee.
-            </p>
+          <div className="flex flex-col gap-2 rounded-2xl bg-[#0d0d0d] p-2">
+            <div className="flex flex-1 flex-col gap-3 rounded-2xl border border-white/5 bg-black p-6 md:p-8">
+              <h3 className="font-display text-lg leading-normal text-white capitalize">
+                4. Pluckr Browser Add-On
+              </h3>
+              <p className="font-reading text-sm leading-relaxed text-white/70">
+                Opens directly in your Google Docs sidebar. Displays image
+                previews, dimensions, and file sizes. Enables pattern-based bulk
+                renaming, client-side WebP/AVIF compression, and one-click ZIP
+                bundling for a one-time {PRICE} fee.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="flex flex-col gap-6">
-        <h2 className="font-display text-[28px] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
-          Summary Comparison Matrix
-        </h2>
-        <div className="overflow-x-auto rounded-2xl border border-white/5 bg-[#0d0d0d] p-4">
-          <table className="w-full min-w-[640px] text-left text-sm">
-            <thead>
-              <tr className="border-b border-white/10 text-white/60">
-                <th className="p-3 font-mono text-xs">Feature</th>
-                <th className="p-3 font-mono text-xs">HTML (.zip)</th>
-                <th className="p-3 font-mono text-xs">Word (.docx)</th>
-                <th className="p-3 font-mono text-xs">Google Keep</th>
-                <th className="p-3 font-mono text-xs text-[#6ea8fe]">Pluckr</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {comparisonMatrix.map((row) => (
-                <tr key={row.feature} className="text-white/80">
-                  <td className="p-3 font-medium text-white">{row.feature}</td>
-                  <td className="p-3">{row.htmlZip}</td>
-                  <td className="p-3">{row.docxTrick}</td>
-                  <td className="p-3">{row.keep}</td>
-                  <td className="p-3 font-semibold text-[#6ea8fe]">
-                    {row.pluckr}
-                  </td>
+      <section className="relative flex w-full max-w-[1180px] flex-col items-center gap-[72px]">
+        <div className="flex flex-col items-center gap-6 text-center">
+          <h2 className="font-display w-full max-w-[646px] text-[clamp(32px,5vw,56px)] leading-none text-balance capitalize [text-box:trim-both_cap_alphabetic]">
+            Summary Comparison Matrix
+          </h2>
+          <p className="w-full max-w-[488px] text-base leading-normal text-balance text-white/80">
+            A side-by-side look at capabilities, workflow speed, and pricing.
+          </p>
+        </div>
+
+        <div className="w-full max-w-[760px] rounded-2xl bg-[#0d0d0d] p-2">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[600px] border-separate border-spacing-y-1 text-left">
+              <thead>
+                <tr className="text-xs text-white/60">
+                  <th
+                    scope="col"
+                    className="p-2 pl-4 text-left font-mono font-normal text-white/60"
+                  >
+                    Feature
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-2 pb-1 text-center font-mono font-normal text-white/60"
+                  >
+                    HTML (.zip)
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-2 pb-1 text-center font-mono font-normal text-white/60"
+                  >
+                    Word (.docx)
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-2 pb-1 text-center font-mono font-normal text-white/60"
+                  >
+                    Keep
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-2 pb-1 text-center font-mono font-normal text-[#6ea8fe]"
+                  >
+                    Pluckr
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {comparisonMatrix.map((row) => (
+                  <tr key={row.feature} className="text-sm leading-normal">
+                    <th
+                      scope="row"
+                      className="rounded-l-xl border-y border-l border-white/5 bg-black py-3.5 pr-2 pl-4 font-normal text-white"
+                    >
+                      {row.feature}
+                    </th>
+                    <td className="border-y border-white/5 bg-black px-2 text-center text-white/70">
+                      {row.htmlZip}
+                    </td>
+                    <td className="border-y border-white/5 bg-black px-2 text-center text-white/70">
+                      {row.docxTrick}
+                    </td>
+                    <td className="border-y border-white/5 bg-black px-2 text-center text-white/70">
+                      {row.keep}
+                    </td>
+                    <td className="rounded-r-xl border-y border-r border-white/5 bg-black px-2 text-center font-medium text-[#6ea8fe]">
+                      {row.pluckr}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
-      <section className="flex flex-col gap-6">
-        <h2 className="font-display text-[28px] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
-          Choosing the Right Method for Your Workflow
-        </h2>
-        <div className="flex flex-col gap-4 text-white/80">
-          <p className="font-reading text-base leading-relaxed">
-            If you only need a single picture from a brief, the Google Keep
-            shortcut is the fastest free option. If you need all images once and
-            do not mind renaming files by hand, downloading the zipped web page
-            is sufficient.
-          </p>
-          <p className="font-reading text-base leading-relaxed">
-            If you publish regularly to WordPress, static websites, or CMSs,
-            Pluckr saves significant time by generating clean SEO file names,
-            converting images to lightweight WebP, and organizing everything in
-            one local step.
-          </p>
+      <section className="relative flex w-full max-w-[1180px] flex-col items-center gap-[72px]">
+        <div className="flex flex-col items-center gap-6 text-center">
+          <h2 className="font-display w-full max-w-[646px] text-[clamp(32px,5vw,56px)] leading-none text-balance capitalize [text-box:trim-both_cap_alphabetic]">
+            Choosing the Right Method
+          </h2>
+          <div className="flex max-w-[600px] flex-col gap-4 text-center">
+            <p className="w-full text-base leading-normal text-balance text-white/80">
+              If you only need a single picture from a brief, the Google Keep
+              shortcut is the fastest free option. If you need all images once
+              and do not mind renaming files by hand, downloading the zipped web
+              page is sufficient.
+            </p>
+            <p className="w-full text-base leading-normal text-balance text-white/80">
+              If you publish regularly to WordPress, static websites, or CMSs,
+              Pluckr saves significant time by generating clean SEO file names,
+              converting images to lightweight WebP, and organizing everything in
+              one local step.
+            </p>
+          </div>
         </div>
       </section>
     </ArticleIndex>
