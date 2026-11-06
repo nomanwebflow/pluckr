@@ -89,7 +89,7 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "Pluckr is a Google Docs add-on that lists every image in a Doc with a preview, a size and its dimensions, including images in tables and other tabs. You rename the images, then download one image or a ZIP of all images. Pluckr is free for up to 50 images, and Pro costs {{price}} once.",
+          html: "Pluckr is a Google Docs add-on that lists every image in a Doc with its size and dimensions, including images in tables and other tabs, and shows a preview of each image that you use. You rename the images, then download one image or a ZIP of all images. Pluckr is free for up to 50 images per Google account, in total, and Pro costs {{price}} once.",
         },
         {
           type: "ol",
@@ -137,7 +137,7 @@ export const article: Article = {
           columns: ["", "Web page (.zip)", "Word (.docx)", "Apps Script", "Pluckr"],
           highlight: 4,
           rows: [
-            ["Cost", "Free", "Free", "Free", "Free up to 50 images, then {{price}} once"],
+            ["Cost", "Free", "Free", "Free", "Free for 50 images per account, then {{price}} once"],
             ["See the images before you save", false, false, false, true],
             ["Choose the file names", false, false, "In the code", true],
             ["Convert to WebP or AVIF", false, false, false, true],

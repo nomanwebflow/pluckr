@@ -2,7 +2,7 @@
 
 Written Nov 2, 2026. Copy for the rebuilt site in `docs/website-plan.md`. It covers the free tier added in v2.
 
-Plan: Free = list, preview and download originals for up to 50 images in each Doc or deck. Pro = $12 once: bulk rename, alt text editing, convert, crop, resize, optimize and Markdown export.
+Plan: Free = list images, then preview and download originals for up to 50 images per Google account in total. Pro = $12 once: bulk rename, alt text editing, convert, crop, resize, optimize and Markdown export.
 
 ## Keywords
 
@@ -49,7 +49,7 @@ Docs · Slides · Pricing · Guides · [Add to Google Docs]
 **H1:** Get every image out of a Google Doc.
 **Sub:** Pluckr lists the images in your Doc or Slides deck. Pick them, rename them, convert them, and download them at one time.
 **Button:** Add to Google Docs
-**Trust line:** Free for 50 images in a file. Pro is $12 once. Your images stay in your browser.
+**Trust line:** Free for 50 images per Google account. Pro is $12 once. Your images stay in your browser.
 **Works in:** Google Docs · Google Slides
 
 ### Before and after
@@ -96,7 +96,7 @@ Each file has a name from one pattern, for example west-coast-road-trip-01.webp.
 
 ### Pricing
 **Headline:** Start free. Pay $12 once for Pro.
-**Free:** List, preview and download up to 50 images in each Doc or deck.
+**Free:** List images, then preview and download up to 50 per Google account.
 **Pro:** Bulk rename, alt text editing, convert, crop, resize, optimize and Markdown export. One purchase covers Docs and Slides.
 **Lines:** No subscription. You can get a refund in 14 days.
 **Button:** Add to Google Docs
@@ -116,11 +116,11 @@ Yes, with Pro. Choose WebP, AVIF, JPEG or PNG. Set the quality, the aspect ratio
 No. Conversion runs in your browser. Pluckr sends a Google sign-in token to its licence service to check your licence. It sends no image and no text.
 
 **How much does Pluckr cost? Is there a subscription?**
-Pluckr is free for up to 50 images in each file. Pro costs $12 once. There is no subscription. You can get a refund in 14 days.
+Pluckr is free for up to 50 images for each Google account. Pro costs $12 once. There is no subscription. You can get a refund in 14 days.
 
 ### Closing
 **Headline:** Your next Doc can ship with named, small images.
-**Body:** Add Pluckr to Google Docs and Slides. List the images, pick the ones you need, and download them in one ZIP file. Pluckr is free for 50 images in each file. Pro is $12 once.
+**Body:** Add Pluckr to Google Docs and Slides. List the images, pick the ones you need, and download them in one ZIP file. Pluckr is free for 50 images for each Google account. Pro is $12 once.
 **Button:** Add Pluckr to Google Docs
 **Under the button:** No account. Your images stay in your browser.
 
@@ -149,7 +149,7 @@ Trademark line: Google Docs and Google Slides are trademarks of Google LLC. Pluc
 **FAQ**
 - *Do I need to publish the deck?* No. Pluckr reads the deck in the open file.
 - *Does Pluckr change my slides?* Only when you press Save or confirm Optimize.
-- *Is it free?* Yes, for up to 50 images in each deck. Pro costs $12 once.
+- *Is it free?* Yes, for up to 50 images for each Google account. Pro costs $12 once.
 
 ## Markdown (`/export-google-docs-to-markdown-with-images`)
 
@@ -190,10 +190,10 @@ Trademark line: Google Docs and Google Slides are trademarks of Google LLC. Pluc
 ## Pricing (`/pricing`)
 
 **Title:** Pluckr Pricing: Free, and $12 Once for Pro
-**Description:** Free for 50 images in each file. Pro is one $12 purchase for Google Docs and Slides. No subscription. 14-day refunds.
+**Description:** Free for 50 images per Google account. Pro is one $12 purchase for Google Docs and Slides. No subscription. 14-day refunds.
 **H1:** Start free. Pay $12 once for Pro.
 
-**Free:** List and preview the images. Download the originals as one ZIP file. Up to 50 images in each Doc or deck.
+**Free:** List and preview the images. Download the originals as one ZIP file. Up to 50 images per Google account.
 
 **Pro, $12 once:** Bulk rename. Alt text editing. Convert to WebP, AVIF, JPEG or PNG. Crop and resize. Optimize the images in the file. Markdown export. No limit on images.
 
@@ -215,7 +215,7 @@ Pluckr changes your file only when you press Save for alt text, or when you conf
 Pluckr asks for access to the open file and its sidebar. It also reads your Google email address to check your licence. It does not read the rest of your Drive.
 
 **What happens to a file with more than 50 images?**
-The free version reads the first 50 images. Pro has no limit.
+The free version lets you use 50 images per Google account in total. You see every image in the list, but each new image counts once when you use it. Pro has no limit.
 
 **How do I copy or save a Google Doc image?**
 For one image, right-click it and choose Save to Keep or Copy. For all images, use Pluckr. Choose Download originals to get one ZIP file.
@@ -234,7 +234,7 @@ Email support@docpluckr.com in 14 days. Give the email address of your Google ac
 
 ## Open points
 
-1. The free limit is 50 images for each file. Make sure that "first 50 images" is how Code.gs picks them, then keep the FAQ answer as written.
+1. The free limit is 50 images for each Google account, counted by the licence service. See docs/paid-setup.md, "Free plan".
 2. Check the claim "Pluckr does not read the rest of your Drive" against the OAuth scopes in `addon/apps-script/appsscript.json` before you publish.
 3. "Four ways" in the guide link: the SEO plan lists three manual methods plus Pluckr. Keep four only if the guide shows four.
 4. The Marketplace listing status decides the button text. Until the listing is live, say what the button does.

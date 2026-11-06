@@ -11,7 +11,7 @@ export const article: Article = {
   updated: "2026-11-06",
   readingMinutes: 3,
   summary: [
-    "The built-in Google Docs methods get every image for free, but they give generic names and no preview. Pluckr adds a preview, your own file names and WebP or AVIF conversion for a one-time {{price}}, and Pluckr is free for up to 50 images.",
+    "The built-in Google Docs methods get every image for free, but they give generic names and no preview. Pluckr adds a preview, your own file names and WebP or AVIF conversion for a one-time {{price}}, and Pluckr is free for up to 50 images per Google account.",
   ],
   sections: [
     {
@@ -69,7 +69,7 @@ export const article: Article = {
         {
           type: "callout",
           title: "Try it first",
-          html: "Pluckr is free for up to 50 images. You can list and preview every image and download the originals before you pay for anything.",
+          html: "Pluckr is free for up to 50 images per Google account, in total. You can list every image in a Doc, then preview and download up to 50 of them as originals before you pay for anything.",
         },
       ],
     },
@@ -77,7 +77,7 @@ export const article: Article = {
   faq: [
     {
       q: "Is Pluckr free?",
-      a: "Pluckr is free for up to 50 images. You can list and preview every image and download the originals before you pay. Pro costs {{price}} once, with no subscription.",
+      a: "Pluckr is free for up to 50 images per Google account, in total. You can list every image, then preview and download up to 50 of them as originals before you pay. Pro costs {{price}} once, with no subscription.",
     },
     {
       q: "What is the best free way to get images out of a Google Doc?",

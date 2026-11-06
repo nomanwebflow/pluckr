@@ -37,14 +37,25 @@ Notes:
 2. Convex verifies the token with Google and looks up a paid licence for that Google account ID (`sub`).
 3. If licensed, Convex returns a short-lived (6 hour) entitlement signed with `ENTITLEMENT_SECRET`.
 4. The sidebar passes the entitlement with every server call. `Code.gs` verifies it offline with the same secret.
-   - Reading images (`getDocumentImages`, `getDocumentInfo`, `getDocumentImage`, `getImagesArchive`) works without one, but the server
-     returns only the first `FREE_IMAGE_LIMIT` (50) images per file. The cap holds even from the browser console. A missing secret also means free, never paid.
+   - Reading images works without an entitlement only for the free plan, and only by **grant** (see "Free plan" below). With neither, the server
+     returns no image bytes. The cap holds even from the browser console. A missing secret also means free, never paid.
    - Writing and exporting calls (`setImageAlt`, `replaceDocumentImage`, `getDocumentMarkdown`) still require a valid entitlement.
    - Bulk rename and Output settings (convert, compress, resize, crop, alt text files) run in the browser, so their lock is in the sidebar only.
-5. Not licensed: the sidebar works on the free plan (50 images, selection, copy, download, ZIP of originals, per-image rename) and shows "Pro" locks on bulk rename, alt text editing, Output settings and Optimize. Buy opens a Polar checkout created by Convex (`POST /checkout`)
+5. Not licensed: the sidebar works on the free plan (50 images per Google account, selection, copy, download, ZIP of originals, per-image rename) and shows "Pro" locks on bulk rename, alt text editing, Output settings and Optimize. Buy opens a Polar checkout created by Convex (`POST /checkout`)
    with the Google account ID as the customer's external ID. Polar's `order.paid` webhook (`POST /polar-webhook`,
    signature-checked) then records the licence, and the sidebar unlocks by itself within a few seconds.
    `order.refunded` (status "refunded") switches the licence off.
+
+## Free plan: 50 images per Google account, ever
+
+An image is identified by the SHA-256 of its bytes (base64url, 43 characters). The same picture in any file counts once.
+
+1. Opening Pluckr without a licence: `getImageFingerprints` lists every image with its name, size, dimensions, alt text and hash, and no bytes. The sidebar sends no hashes yet: `POST /free/claim` with an empty list returns the account's state.
+2. `/free/claim` (Convex) stores up to 50 hashes per Google account (table `freeUsage`, rule in `convex/freeLimit.ts`) and returns a **grant**: `exp.hash,hash,....signature`, signed with `ENTITLEMENT_SECRET`, valid 6 hours, bound to the account.
+3. Images already used open straight away (`getImagesByIndex`). The others show "Use 1 free image". Using one, or downloading selected ones, claims them. What does not fit stays locked and the sidebar says so.
+4. `Code.gs` (`grantedHashes_`, `readPolicy_`) verifies the grant offline, recomputes each image's hash on the server and returns bytes only for hashes in the grant. A licence skips all of this.
+5. Counting happens once, in Convex. A new Google account gets a new 50, which is the usual limit of any free tier.
+6. Privacy: the hashes are stored with the account ID. They are in the privacy policy. `deleteBySub` removes them with the licence rows.
 
 Files: `convex/` (backend), `src/licence.js` and `src/main.jsx` (sidebar), `apps-script/Code.gs` (server gate).
 

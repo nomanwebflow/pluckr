@@ -6,8 +6,8 @@ export const privacy = {
   "shortTitle": "The short version:",
   "shortParagraphs": [
     "Pluckr reads the inline images in the Google Doc, or the pictures in the Google Slides deck, where you open it. Apps Script reads the image data and makes the ZIP files of originals. Your browser converts the images. If you choose Save to Drive, Pluckr saves the files in a folder in your Google Drive.",
-    "Pluckr is free for up to 50 images in each file. Pro is a one-time purchase. To check your license, Pluckr reads your Google account email address. Pluckr’s license service and Polar, our payment provider, handle the check and your purchase record.",
-    "Pluckr never sends your document images to its servers."
+    "Pluckr is free for up to 50 images for each Google account. Pro is a one-time purchase. To check your license, Pluckr reads your Google account email address. Pluckr’s license service and Polar, our payment provider, handle the check and your purchase record.",
+    "Pluckr never sends your document images to its servers. On the free plan, it sends a one-way fingerprint (a hash) of each image that you use, to count your 50 free images."
   ],
   "sections": [
     {
@@ -47,7 +47,7 @@ export const privacy = {
         },
         {
           "type": "p",
-          "html": "Pluckr is free for up to 50 images in each file. Pro is a one-time purchase. To find out if you bought it, Pluckr asks Google for an identity token for your account. Pluckr sends the token to its license service. The license service replies if a paid license exists for your account."
+          "html": "Pluckr is free for up to 50 images for each Google account, in total. Pro is a one-time purchase. To find out if you bought it, Pluckr asks Google for an identity token for your account. Pluckr sends the token to its license service. The license service replies if a paid license exists for your account."
         }
       ]
     },
@@ -65,7 +65,7 @@ export const privacy = {
             "<strong>Backup.</strong> We recommend that you make a copy of the document first. Google Docs version history can restore the earlier version.",
             "<strong>Document name.</strong> Apps Script uses the name of the document to name the ZIP file of original images.",
             "<strong>Google account identity and email.</strong> When you open Pluckr, it asks Google for an identity token. The token contains your Google account ID. Pluckr asks for the email scope, so the token also contains your email address. Pluckr uses the account ID and the email address only to check and record your license.",
-            "<strong>License and purchase record.</strong> Pluckr’s license service stores your Google account ID and your email address. It also stores if you have a paid license and the date of purchase. It stores the order and customer references from Polar. It records the time when your Google account agreed to the Privacy Policy and the Terms before checkout. It does not store document content or your identity token.",
+            "<strong>License and purchase record.</strong> Pluckr’s license service stores your Google account ID and your email address. It also stores if you have a paid license and the date of purchase. It stores the order and customer references from Polar. For the free plan, it also stores a SHA-256 hash (a one-way fingerprint) of each image that you use, with your account ID. It uses the hashes only to count your 50 free images. A hash does not show the image, and the license service never receives the image. It records the time when your Google account agreed to the Privacy Policy and the Terms before checkout. It does not store document content or your identity token.",
             "<strong>Authorization.</strong> Pluckr asks for access to the current document. It asks for permission to show a sidebar in Google Docs and Google Slides. It also asks for your Google account identity and email to check your license. For Save to Drive, it asks for access only to the Drive files that Pluckr creates. The manifest uses the <code>documents.currentonly</code>, <code>presentations.currentonly</code>, <code>script.container.ui</code>, <code>drive.file</code>, <code>openid</code> and <code>userinfo.email</code> scopes. Pluckr does not ask for access to browse all of your Google Drive."
           ]
         }
@@ -84,7 +84,7 @@ export const privacy = {
         },
         {
           "type": "p",
-          "html": "Pluckr does not send document images or document text to a separate Pluckr server. Pluckr does not give them to other companies or people. Pluckr sends only your identity token to the license service. The requests contain nothing from your document."
+          "html": "Pluckr does not send document images or document text to a separate Pluckr server. Pluckr does not give them to other companies or people. Pluckr sends only your identity token to the license service. On the free plan, it also sends the SHA-256 hash of each image that you choose to use. A hash is a one-way fingerprint. It does not contain the image or any text from your document."
         },
         {
           "type": "p",
@@ -210,7 +210,7 @@ export const privacy = {
         },
         {
           "type": "p",
-          "html": "The license record contains your Google account ID, your email address, the license status, and the purchase date. It also contains the order and customer references from Polar. It contains the time when you agreed to the policy and the terms."
+          "html": "The license record contains your Google account ID, your email address, the license status, and the purchase date. It also contains the order and customer references from Polar. It contains the time when you agreed to the policy and the terms. On the free plan, it also contains the hashes of the images that you used, up to 50. Pluckr keeps them until you ask us to delete them, so that your 50 free images stay counted."
         },
         {
           "type": "p",

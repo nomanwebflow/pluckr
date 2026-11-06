@@ -1,6 +1,7 @@
 // Checks the alt-text/Markdown bundle (src/bundle.js) and the Doc-reading and Doc-writing code in apps-script/Code.gs
 // against a small mock of Google's DocumentApp. Run: node addon/scripts/test-features.mjs
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { unzipSync, strFromU8 } from 'fflate';
@@ -207,8 +208,8 @@ vm.runInContext(codeGs, slidesSandbox);
 slidesSandbox.onOpen();
 assert.deepEqual(menu, [['addon', 'Extract images (Google reads this deck’s images)', 'openPluckrSidebar']], 'the menu appears even before the add-on is authorized');
 slidesLimited.on = false;
-// Without a licence the file can still be read (the free plan), but writing needs one.
-assert.deepEqual({ ...slidesSandbox.getDocumentInfo('bad') }, { documentName: 'My Deck', host: 'slides', count: 3, total: 3 });
+// Without a licence a file lists no readable images by itself (a free account reads by signed grant), and writing needs a licence.
+assert.deepEqual({ ...slidesSandbox.getDocumentInfo('bad') }, { documentName: 'My Deck', host: 'slides', count: 0, total: 3 });
 assert.throws(() => slidesSandbox.setImageAlt(0, 'x', 'y', 'bad'), /LICENCE_REQUIRED/, 'alt text editing is Pro');
 assert.throws(() => slidesSandbox.replaceDocumentImage(0, '', 'image/png', 'bad'), /LICENCE_REQUIRED/, 'optimize is Pro');
 assert.throws(() => slidesSandbox.getDocumentMarkdown('bad'), /LICENCE_REQUIRED/, 'Markdown export is Pro');
@@ -237,22 +238,67 @@ slidesSandbox.replaceDocumentImage(2, Buffer.from('x').toString('base64'), 'imag
 assert.deepEqual(third.image.calls.splice(0), [['replace', 'image/png', false]], 'nothing to restore on a plain image');
 assert.throws(() => slidesSandbox.getDocumentMarkdown('ok'), /only available in Google Docs/);
 
-// Free plan on a big file: reads stop at the allowance, including the ZIP, and a lapsed licence never reads more.
+// Free plan: 50 distinct images per account for good, counted by the licence service and signed into a grant. The
+// server code returns bytes only for images the grant covers. (The grant signature itself is tested in test-addon-gate.mjs.)
 const big = vm.createContext({ ...slidesSandbox });
 vm.runInContext(readFileSync('addon/apps-script/Code.gs', 'utf8'), big);
-const fake = Array.from({ length: 120 }, (_, i) => ({ name: `n${i}`, image: { getBlob: () => ({ getBytes: () => [1], getContentType: () => 'image/png', setName: () => ({}) }), getWidth: () => 1, getHeight: () => 1, getTitle: () => '', getDescription: () => '', getLink: () => null } }));
+const signed = (bytes) => [...bytes].map((b) => (b > 127 ? b - 256 : b));
+big.Utilities = {
+  ...big.Utilities,
+  computeDigest: (_algorithm, bytes) => signed(createHash('sha256').update(Buffer.from(bytes)).digest()),
+  base64EncodeWebSafe: (bytes) => Buffer.from(bytes.map((b) => b & 255)).toString('base64').replace(/\+/g, '-').replace(/\//g, '_'),
+  DigestAlgorithm: { SHA_256: 'SHA_256' },
+};
+big.Utilities.DigestAlgorithm = { SHA_256: 'SHA_256' };
+big.Utilities.zip = undefined;
+const bytesOf = (i) => [(i + 1) & 255, i >> 8, 7];
+const fake = Array.from({ length: 120 }, (_, i) => ({ name: `n${i}`, image: { getBlob: () => ({ getBytes: () => bytesOf(i), getContentType: () => 'image/png', setName: () => ({}) }), getWidth: () => 1, getHeight: () => 1, getTitle: () => '', getDescription: () => '', getLink: () => null } }));
 big.collectImages_ = () => fake;
-const free = big.getDocumentImages(48, 8, 'bad');
-assert.deepEqual([free.total, free.available, free.images.length, free.images[free.images.length - 1].sourceIndex], [120, 50, 2, 49], 'free reads the first 50 only');
-assert.equal(big.getDocumentImages(50, 8, 'bad').images.length, 0, 'nothing past the allowance');
-assert.throws(() => big.getDocumentImage(50, 'bad'), /LICENCE_REQUIRED/);
-assert.equal(big.getDocumentInfo('bad').count, 50);
+const hashOf = (i) => big.imageHash_(bytesOf(i));
+const plain = (value) => JSON.parse(JSON.stringify(value));
+assert.equal(hashOf(0).length, 43, 'a hash is base64url SHA-256 without padding');
+assert.notEqual(hashOf(0), hashOf(1), 'different images, different hashes');
+assert.equal(hashOf(3), big.imageHash_(bytesOf(3)), 'the same picture always gives the same hash');
+
+// Listing shows metadata and a hash, never bytes.
+const listed = big.getImageFingerprints(10, 3, { skipMeta: true });
+assert.deepEqual(plain([listed.total, listed.images.map((x) => x.sourceIndex), listed.images.map((x) => x.hash)]), [120, [10, 11, 12], [hashOf(10), hashOf(11), hashOf(12)]]);
+assert.ok(listed.images.every((x) => x.data === undefined), 'a listing carries no image bytes');
+
+// With no licence and no grant nothing is readable.
+assert.equal(big.getDocumentImages(0, 8, 'bad').images.length, 0, 'the paid batch call reads nothing without a licence');
+assert.equal(big.getDocumentImages(0, 8, 'bad').available, 0);
+assert.deepEqual(plain(big.getImagesByIndex([0, 1, 2], '', '').images), [], 'no grant, no bytes');
+assert.throws(() => big.getDocumentImage(0, 'bad', ''), /LICENCE_REQUIRED/);
+
+// With a grant the images it names are readable and the others are left out.
+big.grantedHashes_ = () => ({ [hashOf(2)]: true, [hashOf(70)]: true });
+assert.deepEqual(plain(big.getImagesByIndex([0, 2, 70, 71], '', 'grant').images.map((x) => x.sourceIndex)), [2, 70], 'only granted images come back, in any position');
+assert.equal(big.getDocumentImage(70, '', 'grant').sourceIndex, 70);
+assert.throws(() => big.getDocumentImage(71, '', 'grant'), /LICENCE_REQUIRED/);
+assert.ok(big.getImagesByIndex([2], '', 'grant').images[0].data, 'a granted image carries its bytes');
+
+// The same picture used twice in a file (same bytes) is one grant entry and both copies read.
+const twin = { ...fake[2] };
+big.collectImages_ = () => [fake[2], twin];
+assert.equal(big.getImagesByIndex([0, 1], '', 'grant').images.length, 2, 'duplicate content shares one grant entry');
+big.collectImages_ = () => fake;
+
+// The ZIP only includes granted images.
 let zipped = 0;
-big.Utilities = { ...big.Utilities, zip: (blobs) => { zipped = blobs.length; return { getName: () => 'z.zip', getBytes: () => [] }; }, base64Encode: () => '' };
-big.getImagesArchive([0, 49, 50, 119], {}, 'bad');
-assert.equal(zipped, 2, 'the ZIP skips images past the allowance');
+big.Utilities.zip = (blobs) => { zipped = blobs.length; return { getName: () => 'z.zip', getBytes: () => [] }; };
+big.Utilities.base64Encode = () => '';
+big.getImagesArchive([0, 2, 70, 119], {}, '', 'grant');
+assert.equal(zipped, 2, 'the ZIP skips images the grant does not cover');
+assert.throws(() => big.getImagesArchive([0, 119], {}, '', 'grant'), /No images are available/, 'nothing granted, nothing to zip');
+
+// A licence reads everything, with or without a grant.
 big.requireEntitlement_ = () => {};
-assert.deepEqual([big.getDocumentImages(112, 8, 'ok').images.length, big.getDocumentInfo('ok').count], [8, 120], 'a licence reads everything');
+assert.deepEqual(plain([big.getDocumentImages(112, 8, 'ok').images.length, big.getDocumentInfo('ok').count]), [8, 120], 'a licence reads everything');
+assert.equal(big.getImagesByIndex([0, 5, 99], 'ok', '').images.length, 3, 'a licence needs no grant');
+zipped = 0;
+big.getImagesArchive([0, 1, 2, 3], {}, 'ok', '');
+assert.equal(zipped, 4, 'a licence zips every image');
 
 // Neither editor: a clear message instead of a crash.
 const nowhere = { ...slidesSandbox, SlidesApp: { getUi: () => { throw new Error('no'); } } };

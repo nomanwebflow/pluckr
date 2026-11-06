@@ -1,7 +1,7 @@
 import { httpRouter } from "convex/server";
 import { internal } from "./_generated/api";
 import { httpAction } from "./_generated/server";
-import { signEntitlement, verifyStandardWebhook } from "./crypto";
+import { signEntitlement, signFreeGrant, verifyStandardWebhook } from "./crypto";
 
 const http = httpRouter();
 
@@ -34,6 +34,7 @@ const preflight = httpAction(async () => new Response(null, { status: 204, heade
 
 http.route({ path: "/licence", method: "OPTIONS", handler: preflight });
 http.route({ path: "/checkout", method: "OPTIONS", handler: preflight });
+http.route({ path: "/free/claim", method: "OPTIONS", handler: preflight });
 
 /** Is this Google account licensed? If so, hand back a short-lived entitlement for the add-on's server code. */
 http.route({
@@ -50,6 +51,46 @@ http.route({
     if (!secret) return json({ error: "server_misconfigured" }, 424);
     const exp = Math.floor(Date.now() / 1000) + ENTITLEMENT_TTL_SECONDS;
     return json({ licensed: true, entitlement: await signEntitlement(secret, identity.subject, exp), expiresAt: exp });
+  }),
+});
+
+// A SHA-256 digest in base64url without padding is 43 characters.
+const HASH = /^[A-Za-z0-9_-]{43}$/;
+const MAX_HASHES_PER_CLAIM = 200;
+
+/**
+ * Free plan: use images, up to 50 per Google account in total. Send the hashes of the images to use (an empty list
+ * only reads the current state). Reply: the account's whole claimed set as a signed grant that the add-on's server
+ * code checks offline, plus how many were used. A licensed account has no limit, so it is told so and nothing is stored.
+ */
+http.route({
+  path: "/free/claim",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    const identity = await identityOf(ctx);
+    if (!identity) return json({ error: "unauthenticated" }, 401);
+
+    const licence = await ctx.runQuery(internal.licences.getActiveBySub, { sub: identity.subject, email: verifiedEmail(identity) });
+    if (licence) return json({ licensed: true });
+
+    const body = (await request.json().catch(() => ({}))) as { hashes?: unknown };
+    const hashes = Array.isArray(body.hashes) ? body.hashes : [];
+    if (hashes.length > MAX_HASHES_PER_CLAIM || !hashes.every((h) => typeof h === "string" && HASH.test(h))) return json({ error: "bad_request" }, 400);
+
+    const secret = process.env.ENTITLEMENT_SECRET;
+    if (!secret) return json({ error: "server_misconfigured" }, 424);
+
+    const result = await ctx.runMutation(internal.licences.claimFree, { sub: identity.subject, hashes: [...new Set(hashes as string[])] });
+    const exp = Math.floor(Date.now() / 1000) + ENTITLEMENT_TTL_SECONDS;
+    return json({
+      licensed: false,
+      grant: await signFreeGrant(secret, identity.subject, exp, result.claimed),
+      expiresAt: exp,
+      claimed: result.claimed,
+      rejected: result.rejected,
+      used: result.claimed.length,
+      limit: result.limit,
+    });
   }),
 });
 

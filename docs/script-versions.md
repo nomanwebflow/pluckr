@@ -12,6 +12,7 @@ The Marketplace listing points at one numbered script version. HEAD is the lates
 | 5 | Marketplace 2.1: free tier | Cut from HEAD on Nov 4, 2026. Version 4 plus the free tier (50 images per file free; bulk rename, alt editing, output settings and optimize are Pro) and the entitlement gate. | **Candidate release.** Not referenced by the Marketplace SDK yet. |
 | 6 | Marketplace 2.2: Save to Drive, faster scan | Cut from HEAD. Version 5 plus Save to Drive (adds `drive.file`) and the faster scan. Shows the $5 label. | Superseded by version 7 (not submitted) |
 | 7 | Marketplace 2.3: $12 price | Version 6 with the price label changed to $12. No other change. | **Candidate release.** Point App Configuration here. |
+| 8 | Marketplace 2.4: 50 images per account | Cut after version 7. The free plan is 50 distinct images per Google account in total, counted by the licence service and enforced by signed grants (see `docs/paid-setup.md`, "Free plan"). Needs the new Convex deployment first. | **Candidate release.** Not referenced by the Marketplace SDK yet. |
 
 Why version 2 exists: Google's review rules say menu items must appear under the Add-ons menu (Extensions in Docs). Version 1 used a top-level menu while the listing, the post install tip and the reply to the reviewers all say "Extensions > Pluckr > Extract images".
 

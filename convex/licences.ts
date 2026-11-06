@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery } from "./_generated/server";
+import { FREE_IMAGE_LIMIT, claimHashes } from "./freeLimit";
 
 /** By Google ID first. Polar can attach an order to a customer it already knew by email, so fall back to the (Google-verified) email. */
 export const getActiveBySub = internalQuery({
@@ -11,6 +12,24 @@ export const getActiveBySub = internalQuery({
     // Emails are stored lowercased (see recordOrder), so a differently cased address still matches.
     const byEmail = await ctx.db.query("licences").withIndex("by_email", (q) => q.eq("email", email.toLowerCase())).collect();
     return byEmail.find((row) => row.status === "active") ?? null;
+  },
+});
+
+/**
+ * Claim images for the free plan. Images already claimed stay claimed and cost nothing. New ones are taken in the
+ * order given until the limit; the rest come back as `rejected`. Idempotent, so a retry never double-counts.
+ */
+export const claimFree = internalMutation({
+  args: { sub: v.string(), hashes: v.array(v.string()) },
+  handler: async (ctx, { sub, hashes }) => {
+    const row = await ctx.db.query("freeUsage").withIndex("by_sub", (q) => q.eq("sub", sub)).unique();
+    const { claimed, rejected } = claimHashes(row?.hashes ?? [], hashes);
+    if (!row) {
+      if (claimed.length) await ctx.db.insert("freeUsage", { sub, hashes: claimed, updatedAt: Date.now() });
+    } else if (claimed.length !== row.hashes.length) {
+      await ctx.db.patch(row._id, { hashes: claimed, updatedAt: Date.now() });
+    }
+    return { claimed, rejected, limit: FREE_IMAGE_LIMIT };
   },
 });
 
@@ -65,6 +84,8 @@ export const deleteBySub = internalMutation({
     for (const row of rows) await ctx.db.delete(row._id);
     const consents = await ctx.db.query("consents").withIndex("by_sub", (q) => q.eq("sub", sub)).collect();
     for (const row of consents) await ctx.db.delete(row._id);
+    const usage = await ctx.db.query("freeUsage").withIndex("by_sub", (q) => q.eq("sub", sub)).collect();
+    for (const row of usage) await ctx.db.delete(row._id);
     return rows.length;
   },
 });

@@ -10,7 +10,7 @@
     "preview": "vite preview addon",
     "push": "npm run build:apps-script && clasp push --force",
     "test:features": "node addon/scripts/test-features.mjs",
-    "test:paid": "node --experimental-strip-types --no-warnings addon/scripts/test-convex-crypto.mjs && node --experimental-strip-types --no-warnings addon/scripts/test-addon-gate.mjs",
+    "test:paid": "node --experimental-strip-types --no-warnings addon/scripts/test-convex-crypto.mjs && node --experimental-strip-types --no-warnings addon/scripts/test-free-limit.mjs && node --experimental-strip-types --no-warnings addon/scripts/test-addon-gate.mjs",
     "site:deploy": "marketing/scripts/deploy-site.sh",
     "seo:gsc": "node marketing/scripts/query-gsc.mjs"
   },

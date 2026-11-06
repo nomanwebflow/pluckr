@@ -2,7 +2,8 @@
 const SITE_URL = (import.meta.env.VITE_PLUCKR_LICENCE_URL || '').replace(/\/$/, '');
 
 export const PAYWALL_ENABLED = Boolean(SITE_URL);
-// Mirrors FREE_IMAGE_LIMIT in apps-script/Code.gs, which is what enforces it. This only words the screens.
+// Free accounts may use this many distinct images in total, ever. The licence service counts them (convex/licences.ts)
+// and the add-on's server code only reads images it signed for; this constant only words the screens.
 export const FREE_IMAGE_LIMIT = 50;
 export const PRICE_LABEL = import.meta.env.VITE_PRICE_LABEL || '$12';
 
@@ -43,6 +44,13 @@ async function post(scriptRun, path, body) {
 
 /** { licensed: false } or { licensed: true, entitlement, expiresAt } (entitlement is checked by the add-on's server code). */
 export const fetchLicence = (scriptRun) => post(scriptRun, '/licence');
+
+/**
+ * Free plan. Send the hashes of the images to use (an empty list only reads the state). Reply: { licensed: true }, or
+ * { grant, expiresAt, claimed, rejected, used, limit }. `grant` is what the add-on's server code checks before it returns
+ * any image bytes; `rejected` are the images that did not fit in the free allowance.
+ */
+export const claimFreeImages = (scriptRun, hashes) => post(scriptRun, '/free/claim', { hashes });
 
 /** { licensed: true } if already bought, otherwise { url } for a Polar checkout. */
 export const createCheckout = (scriptRun) => post(scriptRun, '/checkout', { accepted: true });

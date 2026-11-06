@@ -30,7 +30,7 @@ export const faqs = [
   },
   {
     q: "How much does Pluckr cost? Is there a subscription?",
-    a: "Pluckr is free for up to 50 images. The paid version is a single payment with no subscription, and you can get a refund within 14 days.",
+    a: "Pluckr is free for up to 50 images for each Google account, in total. The paid version is a single payment with no subscription, and you can get a refund within 14 days.",
   },
 ];
 

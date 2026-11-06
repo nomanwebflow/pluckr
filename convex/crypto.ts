@@ -36,6 +36,18 @@ export async function signEntitlement(secret: string, sub: string, exp: number):
   return `${exp}.${url}`;
 }
 
+/**
+ * Free-plan grant the add-on's Apps Script side can verify offline: `${exp}.${hashes.join(",")}.${signature}`, where
+ * signature = base64url(HMAC-SHA256(secret, `free.${sub}.${exp}.${hashes.join(",")}`)). It lists the images this
+ * account has used and may read. Bound to one Google account and expires. A grant never opens the paid features.
+ */
+export async function signFreeGrant(secret: string, sub: string, exp: number, hashes: string[]): Promise<string> {
+  const list = hashes.join(",");
+  const signature = await hmacSha256(enc.encode(secret), `free.${sub}.${exp}.${list}`);
+  const url = toBase64(signature).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return `${exp}.${list}.${url}`;
+}
+
 export type WebhookHeaders = { id: string; timestamp: string; signature: string };
 
 /**

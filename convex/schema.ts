@@ -14,6 +14,13 @@ export default defineSchema({
     .index("by_sub", ["sub"])
     .index("by_email", ["email"])
     .index("by_order", ["polarOrderId"]),
+  // The free plan: up to 50 distinct images per Google account, ever. An image is identified by the SHA-256 of its
+  // bytes (base64url), so using the same picture again, in any file, costs nothing more.
+  freeUsage: defineTable({
+    sub: v.string(),
+    hashes: v.array(v.string()),
+    updatedAt: v.number(),
+  }).index("by_sub", ["sub"]),
   // Proof that this Google account ticked "I agree to the Privacy Policy and Terms" before checkout.
   consents: defineTable({
     sub: v.string(),

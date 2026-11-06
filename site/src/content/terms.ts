@@ -6,7 +6,7 @@ export const terms = {
   "shortTitle": "The short version:",
   "shortParagraphs": [
     "Pluckr is an add-on for Google Docs and Google Slides. It extracts, downloads, and converts images from the document where you open it. Apps Script reads the document images and makes the downloads of original images. Your browser converts the images.",
-    "Pluckr is free for up to 50 images in each file. Pro is a one-time purchase. Use Pluckr only with content that you are authorized to access. We give the Service “as is”, without warranty."
+    "Pluckr is free for up to 50 images for each Google account. Pro is a one-time purchase. Use Pluckr only with content that you are authorized to access. We give the Service “as is”, without warranty."
   ],
   "sections": [
     {
@@ -69,7 +69,7 @@ export const terms = {
         },
         {
           "type": "p",
-          "html": "Pluckr is free for up to 50 images in each file. Bulk rename, alt text editing, output settings, Optimize and Save to Drive need a paid license. Pluckr checks your license with its license service. It uses your Google account email address for this check. The Privacy Policy describes the check."
+          "html": "Pluckr is free for up to 50 images for each Google account, in total, in all of your files. An image counts when you use it, and it counts once. Bulk rename, alt text editing, output settings, Optimize, Markdown export and Save to Drive need a paid license. Pluckr checks your license with its license service. It uses your Google account email address for this check. The Privacy Policy describes the check."
         }
       ]
     },

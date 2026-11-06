@@ -16,7 +16,7 @@ export const article: Article = {
   readingMinutes: 4,
   summary: [
     "Google Slides has no button to save one picture or all slide images. The free options are the PowerPoint ZIP trick and Google Keep.",
-    "Pluckr downloads every picture in one ZIP, including pictures in groups, for free up to 50 images. Pro adds bulk renaming and WebP or AVIF conversion for a one-time {{price}}.",
+    "Pluckr downloads every picture in one ZIP, including pictures in groups, for free, up to 50 images per Google account. Pro adds bulk renaming and WebP or AVIF conversion for a one-time {{price}}.",
   ],
   sections: [
     {
@@ -73,7 +73,7 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "Pluckr opens a sidebar inside Google Slides and lists every picture across every slide in order, including pictures inside groups. You see a preview, the pixel dimensions and the file size of each picture, then download all pictures in one ZIP. Pluckr is free for up to 50 images per presentation.",
+          html: "Pluckr opens a sidebar inside Google Slides and lists every picture across every slide in order, including pictures inside groups. You see the pixel dimensions and the file size of each picture, and a preview of each picture that you use, then download all pictures in one ZIP. Pluckr is free for up to 50 images per Google account, in total, across all of your Docs and decks.",
         },
         {
           type: "ol",
@@ -123,7 +123,7 @@ export const article: Article = {
             ["Bulk rename files by pattern", false, false, "Pro ({{price}} once)"],
             ["Convert to WebP or AVIF", false, false, "Pro ({{price}} once)"],
             ["No file extension rename needed", false, true, true],
-            ["Cost", "Free", "Free", "Free up to 50 images"],
+            ["Cost", "Free", "Free", "Free for 50 images per account"],
           ],
         },
       ],

@@ -7,7 +7,7 @@ Everything to paste into Marketplace SDK > Store Listing. Limits from Google's d
 - Language: English (United States)
 - Application name (max 50): `Pluckr`  (matches the OAuth consent screen)
 - Category: Productivity
-- Pricing model: Free with paid upgrade (free: first 50 images per file; $12 one-time unlocks all images, bulk rename, alt text editing, Output settings and Optimize). Update this in Marketplace SDK > Store Listing.
+- Pricing model: Free with paid upgrade (free: 50 images per Google account in total, ever; $12 one-time unlocks all images, bulk rename, alt text editing, Output settings and Optimize). Update this in Marketplace SDK > Store Listing.
 
 ### Short description (max 200; this one is 166)
 
@@ -38,7 +38,7 @@ Private by design
 - To check your licence, Pluckr reads your Google Account™ email address and sends an identity token to its licence service. Nothing from your file is included.
 
 Pricing
-Pluckr is free for the first 50 images in each Doc or deck: preview, select, copy, download and export originals as a ZIP. Unlock everything with a one-time purchase of $12 USD for one Google Account™, for Google Docs™ and Google Slides™, paid through Polar (polar.sh): every image, bulk rename, alt text editing, output settings (convert, compress, resize, crop) and Optimize. There is no subscription. Open Pluckr and choose "Unlock" in the sidebar. Refunds within 14 days: support@docpluckr.com.
+Pluckr is free for up to 50 images for each Google Account™ in total, across all of your Docs and decks: you see every image with its name and size, and each image you use shows a preview and can be selected, copied and downloaded, alone or in a ZIP of originals. An image counts once, the first time you use it. Unlock everything with a one-time purchase of $12 USD for one Google Account™, for Google Docs™ and Google Slides™, paid through Polar (polar.sh): every image, bulk rename, alt text editing, output settings (convert, compress, resize, crop) and Optimize. There is no subscription. Open Pluckr and choose "Unlock" in the sidebar. Refunds within 14 days: support@docpluckr.com.
 
 Not supported yet: floating images and images in headers, footers or footnotes in Google Docs™; images used as shape fills, backgrounds, or on layouts and masters in Google Slides™; Google Sheets™.
 

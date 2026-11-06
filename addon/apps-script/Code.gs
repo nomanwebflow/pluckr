@@ -147,22 +147,67 @@ function verifiedUserSub_(entitlement) {
   }
 }
 
-/** Images a free account can read per file. Everything past it, and every write, needs a licence. */
+/**
+ * A free account may use 50 distinct images in total, ever, across all its files. The licence service counts them
+ * (convex/licences.ts) and this file never sees the count: it only reads a signed grant that lists the images the
+ * account has used, each by the SHA-256 of its bytes. Every write, and every image past the 50, needs a licence.
+ */
 var FREE_IMAGE_LIMIT = 50;
 
-/**
- * How many of `total` images this caller may read: all of them with a valid entitlement, otherwise the free
- * allowance. Never throws, so a missing secret or a lapsed entitlement degrades to free and never opens the paid tier.
- * Writes (alt text, optimize, Markdown) do not use this: they call requireEntitlement_ and need a licence.
- */
-function allowedImageCount_(entitlement, total) {
-  if (!entitlement) return Math.min(total, FREE_IMAGE_LIMIT);
+/** True for a valid entitlement. Never throws, so a missing secret or a lapsed entitlement just means "not licensed". */
+function isLicensed_(entitlement) {
+  if (!entitlement) return false;
   try {
     requireEntitlement_(entitlement);
-    return total;
+    return true;
   } catch (error) {
-    return Math.min(total, FREE_IMAGE_LIMIT);
+    return false;
   }
+}
+
+/** How many of `total` images a licensed caller may read: all of them. A free caller reads by grant instead, so 0 here. */
+function allowedImageCount_(entitlement, total) {
+  return isLicensed_(entitlement) ? total : 0;
+}
+
+/**
+ * The images a free grant covers, as { hash: true }. A grant is `exp.hash,hash,....signature`, signed by the licence
+ * service for this Google account. Anything wrong with it (no secret, expired, other account, tampered) gives an empty
+ * set, never an error, so a bad grant simply reads nothing.
+ */
+function grantedHashes_(grant) {
+  var none = {};
+  try {
+    var secret = PropertiesService.getScriptProperties().getProperty('ENTITLEMENT_SECRET');
+    var parts = String(grant || '').split('.');
+    if (!secret || parts.length !== 3) return none;
+    var exp = Number(parts[0]);
+    if (!exp || exp <= Date.now() / 1000) return none;
+    var token = ScriptApp.getIdentityToken();
+    var sub = token ? decodeJwtPayload_(token).sub : '';
+    if (!sub) return none;
+    if (!constantTimeEquals_(signEntitlement_(secret, 'free.' + sub + '.' + exp + '.' + parts[1]), parts[2])) return none;
+    var granted = {};
+    parts[1].split(',').forEach(function (hash) { if (hash) granted[hash] = true; });
+    return granted;
+  } catch (error) {
+    return none;
+  }
+}
+
+/** SHA-256 of the image bytes, base64url without padding (43 characters). The same picture always gives the same hash. */
+function imageHash_(bytes) {
+  return Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, bytes)).replace(/=+$/, '');
+}
+
+/**
+ * Who may read image bytes: a licensed caller reads anything, a free caller only the images in their grant.
+ * Returns a function from the image's bytes to true or false.
+ */
+function readPolicy_(entitlement, grant) {
+  if (isLicensed_(entitlement)) return function () { return true; };
+  var granted = grantedHashes_(grant);
+  return function (bytes) { return granted[imageHash_(bytes)] === true; };
 }
 
 function signEntitlement_(secret, text) {
@@ -192,25 +237,26 @@ function openFileName_() {
   return host_() === 'slides' ? SlidesApp.getActivePresentation().getName() : DocumentApp.getActiveDocument().getName();
 }
 
-/** The name of the open file, how many images it holds (`count` is what this account may read), and which editor it is. */
+/** The name of the open file, how many images it holds (`count` is what a licence reads; a free account reads by grant), and which editor it is. */
 function getDocumentInfo(entitlement) {
   var total = collectImages_().length;
   return { documentName: openFileName_(), host: host_(), count: allowedImageCount_(entitlement, total), total: total };
 }
 
 /** One image's preview data. The sidebar scans with getDocumentImages; this stays for single lookups. */
-function getDocumentImage(index, entitlement) {
+function getDocumentImage(index, entitlement, grant) {
   var entries = collectImages_();
   var entry = entries[index];
   if (!entry) throw new Error('This image is no longer in the file. Scan again.');
-  if (index >= allowedImageCount_(entitlement, entries.length)) throw new Error('LICENCE_REQUIRED');
-  return describeImage_(entry, index);
+  var described = describeImage_(entry, index, readPolicy_(entitlement, grant));
+  if (!described) throw new Error('LICENCE_REQUIRED');
+  return described;
 }
 
 /**
- * A batch of images starting at `start`. One call walks the file and checks the entitlement once for the whole
- * batch, instead of once per image. `total` is every image in the file; `available` is how many this account may
- * read (all when licensed, otherwise the free allowance), and no image past it is ever returned.
+ * A batch of images starting at `start`, for a licensed account. One call walks the file and checks the entitlement
+ * once for the whole batch, instead of once per image. `total` is every image in the file; `available` is how many
+ * this account may read this way (all when licensed, 0 otherwise). Free accounts read with getImagesByIndex.
  */
 function getDocumentImages(start, count, entitlement, options) {
   if (options && (options.host === 'docs' || options.host === 'slides')) hostCache_ = options.host;
@@ -229,10 +275,15 @@ function getDocumentImages(start, count, entitlement, options) {
   };
 }
 
-function describeImage_(entry, index) {
+/**
+ * One image's name, size, alt text and bytes. With a `policy` (see readPolicy_) it returns null for an image the
+ * caller may not read, and never returns the bytes of one.
+ */
+function describeImage_(entry, index, policy) {
   var image = entry.image;
   var blob = image.getBlob();
   var bytes = blob.getBytes();
+  if (policy && !policy(bytes)) return null;
   var mimeType = blob.getContentType() || 'image/png';
 
   return {
@@ -248,6 +299,60 @@ function describeImage_(entry, index) {
     linkUrl: linkUrl_(image),
     data: Utilities.base64Encode(bytes)
   };
+}
+
+/**
+ * Batches of image metadata with a hash and no bytes: what a free account sees before it uses any image. The hash
+ * is how the sidebar asks the licence service to count an image. `start` and `count` page through the file.
+ */
+function getImageFingerprints(start, count, options) {
+  if (options && (options.host === 'docs' || options.host === 'slides')) hostCache_ = options.host;
+  var entries = collectImages_();
+  var end = Math.min(entries.length, start + count);
+  var images = [];
+  for (var index = start; index < end; index += 1) {
+    var entry = entries[index];
+    var blob = entry.image.getBlob();
+    var bytes = blob.getBytes();
+    var mimeType = blob.getContentType() || 'image/png';
+    images.push({
+      id: 'image-' + index,
+      sourceIndex: index,
+      name: entry.name + '.' + extensionForMime_(mimeType),
+      mimeType: mimeType,
+      size: bytes.length,
+      width: Math.round(entry.image.getWidth()),
+      height: Math.round(entry.image.getHeight()),
+      altTitle: altTitle_(entry.image),
+      altDescription: altDescription_(entry.image),
+      linkUrl: linkUrl_(entry.image),
+      hash: imageHash_(bytes)
+    });
+  }
+  return {
+    documentName: options && options.skipMeta ? '' : openFileName_(),
+    host: host_(),
+    total: entries.length,
+    images: images
+  };
+}
+
+/**
+ * The images at these positions, with their bytes, for the ones the caller may read: a licence reads any, a free
+ * account only the images in its signed grant. Images it may not read are left out, so the answer can be shorter
+ * than the question.
+ */
+function getImagesByIndex(indexes, entitlement, grant) {
+  var entries = collectImages_();
+  var policy = readPolicy_(entitlement, grant);
+  var images = [];
+  (indexes || []).forEach(function (index) {
+    var entry = entries[index];
+    if (!entry) return;
+    var described = describeImage_(entry, index, policy);
+    if (described) images.push(described);
+  });
+  return { images: images };
 }
 
 /** Save an image's alt text into the file. The sidebar calls this only when the user presses Save. */
@@ -440,13 +545,11 @@ function textMarkdown_(text, plainBold) {
 }
 
 /** Package selected document images into a ZIP. `names` maps sourceIndex to a custom file name. */
-function getImagesArchive(sourceIndexes, names, entitlement) {
+function getImagesArchive(sourceIndexes, names, entitlement, grant) {
   var entries = collectImages_();
-  var available = allowedImageCount_(entitlement, entries.length);
+  var policy = readPolicy_(entitlement, grant);
   var selected = {};
-  (sourceIndexes || []).forEach(function (index) {
-    if (index < available) selected[String(index)] = true;
-  });
+  (sourceIndexes || []).forEach(function (index) { selected[String(index)] = true; });
   names = names || {};
   var used = {};
 
@@ -455,6 +558,12 @@ function getImagesArchive(sourceIndexes, names, entitlement) {
     .filter(function (item) { return selected[String(item.index)]; })
     .map(function (item) {
       var blob = item.entry.image.getBlob();
+      return policy(blob.getBytes()) ? { item: item, blob: blob } : null;
+    })
+    .filter(Boolean)
+    .map(function (pair) {
+      var item = pair.item;
+      var blob = pair.blob;
       var mimeType = blob.getContentType() || 'image/png';
       var name = String(names[String(item.index)] || '').replace(/[\\/:*?"<>|]+/g, '-').trim() ||
         item.entry.name + '.' + extensionForMime_(mimeType);

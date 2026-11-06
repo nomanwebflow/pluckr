@@ -248,6 +248,7 @@ button, .secondary-button, .menu-item, .notice-agree, .select-option { -webkit-u
 
 /* The tick sits on the photo, so it keeps its own colours in both themes: a dark disc behind a white ring, then a white fill. */
 .thumb-wrap { position: relative; }
+.thumb-locked { display: flex; align-items: center; justify-content: center; border: 1px dashed var(--edge); background: var(--panel); }
 .thumb-wrap .row-check { position: absolute; top: 10px; left: 10px; z-index: 1; width: 20px; height: 20px; margin: 0; border: 1.5px solid rgba(255, 255, 255, 0.9); background: rgba(0, 0, 0, 0.5); }
 .thumb-wrap .row-check::before { width: 14px; height: 14px; background: #000; }
 .thumb-wrap .row-check:checked { border-color: #fff; background: #fff; }

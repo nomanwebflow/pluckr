@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { ASPECTS, FORMATS, cancelEncoding, compressForDoc, decodeBase64, detectSupportedFormats, exportName, prefetchAvifCodec, processImage } from './process.js';
 import { exportFiles, zipBundle } from './bundle.js';
 import { bulkNames } from './rename.js';
-import { FREE_IMAGE_LIMIT, PAYWALL_ENABLED, PRICE_LABEL, createCheckout, fetchLicence } from './licence.js';
+import { FREE_IMAGE_LIMIT, PAYWALL_ENABLED, PRICE_LABEL, claimFreeImages, createCheckout, fetchLicence } from './licence.js';
 import './styles.css';
 
 const DEMO_IMAGES = [
@@ -184,12 +184,13 @@ function withExtension(name, original) {
   return clean.includes('.') || !extension ? clean : clean + extension;
 }
 
-const ImageRow = memo(function ImageRow({ image, result, thumbAspect, selected, onSelect, onRename, onDownload, onSaveAlt, altLocked, onUpgrade }) {
+const ImageRow = memo(function ImageRow({ image, result, thumbAspect, selected, onSelect, onRename, onDownload, onSaveAlt, altLocked, onUpgrade, onUse }) {
   const { noun } = useWords();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(image.name);
   const [copyLabel, setCopyLabel] = useState('Copy');
   const [downloadLabel, setDownloadLabel] = useState('Download');
+  const [using, setUsing] = useState(false);
   const [altLabel, setAltLabel] = useState('Copy alt');
   const [altEditing, setAltEditing] = useState(false);
   const [altDraft, setAltDraft] = useState('');
@@ -249,10 +250,22 @@ const ImageRow = memo(function ImageRow({ image, result, thumbAspect, selected, 
     window.setTimeout(() => setDownloadLabel('Download'), 1500);
   };
 
+  // Free plan: an image is only read, and counted against the free allowance, once the user picks it.
+  const use = async () => {
+    setUsing(true);
+    try { await onUse([image.id]); } finally { setUsing(false); }
+  };
+
   return (
     <article className={`image-row${selected ? '' : ' is-off'}`} aria-label={`Extracted image ${image.name}`}>
       <div className="thumb-wrap">
-        <img className="thumb" src={imageUrl(image)} alt="" style={{ aspectRatio: thumbAspect }} />
+        {image.locked ? (
+          <div className="thumb thumb-locked" style={{ aspectRatio: thumbAspect }}>
+            <button className="mini-button" type="button" disabled={using} onClick={use}>{using ? 'Opening…' : 'Use 1 free image'}</button>
+          </div>
+        ) : (
+          <img className="thumb" src={imageUrl(image)} alt="" style={{ aspectRatio: thumbAspect }} />
+        )}
         <input className="row-check" type="checkbox" checked={selected} aria-label={`Include ${image.name}`} onChange={(event) => onSelect(image.id, event.target.checked)} />
       </div>
       <div className="image-body">
@@ -333,10 +346,10 @@ const ImageRow = memo(function ImageRow({ image, result, thumbAspect, selected, 
             </div>
           )}
         </div>
-        <div className="actions">
+        {!image.locked && <div className="actions">
           <button className="action-button" type="button" onClick={copy}><span className="trim">{copyLabel}</span></button>
           <button className="action-button" type="button" onPointerEnter={() => prepareOriginal(image)} onFocus={() => prepareOriginal(image)} onClick={download}><span className="trim">{downloadLabel}</span></button>
-        </div>
+        </div>}
       </div>
     </article>
   );
@@ -350,12 +363,16 @@ function useImageExtractor() {
   // PLUCKR_BOOT is filled in by the add-on's server code when it still holds a valid entitlement.
   const boot = window.PLUCKR_BOOT;
   const devLicence = devFlags.get('licence');
-  // 'unpaid' is the free plan: the first FREE_IMAGE_LIMIT images per file and no editing or output tools.
+  // 'unpaid' is the free plan: FREE_IMAGE_LIMIT images per Google account in total, and no editing or output tools.
   const [licence, setLicence] = useState(devLicence || (boot?.entitlement ? 'ready' : paywall ? 'checking' : 'ready'));
   // The unlock screen is only shown when a free user asks for it (the dev preview can open it directly).
   const [showUpgrade, setShowUpgrade] = useState(devLicence === 'unpaid' || devLicence === 'checking');
-  // Every image in the file, and how many this plan may read.
+  // Every image in the file, and how many of them can be read now.
   const [counts, setCounts] = useState({ total: 0, available: 0 });
+  // Free plan: images used out of the lifetime allowance, and the signed grant the server code checks before it returns bytes.
+  const [freeUsage, setFreeUsage] = useState({ used: 0, limit: FREE_IMAGE_LIMIT });
+  const [freeNotice, setFreeNotice] = useState('');
+  const grantRef = useRef({ token: '', expiresAt: 0 });
   // Identifies the latest scan, so a rescan makes batches still in flight from the previous one stop publishing.
   const scanRef = useRef(0);
   const plan = licence === 'ready' ? 'pro' : licence === 'unpaid' ? 'free' : (devLicence ? null : 'free');
@@ -426,9 +443,136 @@ function useImageExtractor() {
     setError(failure?.message || fallback);
   }, [scriptRun]);
 
+  const callServer = useCallback((method, ...args) => new Promise((resolve, reject) => {
+    scriptRun.withSuccessHandler(resolve).withFailureHandler(reject)[method](...args);
+  }), [scriptRun]);
+
+  /**
+   * Free plan: tell the licence service which images to use. It counts each distinct image once, for good, up to the
+   * allowance, and returns a signed grant for everything this account has used. Null when the account turns out to be licensed.
+   */
+  const claimFree = useCallback(async (hashes = []) => {
+    const result = await claimFreeImages(scriptRun, hashes);
+    if (result.licensed) {
+      await checkLicence({ silent: true });
+      return null;
+    }
+    grantRef.current = { token: result.grant, expiresAt: result.expiresAt };
+    setFreeUsage({ used: result.used, limit: result.limit });
+    return result;
+  }, [scriptRun, checkLicence]);
+
+  /** The grant for server calls, refreshed quietly when it is about to expire. */
+  const ensureGrant = useCallback(async () => {
+    const current = grantRef.current;
+    if (current.token && current.expiresAt * 1000 > Date.now() + 60_000) return current.token;
+    return (await claimFree([]))?.grant ?? '';
+  }, [claimFree]);
+
+  /** Reads the bytes of these positions in the file. The server only returns the images the grant covers. */
+  const readFreeImages = useCallback(async (indexes, grant) => {
+    const chunks = [];
+    for (let at = 0; at < indexes.length; at += SCAN_BATCH_SIZE) chunks.push(indexes.slice(at, at + SCAN_BATCH_SIZE));
+    const found = [];
+    for (let at = 0; at < chunks.length; at += SCAN_CONCURRENCY) {
+      const replies = await Promise.all(chunks.slice(at, at + SCAN_CONCURRENCY).map((chunk) => callServer('getImagesByIndex', chunk, '', grant)));
+      replies.forEach((reply) => found.push(...reply.images));
+    }
+    found.forEach(prepareOriginal);
+    return found;
+  }, [callServer]);
+
+  /** Fills in the bytes of images the account may read, and unlocks their rows. */
+  const unlockRows = useCallback((found) => {
+    const byId = new Map(found.map((image) => [image.id, image]));
+    setImages((current) => current.map((row) => (byId.has(row.id) ? { ...row, ...byId.get(row.id), name: row.name, locked: false } : row)));
+    setCounts((current) => ({ ...current, available: current.available + found.length }));
+  }, []);
+
+  /** Free plan: use these images (by row id). Returns the ids that were unlocked and the ids that did not fit. */
+  const claimImages = useCallback(async (ids) => {
+    const rows = ids.map((id) => imagesRef.current.find((row) => row.id === id)).filter((row) => row?.locked);
+    if (rows.length === 0) return { accepted: [], rejected: [] };
+    setFreeNotice('');
+    try {
+      const result = await claimFree(rows.map((row) => row.hash));
+      if (!result) return { accepted: [], rejected: rows.map((row) => row.id) };
+      const kept = new Set(result.claimed);
+      const accepted = rows.filter((row) => kept.has(row.hash));
+      const rejected = rows.filter((row) => !kept.has(row.hash));
+      if (accepted.length) {
+        unlockRows(await readFreeImages(accepted.map((row) => row.sourceIndex), result.grant));
+        // Using an image ticks it, so the main button downloads it with the rest.
+        setDeselected((current) => { const next = new Set(current); accepted.forEach((row) => next.delete(row.id)); return next; });
+      }
+      if (rejected.length) {
+        setFreeNotice(accepted.length
+          ? `That used your last free images. ${rejected.length} ${rejected.length === 1 ? 'image' : 'images'} stayed locked. Unlock Pluckr to use ${rejected.length === 1 ? 'it' : 'them'}.`
+          : `You have used all ${result.limit} free images. Unlock Pluckr to use more.`);
+      }
+      return { accepted: accepted.map((row) => row.id), rejected: rejected.map((row) => row.id) };
+    } catch (failure) {
+      setFreeNotice(failure?.message || 'Could not use these images. Try again.');
+      return { accepted: [], rejected: rows.map((row) => row.id) };
+    }
+  }, [claimFree, readFreeImages, unlockRows]);
+
+  /**
+   * Free plan scan: list every image with its name, size and alt text but no preview, then open only the images this
+   * account has already used. Opening a new one is the user's choice (claimImages), because each counts for good.
+   */
+  const scanFree = useCallback(async (scan) => {
+    // The state first: it also reveals a licence the sidebar has not heard about yet.
+    const status = await claimFree([]);
+    if (!status) return false;
+
+    const FIRST = 1;
+    const first = await callServer('getImageFingerprints', 0, FIRST, { host });
+    if (scanRef.current !== scan) return true;
+    setDocumentName(first.documentName || '');
+    if (first.host) setHost(first.host);
+    const rows = [...first.images];
+    let next = FIRST;
+    const worker = async () => {
+      while (next < first.total && scanRef.current === scan) {
+        const start = next;
+        next += SCAN_BATCH_SIZE;
+        const batch = await callServer('getImageFingerprints', start, SCAN_BATCH_SIZE, { skipMeta: true, host: first.host });
+        rows.push(...batch.images);
+      }
+    };
+    await Promise.all(Array.from({ length: SCAN_CONCURRENCY }, worker));
+    if (scanRef.current !== scan) return true;
+
+    rows.sort((a, b) => a.sourceIndex - b.sourceIndex);
+    const used = new Set(status.claimed);
+    const listed = rows.map((row) => ({ ...row, locked: !used.has(row.hash) }));
+    const stale = takeBlobUrls();
+    setImages(listed);
+    setCounts({ total: listed.length, available: 0 });
+    // Only images that are already open start ticked. A locked image is ticked on purpose.
+    setDeselected(new Set(listed.filter((row) => row.locked).map((row) => row.id)));
+    window.setTimeout(() => stale.forEach((url) => URL.revokeObjectURL(url)), 1000);
+    setLoading(false);
+
+    const open = listed.filter((row) => !row.locked).map((row) => row.sourceIndex);
+    if (open.length) {
+      const found = await readFreeImages(open, status.grant);
+      if (scanRef.current !== scan) return true;
+      unlockRows(found);
+      Promise.all(found.map(naturalSize)).then((sizes) => {
+        if (scanRef.current !== scan) return;
+        const byId = new Map(found.map((image, index) => [image.id, sizes[index]]));
+        setImages((current) => current.map((image) => (byId.get(image.id)?.width ? { ...image, ...byId.get(image.id) } : image)));
+      });
+    }
+    return true;
+  }, [claimFree, callServer, host, readFreeImages, unlockRows]);
+
   const extractImages = useCallback(async () => {
     setError('');
     setLoading(true);
+    setFreeNotice('');
 
     if (!isAppsScript) {
       setImages(DEMO_IMAGES);
@@ -436,8 +580,20 @@ function useImageExtractor() {
       return;
     }
 
-    // Free accounts or initial background check read with current entitlement (or empty for free allowance).
-    const entitlement = plan === 'free' ? (entitlementRef.current.token || '') : await ensureEntitlement();
+    if (plan === 'free') {
+      const scan = scanRef.current + 1;
+      scanRef.current = scan;
+      try {
+        // false: the account is licensed after all. The licence check flips the plan and the scan runs again as a paid one.
+        if (!(await scanFree(scan))) return;
+      } catch (failure) {
+        handleServerFailure(failure, 'Could not read images from this file. Try again.');
+      }
+      setLoading(false);
+      return;
+    }
+
+    const entitlement = await ensureEntitlement();
     if (entitlement === null) {
       setLoading(false);
       return;
@@ -500,7 +656,7 @@ function useImageExtractor() {
       handleServerFailure(failure, 'Could not read images from this file. Try again.');
     }
     setLoading(false);
-  }, [isAppsScript, plan, scriptRun, ensureEntitlement, handleServerFailure]);
+  }, [isAppsScript, plan, scriptRun, scanFree, ensureEntitlement, handleServerFailure]);
 
   /** One server call that needs a licence: the entitlement is appended as the last argument. */
   const serverCall = useCallback(async (method, ...args) => {
@@ -582,9 +738,23 @@ function useImageExtractor() {
       return;
     }
 
-    // The free plan zips originals with no entitlement; the server only includes the images it may read.
+    // Free plan: picking images to download uses them (once each, for good). Whatever does not fit stays out of the ZIP.
+    let grant = '';
+    if (plan === 'free') {
+      setDownloading(true);
+      try {
+        const { accepted } = await claimImages(list.filter((image) => image.locked).map((image) => image.id));
+        list = list.filter((image) => !image.locked || accepted.includes(image.id));
+        grant = await ensureGrant();
+      } catch (failure) {
+        setDownloading(false);
+        handleServerFailure(failure, 'Could not prepare the image download. Try again.');
+        return;
+      }
+      if (list.length === 0 || !grant) { setDownloading(false); return; }
+    }
     const entitlement = plan === 'free' ? '' : await ensureEntitlement();
-    if (entitlement === null) return;
+    if (entitlement === null) { setDownloading(false); return; }
 
     const names = {};
     list.forEach((image) => { names[image.sourceIndex] = image.name; });
@@ -598,8 +768,8 @@ function useImageExtractor() {
         setDownloading(false);
         handleServerFailure(failure, 'Could not prepare the image download. Try again.');
       })
-      .getImagesArchive(list.map((image) => image.sourceIndex), names, entitlement);
-  }, [images, isAppsScript, plan, scriptRun, ensureEntitlement, handleServerFailure]);
+      .getImagesArchive(list.map((image) => image.sourceIndex), names, entitlement, grant);
+  }, [images, isAppsScript, plan, scriptRun, claimImages, ensureGrant, ensureEntitlement, handleServerFailure]);
 
   const closeSidebar = useCallback(() => {
     if (window.google?.script?.host?.close) window.google.script.host.close();
@@ -618,7 +788,7 @@ function useImageExtractor() {
     if (paywall && !entitlementRef.current.token) checkLicence({ silent: true });
   }, [paywall, checkLicence]);
 
-  // Scans on start, and again if a free user upgrades to pro and there were more images than the free allowance.
+  // Scans on start, and again when a free account turns out to be licensed (it bought Pro, or its licence was found late).
   const hasMountedRef = useRef(false);
   const prevPlanRef = useRef(plan);
   useEffect(() => {
@@ -631,10 +801,10 @@ function useImageExtractor() {
     }
     const prev = prevPlanRef.current;
     prevPlanRef.current = plan;
-    if (prev === 'free' && plan === 'pro' && counts.total > counts.available) {
+    if (prev === 'free' && plan === 'pro') {
       extractImages();
     }
-  }, [plan, isAppsScript, extractImages, counts.total, counts.available]);
+  }, [plan, isAppsScript, extractImages]);
 
   // Paid: leave the unlock screen once the licence is confirmed.
   useEffect(() => { if (plan === 'pro') setShowUpgrade(false); }, [plan]);
@@ -672,7 +842,7 @@ function useImageExtractor() {
 
   return {
     images, loading, downloading, error, ready, licence, licenceError, checkoutUrl, documentName, host, isAppsScript, serverCall, fetchMarkdown,
-    plan, counts, openUpgrade, closeUpgrade,
+    plan, counts, freeUsage, freeNotice, claimImages, openUpgrade, closeUpgrade,
     checkLicence, startCheckout, extractImages, renameImage, renameMany, saveAlt, chosen, deselected, setSelected, setMany, downloadAll, closeSidebar, logout,
   };
 }
@@ -717,10 +887,12 @@ function TopBar({ loading, canScan, extractImages, closeSidebar, logout, theme, 
   );
 }
 
-function Panel({ images, results, thumbAspect, loading, error, deselected, missingOnly, onSelect, onRename, onDownload, onSaveAlt, altLocked, hiddenCount, onUpgrade }) {
+function Panel({ images, results, thumbAspect, loading, error, deselected, missingOnly, onSelect, onRename, onDownload, onSaveAlt, altLocked, freeUsage, freeNotice, onUse, onUpgrade }) {
   const { file } = useWords();
   const hasAlt = (image) => Boolean(image.altDescription || image.altTitle);
   const visible = missingOnly ? images.filter((image) => !hasAlt(image)) : images;
+  const lockedCount = images.filter((image) => image.locked).length;
+  const left = freeUsage ? Math.max(0, freeUsage.limit - freeUsage.used) : 0;
   return (
     <section className="panel" aria-label="Extracted images" aria-live="polite">
       <div className="panel-texture" aria-hidden="true" />
@@ -729,12 +901,17 @@ function Panel({ images, results, thumbAspect, loading, error, deselected, missi
       {!loading && !error && images.length === 0 && <p className="panel-message">No images found in this {file}.</p>}
       {!loading && !error && images.length > 0 && visible.length === 0 && <p className="panel-message">Every image has alt text.</p>}
       {!loading && !error && visible.map((image) => (
-        <ImageRow key={image.id} image={image} result={results[image.id]} thumbAspect={thumbAspect} selected={!deselected.has(image.id)} onSelect={onSelect} onRename={onRename} onDownload={onDownload} onSaveAlt={onSaveAlt} altLocked={altLocked} onUpgrade={onUpgrade} />
+        <ImageRow key={image.id} image={image} result={results[image.id]} thumbAspect={thumbAspect} selected={!deselected.has(image.id)} onSelect={onSelect} onRename={onRename} onDownload={onDownload} onSaveAlt={onSaveAlt} onUse={onUse} altLocked={altLocked} onUpgrade={onUpgrade} />
       ))}
-      {!loading && !error && hiddenCount > 0 && (
+      {!loading && !error && freeUsage && images.length > 0 && (
         <div className="limit-note">
-          <p>Free plan: showing the first {images.length} of {images.length + hiddenCount} images.</p>
-          <button className="secondary-button" type="button" onClick={onUpgrade}>Unlock all {images.length + hiddenCount} images</button>
+          <p role="status">
+            {freeNotice
+              || (left > 0
+                ? `Free plan: ${freeUsage.used} of ${freeUsage.limit} images used. ${lockedCount > 0 ? 'An image counts once you use it, in any file.' : `${left} left.`}`
+                : `You have used all ${freeUsage.limit} free images.${lockedCount > 0 ? ` ${lockedCount} in this ${file} stay locked.` : ''}`)}
+          </p>
+          <button className="secondary-button" type="button" onClick={onUpgrade}>Unlock unlimited images</button>
         </div>
       )}
     </section>
@@ -1165,7 +1342,7 @@ function PaywallNotice({ state, error, price, checkoutUrl, onBuy, onCheck, onBac
           <h1 id="paywall-title">{waiting ? 'Waiting for your payment' : 'Unlock Pluckr'}</h1>
           {!waiting && state !== 'error' && (
             <ul className="notice-list">
-              <li>Every image in the file (the free plan reads the first {FREE_IMAGE_LIMIT})</li>
+              <li>Unlimited images (the free plan covers {FREE_IMAGE_LIMIT} per Google account)</li>
               <li>Output settings: convert, compress, resize and crop, with alt text and Markdown export</li>
               <li>Bulk rename, alt text editing and Optimize</li>
             </ul>
@@ -1387,7 +1564,9 @@ function App() {
             onRename={extractor.renameImage}
             onDownload={downloadOne}
             altLocked={locked}
-            hiddenCount={Math.max(0, extractor.counts.total - extractor.counts.available)}
+            freeUsage={locked ? extractor.freeUsage : null}
+            freeNotice={extractor.freeNotice}
+            onUse={extractor.claimImages}
             onUpgrade={extractor.openUpgrade}
           />
         ) : (

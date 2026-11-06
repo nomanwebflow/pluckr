@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://docpluckr.com"),
   title: "Pluckr: Extract and Download Images from Google Docs",
   description:
-    "Extract every image from a Google Doc or Slides deck in one ZIP. Rename in bulk, convert to WebP or AVIF, keep alt text. Free for 50 images.",
+    "Extract every image from a Google Doc or Slides deck in one ZIP. Rename in bulk, convert to WebP or AVIF, keep alt text. Free for 50 images per account.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
