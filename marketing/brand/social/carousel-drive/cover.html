@@ -1,0 +1,120 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Pluckr carousel: save Docs images to Drive, cover</title>
+<style>
+@font-face { font-family: "PP Pangaia"; src: url("fonts/PPPangaia-Medium.woff2") format("woff2"); font-weight: 500; }
+@font-face { font-family: "PP Neue Montreal"; src: url("fonts/PPNeueMontreal-Medium.ttf") format("truetype"); font-weight: 500; }
+@font-face { font-family: "PP Neue Montreal Regular"; src: url("fonts/PPNeueMontreal-Regular.ttf") format("truetype"); font-weight: 400; }
+@font-face { font-family: "Roboto Mono"; src: url("fonts/RobotoMono-Regular-latin.woff2") format("woff2"); font-weight: 400; }
+
+html, body { margin: 0; background: #000; }
+* { box-sizing: border-box; }
+
+/* 1080 x 1350: Instagram 4:5. Same tokens as the site: black base, #0d0d0d panels, white/10 edges, one blue. */
+.slide {
+  --blue: #0062fb;
+  position: relative; width: 1080px; height: 1350px; overflow: hidden; color: #fff;
+  background: linear-gradient(to bottom, #0d0d0d, #000);
+  font-family: "PP Neue Montreal", "Helvetica Neue", Arial, sans-serif; font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+}
+/* Grain sits on the surface, behind every piece of content. */
+.grain { position: absolute; inset: 0; background: url("assets/hero-noise.webp") 0 0 / 220px 220px; opacity: .4; }
+
+.row { position: absolute; left: 80px; right: 80px; display: flex; align-items: center; justify-content: space-between; }
+.top { top: 64px; transform: translateY(-50%); }
+.brand { display: flex; align-items: center; gap: 16px; font-size: 30px; letter-spacing: .02em; text-transform: uppercase; }
+/* The site's mark (components/logo.tsx), drawn at 44px instead of 36px: same mask, same offsets, scaled by 44/36. */
+.mark { position: relative; width: 44px; height: 44px; flex: none; overflow: clip; }
+.mark-clip { position: absolute; inset: 0.33% 0.33% 7.93% 7.93%; -webkit-mask: url("data:image/svg+xml;base64,PHN2ZyBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIiBvdmVyZmxvdz0idmlzaWJsZSIgc3R5bGU9ImRpc3BsYXk6IGJsb2NrOyIgd2lkdGg9IjM2IiBoZWlnaHQ9IjM2IiB2aWV3Qm94PSIwIDAgMzYgMzYiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGlkPSJjbGlwMF8wXzE0Ij4KPHBhdGggaWQ9IlZlY3RvciIgZD0iTTM2IDBIMFYzNkgzNlYwWiIgZmlsbD0iYmxhY2siLz4KPC9nPgo8L3N2Zz4K") no-repeat; mask: url("data:image/svg+xml;base64,PHN2ZyBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIiBvdmVyZmxvdz0idmlzaWJsZSIgc3R5bGU9ImRpc3BsYXk6IGJsb2NrOyIgd2lkdGg9IjM2IiBoZWlnaHQ9IjM2IiB2aWV3Qm94PSIwIDAgMzYgMzYiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGlkPSJjbGlwMF8wXzE0Ij4KPHBhdGggaWQ9IlZlY3RvciIgZD0iTTM2IDBIMFYzNkgzNlYwWiIgZmlsbD0iYmxhY2siLz4KPC9nPgo8L3N2Zz4K") no-repeat; -webkit-mask-size: 44px 44px; mask-size: 44px 44px; -webkit-mask-position: -3.488px -0.147px; mask-position: -3.488px -0.147px; }
+.mark-in { position: absolute; inset: 0 0 -0.66% -0.66%; }
+.mark-in img { display: block; width: 100%; height: 100%; max-width: none; }
+.site { font-size: 28px; color: rgba(255,255,255,.58); }
+
+h1 {
+  position: absolute; left: 80px; right: 80px; top: 150px; margin: 0;
+  font-family: "PP Pangaia", Georgia, serif; font-weight: 500; text-transform: capitalize;
+  font-size: 118px; line-height: .98; letter-spacing: -.01em; text-wrap: balance;
+}
+.sub {
+  position: absolute; left: 80px; width: 760px; top: 428px; margin: 0;
+  font-family: "PP Neue Montreal Regular", "Helvetica Neue", Arial, sans-serif; font-weight: 400;
+  font-size: 36px; line-height: 1.3; color: rgba(255,255,255,.72);
+}
+
+/* The artifact: the blog card illustration (Doc to Drive folder), drawn at slide scale. */
+.art { position: absolute; left: 80px; right: 80px; top: 620px; height: 560px; display: flex; align-items: center; justify-content: space-between; }
+.card { display: flex; flex-direction: column; gap: 22px; padding: 30px; border: 1px solid rgba(255,255,255,.1); border-radius: 28px; background: #0d0d0d; }
+.card .head { display: flex; align-items: center; gap: 12px; font-family: "Roboto Mono", ui-monospace, monospace; font-weight: 400; font-size: 22px; color: rgba(255,255,255,.6); white-space: nowrap; }
+.dot { width: 16px; height: 16px; border-radius: 50%; background: var(--blue); flex: none; }
+.drive-mark { width: 26px; height: 26px; flex: none; fill: currentColor; }
+.doc { width: 372px; }
+.drive { width: 440px; }
+.bar { height: 12px; border-radius: 6px; background: rgba(255,255,255,.15); }
+.bar.w75 { width: 75%; } .bar.w100 { width: 100%; background: rgba(255,255,255,.1); }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.tile { display: grid; place-items: center; aspect-ratio: 4 / 3; border: 1px solid rgba(255,255,255,.1); border-radius: 14px; background: #000; color: rgba(255,255,255,.7); }
+.tile.wide { grid-column: 1 / -1; aspect-ratio: auto; height: 76px; }
+.glyph { width: 32px; height: 32px; }
+.file { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border: 1px solid rgba(255,255,255,.05); border-radius: 16px; background: #000; font-family: "Roboto Mono", ui-monospace, monospace; font-weight: 400; font-size: 24px; color: rgba(255,255,255,.88); }
+.file .glyph { width: 26px; height: 26px; color: rgba(255,255,255,.6); flex: none; }
+.saved { margin-top: 4px; padding: 18px 0; border-radius: 16px; background: var(--blue); text-align: center; font-family: "Roboto Mono", ui-monospace, monospace; font-weight: 400; font-size: 24px; color: #fff; }
+.arrow { width: 52px; height: 30px; color: rgba(255,255,255,.5); flex: none; }
+
+.bottom { bottom: 64px; transform: translateY(50%); font-size: 28px; }
+.count { font-family: "PP Neue Montreal Regular", "Helvetica Neue", Arial, sans-serif; font-weight: 400; font-size: 28px; color: rgba(255,255,255,.58); }
+.swipe { display: flex; align-items: center; gap: 16px; text-transform: uppercase; font-size: 26px; letter-spacing: .02em; }
+.swipe svg { width: 46px; height: 26px; }
+</style>
+</head>
+<body>
+<div class="slide" id="slide">
+  <div class="grain"></div>
+
+  <div class="row top">
+    <div class="brand">
+      <div class="mark" aria-hidden="true"><div class="mark-clip"><div class="mark-in"><img src="assets/mark.svg" alt=""></div></div></div>
+      <span>Pluckr</span>
+    </div>
+    <div class="site">docpluckr.com</div>
+  </div>
+
+  <h1>Save Docs Images To Google Drive</h1>
+  <p class="sub">Four ways to get every image out of a Google Doc and into a Drive folder.</p>
+
+  <div class="art">
+    <div class="card doc">
+      <div class="head"><span class="dot"></span>doc.gdoc</div>
+      <div class="bar w75"></div>
+      <div class="tiles">
+        <div class="tile"><svg class="glyph" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="2"/><circle cx="5.5" cy="6" r="1" fill="currentColor" stroke="none"/><path d="m2.5 11.5 3.5-3.2 2.5 2.2 2.2-1.8 2.8 2.8"/></svg></div>
+        <div class="tile"><svg class="glyph" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="2"/><circle cx="5.5" cy="6" r="1" fill="currentColor" stroke="none"/><path d="m2.5 11.5 3.5-3.2 2.5 2.2 2.2-1.8 2.8 2.8"/></svg></div>
+        <div class="tile wide"><svg class="glyph" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="2"/><circle cx="5.5" cy="6" r="1" fill="currentColor" stroke="none"/><path d="m2.5 11.5 3.5-3.2 2.5 2.2 2.2-1.8 2.8 2.8"/></svg></div>
+      </div>
+      <div class="bar w100"></div>
+      <div class="bar w75"></div>
+    </div>
+
+    <svg class="arrow" viewBox="0 0 24 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h20M17 2l5 5-5 5"/></svg>
+
+    <div class="card drive">
+      <div class="head">
+        <svg class="drive-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.01 1.485c-2.082 0-3.754.02-3.743.047.01.02 1.708 3.001 3.774 6.62l3.76 6.574h3.76c2.081 0 3.753-.02 3.742-.047-.005-.02-1.708-3.001-3.775-6.62l-3.76-6.574zm-4.76 1.73a789.828 789.861 0 0 0-3.63 6.319L0 15.868l1.89 3.298 1.885 3.297 3.62-6.335 3.618-6.33-1.88-3.287C8.1 4.704 7.255 3.22 7.25 3.214zm2.259 12.653-.203.348c-.114.198-.96 1.672-1.88 3.287a423.93 423.948 0 0 1-1.698 2.97c-.01.026 3.24.042 7.222.042h7.244l1.796-3.157c.992-1.734 1.85-3.23 1.906-3.323l.104-.167h-7.249z"/></svg>
+        My Drive / doc images
+      </div>
+      <div class="file"><svg class="glyph" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="2"/><circle cx="5.5" cy="6" r="1" fill="currentColor" stroke="none"/><path d="m2.5 11.5 3.5-3.2 2.5 2.2 2.2-1.8 2.8 2.8"/></svg>image-01.webp</div>
+      <div class="file"><svg class="glyph" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="2"/><circle cx="5.5" cy="6" r="1" fill="currentColor" stroke="none"/><path d="m2.5 11.5 3.5-3.2 2.5 2.2 2.2-1.8 2.8 2.8"/></svg>image-02.webp</div>
+      <div class="file"><svg class="glyph" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="2"/><circle cx="5.5" cy="6" r="1" fill="currentColor" stroke="none"/><path d="m2.5 11.5 3.5-3.2 2.5 2.2 2.2-1.8 2.8 2.8"/></svg>image-03.webp</div>
+      <div class="saved">Saved 3 files to Drive</div>
+    </div>
+  </div>
+
+  <div class="row bottom">
+    <div class="count">1 / 6</div>
+    <div class="swipe">Swipe<svg viewBox="0 0 24 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h20M17 2l5 5-5 5"/></svg></div>
+  </div>
+</div>
+</body>
+</html>
