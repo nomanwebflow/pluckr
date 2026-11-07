@@ -9,9 +9,9 @@ Everything to paste into Marketplace SDK > Store Listing. Limits from Google's d
 - Category: Productivity
 - Pricing model: Free with paid upgrade (free: 50 images per Google account in total, ever; $12 one-time unlocks all images, bulk rename, alt text editing, Output settings and Optimize). Update this in Marketplace SDK > Store Listing.
 
-### Short description (max 200; this one is 166)
+### Short description (max 200; this one is 154)
 
-Preview, rename, convert and download every image in your Google Docs™ or Google Slides™ file. Edit alt text, export Markdown with images, and shrink images in place.
+Preview and download every image in your Google Docs™ or Slides™ file. Rename, convert, edit alt text, export Markdown, save to Drive. Free for 50 images.
 
 ### Detailed description (max 16,000)
 
@@ -28,17 +28,18 @@ What you can do
 - Convert to AVIF, WebP, JPEG or PNG, set the quality, crop to a fixed aspect ratio (1:1, 4:3, 3:2, 16:9 and more) and cap the width. Images are never enlarged.
 - See which images have no alt text, write alt text in the sidebar, and copy it. Save it back to the file when you choose, or export it with the images as CSV and JSON.
 - In Google Docs™: export the document as Markdown with its images in an images folder, ready for a blog, a static site or Obsidian.
+- Save to Drive: send the export to a folder in your Google Drive (Pro).
 - Optimize file images: shrink the images inside the document or presentation so it opens and scrolls faster. Pictures keep their size on the page, their alt text and their links.
 - Light and dark themes. Pluckr follows your system setting until you choose one.
 
 Private by design
 - Conversion happens in your browser. Your images and text are never sent to Pluckr's servers or to anyone except Google.
-- Pluckr asks only for access to the current file and to show its sidebar.
+- Pluckr asks for access to the open file. Save to Drive, only when you choose it, creates a folder in your Drive. Pluckr can reach only the files it creates, not the rest of your Drive.
 - Pluckr changes your file only when you press Save, or confirm Optimize, and it tells you to make a copy first.
-- To check your licence, Pluckr reads your Google Account™ email address and sends an identity token to its licence service. Nothing from your file is included.
+- To check your licence, Pluckr reads your Google Account™ email address and sends an identity token to its licence service. Nothing from your file is included. On the free plan it also sends a one-way hash (a fingerprint, not the image) of each image you copy or download, to count your 50.
 
 Pricing
-Pluckr is free for up to 50 images for each Google Account™ in total, across all of your Docs and decks: you see every image with its name and size, and each image you use shows a preview and can be selected, copied and downloaded, alone or in a ZIP of originals. An image counts once, the first time you use it. Unlock everything with a one-time purchase of $12 USD for one Google Account™, for Google Docs™ and Google Slides™, paid through Polar (polar.sh): every image, bulk rename, alt text editing, output settings (convert, compress, resize, crop) and Optimize. There is no subscription. Open Pluckr and choose "Unlock" in the sidebar. Refunds within 14 days: support@docpluckr.com.
+Pluckr is free for up to 50 images for each Google Account™ in total, across all of your Docs and decks: you see every image with its preview, name and size, and can copy and download them, alone or in a ZIP of originals. An image counts once, the first time you copy or download it. Unlock everything with a one-time purchase of $12 USD for one Google Account™, for Google Docs™ and Google Slides™, paid through Polar (polar.sh): every image, bulk rename, alt text editing, output settings (convert, compress, resize, crop) and Optimize. There is no subscription. Open Pluckr and choose "Unlock" in the sidebar. Refunds within 14 days: support@docpluckr.com.
 
 Not supported yet: floating images and images in headers, footers or footnotes in Google Docs™; images used as shape fills, backgrounds, or on layouts and masters in Google Slides™; Google Sheets™.
 

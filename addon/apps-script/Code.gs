@@ -355,6 +355,17 @@ function getImagesByIndex(indexes, entitlement, grant) {
   return { images: images };
 }
 
+/** Previews for any account: name, size and bytes, no grant. Copying and downloading is what the free plan counts. */
+function getImagePreviews(indexes) {
+  var entries = collectImages_();
+  var images = [];
+  (indexes || []).forEach(function (index) {
+    var entry = entries[index];
+    if (entry) images.push(describeImage_(entry, index));
+  });
+  return { images: images };
+}
+
 /** Save an image's alt text into the file. The sidebar calls this only when the user presses Save. */
 function setImageAlt(index, altTitle, altDescription, entitlement) {
   requireEntitlement_(entitlement);

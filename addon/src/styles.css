@@ -172,6 +172,10 @@ button:focus-visible, .name-input:focus-visible { outline: 2px solid var(--white
 .privacy-notice h1 { margin: 0 0 4px; font-size: 18px; font-weight: 500; line-height: 1.2; }
 .privacy-notice p { color: var(--muted); font-size: 12px; line-height: 1.5; }
 .notice-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.notice-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; }
+.text-button { padding: 8px 4px; border: 0; background: none; color: var(--muted); font-size: 12px; line-height: normal; text-decoration: underline; text-underline-offset: 3px; }
+.text-button:hover { color: var(--white); }
+.text-button:focus-visible { outline: 2px solid var(--white); outline-offset: 2px; }
 .secondary-button { display: flex; align-items: center; justify-content: center; width: 100%; padding: 15px; border: 1px solid var(--edge-card); border-radius: 16px; background: var(--panel); color: var(--white); font-size: 12px; line-height: normal; text-align: center; text-decoration: none; text-transform: uppercase; }
 .secondary-button:hover { background: var(--hover-strong); }
 .secondary-button:focus-visible { outline: 2px solid var(--white); outline-offset: 2px; }
@@ -248,7 +252,6 @@ button, .secondary-button, .menu-item, .notice-agree, .select-option { -webkit-u
 
 /* The tick sits on the photo, so it keeps its own colours in both themes: a dark disc behind a white ring, then a white fill. */
 .thumb-wrap { position: relative; }
-.thumb-locked { display: flex; align-items: center; justify-content: center; border: 1px dashed var(--edge); background: var(--panel); }
 .thumb-wrap .row-check { position: absolute; top: 10px; left: 10px; z-index: 1; width: 20px; height: 20px; margin: 0; border: 1.5px solid rgba(255, 255, 255, 0.9); background: rgba(0, 0, 0, 0.5); }
 .thumb-wrap .row-check::before { width: 14px; height: 14px; background: #000; }
 .thumb-wrap .row-check:checked { border-color: #fff; background: #fff; }
@@ -278,7 +281,7 @@ button, .secondary-button, .menu-item, .notice-agree, .select-option { -webkit-u
 
 .pro-badge { margin-left: 8px; padding: 2px 6px; border: 1px solid var(--edge-card); border-radius: 6px; color: var(--muted); font-size: 10px; letter-spacing: 0.04em; text-transform: none; }
 .mini-button .pro-badge { margin-left: 6px; padding: 0 4px; font-size: 9px; }
-.limit-note { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--edge); border-radius: 12px; }
+.limit-note { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--edge-card); border-radius: 12px; background: var(--black); }
 .limit-note p { color: var(--muted); font-size: 12px; line-height: 1.4; text-align: center; }
 .notice-list { margin: 0; padding-left: 16px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 

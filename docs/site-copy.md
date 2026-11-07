@@ -215,7 +215,7 @@ Pluckr changes your file only when you press Save for alt text, or when you conf
 Pluckr asks for access to the open file and its sidebar. It also reads your Google email address to check your licence. It does not read the rest of your Drive.
 
 **What happens to a file with more than 50 images?**
-The free version lets you use 50 images per Google account in total. You see every image in the list, but each new image counts once when you use it. Pro has no limit.
+The free version lets you use 50 images per Google account in total. You see every image and its preview in the list, but each new image counts once, when you copy or download it. Pro has no limit.
 
 **How do I copy or save a Google Doc image?**
 For one image, right-click it and choose Save to Keep or Copy. For all images, use Pluckr. Choose Download originals to get one ZIP file.

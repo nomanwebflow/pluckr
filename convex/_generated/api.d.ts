@@ -9,6 +9,7 @@
  */
 
 import type * as crypto from "../crypto.js";
+import type * as freeLimit from "../freeLimit.js";
 import type * as http from "../http.js";
 import type * as licences from "../licences.js";
 
@@ -20,6 +21,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   crypto: typeof crypto;
+  freeLimit: typeof freeLimit;
   http: typeof http;
   licences: typeof licences;
 }>;

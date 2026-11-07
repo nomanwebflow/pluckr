@@ -190,7 +190,6 @@ const ImageRow = memo(function ImageRow({ image, result, thumbAspect, selected, 
   const [draft, setDraft] = useState(image.name);
   const [copyLabel, setCopyLabel] = useState('Copy');
   const [downloadLabel, setDownloadLabel] = useState('Download');
-  const [using, setUsing] = useState(false);
   const [altLabel, setAltLabel] = useState('Copy alt');
   const [altEditing, setAltEditing] = useState(false);
   const [altDraft, setAltDraft] = useState('');
@@ -212,8 +211,9 @@ const ImageRow = memo(function ImageRow({ image, result, thumbAspect, selected, 
   };
 
   // Labels change on the click itself; the heavy work starts on the next frame so the press registers at once.
-  const copy = () => {
+  const copy = async () => {
     setCopyLabel('Copying…');
+    if (!(await allowed())) { setCopyLabel('Copy'); return; }
     copyImage(image).then(
       () => setCopyLabel('Copied'),
       () => setCopyLabel('Copy failed'),
@@ -244,28 +244,19 @@ const ImageRow = memo(function ImageRow({ image, result, thumbAspect, selected, 
     setAltSaving(false);
   };
 
-  const download = () => {
-    setDownloadLabel('Starting…');
-    onDownload(image, result);
-    window.setTimeout(() => setDownloadLabel('Download'), 1500);
-  };
+  // Free plan: an image counts against the allowance when it is copied or downloaded. Previews are free.
+  const allowed = async () => !onUse || (await onUse([image.id])).rejected.length === 0;
 
-  // Free plan: an image is only read, and counted against the free allowance, once the user picks it.
-  const use = async () => {
-    setUsing(true);
-    try { await onUse([image.id]); } finally { setUsing(false); }
+  const download = async () => {
+    setDownloadLabel('Starting…');
+    if (await allowed()) onDownload(image, result);
+    window.setTimeout(() => setDownloadLabel('Download'), 1500);
   };
 
   return (
     <article className={`image-row${selected ? '' : ' is-off'}`} aria-label={`Extracted image ${image.name}`}>
       <div className="thumb-wrap">
-        {image.locked ? (
-          <div className="thumb thumb-locked" style={{ aspectRatio: thumbAspect }}>
-            <button className="mini-button" type="button" disabled={using} onClick={use}>{using ? 'Opening…' : 'Use 1 free image'}</button>
-          </div>
-        ) : (
-          <img className="thumb" src={imageUrl(image)} alt="" style={{ aspectRatio: thumbAspect }} />
-        )}
+        <img className="thumb" src={imageUrl(image)} alt="" style={{ aspectRatio: thumbAspect }} />
         <input className="row-check" type="checkbox" checked={selected} aria-label={`Include ${image.name}`} onChange={(event) => onSelect(image.id, event.target.checked)} />
       </div>
       <div className="image-body">
@@ -346,10 +337,10 @@ const ImageRow = memo(function ImageRow({ image, result, thumbAspect, selected, 
             </div>
           )}
         </div>
-        {!image.locked && <div className="actions">
+        <div className="actions">
           <button className="action-button" type="button" onClick={copy}><span className="trim">{copyLabel}</span></button>
           <button className="action-button" type="button" onPointerEnter={() => prepareOriginal(image)} onFocus={() => prepareOriginal(image)} onClick={download}><span className="trim">{downloadLabel}</span></button>
-        </div>}
+        </div>
       </div>
     </article>
   );
@@ -469,57 +460,50 @@ function useImageExtractor() {
     return (await claimFree([]))?.grant ?? '';
   }, [claimFree]);
 
-  /** Reads the bytes of these positions in the file. The server only returns the images the grant covers. */
-  const readFreeImages = useCallback(async (indexes, grant) => {
+  /** Reads the previews of these positions in the file. Previews are free; copying and downloading is what counts. */
+  const readFreeImages = useCallback(async (indexes) => {
     const chunks = [];
     for (let at = 0; at < indexes.length; at += SCAN_BATCH_SIZE) chunks.push(indexes.slice(at, at + SCAN_BATCH_SIZE));
     const found = [];
     for (let at = 0; at < chunks.length; at += SCAN_CONCURRENCY) {
-      const replies = await Promise.all(chunks.slice(at, at + SCAN_CONCURRENCY).map((chunk) => callServer('getImagesByIndex', chunk, '', grant)));
+      const replies = await Promise.all(chunks.slice(at, at + SCAN_CONCURRENCY).map((chunk) => callServer('getImagePreviews', chunk)));
       replies.forEach((reply) => found.push(...reply.images));
     }
     found.forEach(prepareOriginal);
     return found;
   }, [callServer]);
 
-  /** Fills in the bytes of images the account may read, and unlocks their rows. */
-  const unlockRows = useCallback((found) => {
-    const byId = new Map(found.map((image) => [image.id, image]));
-    setImages((current) => current.map((row) => (byId.has(row.id) ? { ...row, ...byId.get(row.id), name: row.name, locked: false } : row)));
-    setCounts((current) => ({ ...current, available: current.available + found.length }));
-  }, []);
-
-  /** Free plan: use these images (by row id). Returns the ids that were unlocked and the ids that did not fit. */
+  /**
+   * Free plan: count these images (by row id) against the allowance, for good. Returns the ids that were counted
+   * (or already had been) and the ids that did not fit. Licensed accounts pass straight through.
+   */
   const claimImages = useCallback(async (ids) => {
-    const rows = ids.map((id) => imagesRef.current.find((row) => row.id === id)).filter((row) => row?.locked);
-    if (rows.length === 0) return { accepted: [], rejected: [] };
+    if (plan !== 'free') return { accepted: ids, rejected: [] };
+    const rows = ids.map((id) => imagesRef.current.find((row) => row.id === id)).filter((row) => row && !row.counted);
+    if (rows.length === 0) return { accepted: ids, rejected: [] };
     setFreeNotice('');
     try {
       const result = await claimFree(rows.map((row) => row.hash));
-      if (!result) return { accepted: [], rejected: rows.map((row) => row.id) };
+      if (!result) return { accepted: ids, rejected: [] };
       const kept = new Set(result.claimed);
-      const accepted = rows.filter((row) => kept.has(row.hash));
       const rejected = rows.filter((row) => !kept.has(row.hash));
-      if (accepted.length) {
-        unlockRows(await readFreeImages(accepted.map((row) => row.sourceIndex), result.grant));
-        // Using an image ticks it, so the main button downloads it with the rest.
-        setDeselected((current) => { const next = new Set(current); accepted.forEach((row) => next.delete(row.id)); return next; });
-      }
+      setImages((current) => current.map((row) => (kept.has(row.hash) ? { ...row, counted: true } : row)));
       if (rejected.length) {
-        setFreeNotice(accepted.length
-          ? `That used your last free images. ${rejected.length} ${rejected.length === 1 ? 'image' : 'images'} stayed locked. Unlock Pluckr to use ${rejected.length === 1 ? 'it' : 'them'}.`
+        setFreeNotice(rejected.length < rows.length
+          ? `That used your last free images. ${rejected.length} ${rejected.length === 1 ? 'image was' : 'images were'} not downloaded. Unlock Pluckr to use ${rejected.length === 1 ? 'it' : 'them'}.`
           : `You have used all ${result.limit} free images. Unlock Pluckr to use more.`);
       }
-      return { accepted: accepted.map((row) => row.id), rejected: rejected.map((row) => row.id) };
+      const bad = new Set(rejected.map((row) => row.id));
+      return { accepted: ids.filter((id) => !bad.has(id)), rejected: ids.filter((id) => bad.has(id)) };
     } catch (failure) {
-      setFreeNotice(failure?.message || 'Could not use these images. Try again.');
-      return { accepted: [], rejected: rows.map((row) => row.id) };
+      setFreeNotice(failure?.message || 'Could not count these images. Try again.');
+      return { accepted: [], rejected: ids };
     }
-  }, [claimFree, readFreeImages, unlockRows]);
+  }, [plan, claimFree]);
 
   /**
-   * Free plan scan: list every image with its name, size and alt text but no preview, then open only the images this
-   * account has already used. Opening a new one is the user's choice (claimImages), because each counts for good.
+   * Free plan scan: list every image with its hash, then load every preview like a licensed scan. An image only
+   * counts against the allowance when it is copied or downloaded (claimImages).
    */
   const scanFree = useCallback(async (scan) => {
     // The state first: it also reveals a licence the sidebar has not heard about yet.
@@ -546,28 +530,25 @@ function useImageExtractor() {
 
     rows.sort((a, b) => a.sourceIndex - b.sourceIndex);
     const used = new Set(status.claimed);
-    const listed = rows.map((row) => ({ ...row, locked: !used.has(row.hash) }));
+    const listed = rows.map((row) => ({ ...row, counted: used.has(row.hash) }));
+    // Take the previous scan's URLs before reading, so the new previews' URLs are not among the ones released.
     const stale = takeBlobUrls();
-    setImages(listed);
-    setCounts({ total: listed.length, available: 0 });
-    // Only images that are already open start ticked. A locked image is ticked on purpose.
-    setDeselected(new Set(listed.filter((row) => row.locked).map((row) => row.id)));
+    const found = await readFreeImages(listed.map((row) => row.sourceIndex));
+    if (scanRef.current !== scan) return true;
+    const byId = new Map(found.map((image) => [image.id, image]));
+    const ready = listed.map((row) => ({ ...row, ...(byId.get(row.id) || {}), name: row.name }));
+    setImages(ready);
+    setCounts({ total: ready.length, available: ready.length });
+    setDeselected(new Set());
     window.setTimeout(() => stale.forEach((url) => URL.revokeObjectURL(url)), 1000);
     setLoading(false);
-
-    const open = listed.filter((row) => !row.locked).map((row) => row.sourceIndex);
-    if (open.length) {
-      const found = await readFreeImages(open, status.grant);
-      if (scanRef.current !== scan) return true;
-      unlockRows(found);
-      Promise.all(found.map(naturalSize)).then((sizes) => {
-        if (scanRef.current !== scan) return;
-        const byId = new Map(found.map((image, index) => [image.id, sizes[index]]));
-        setImages((current) => current.map((image) => (byId.get(image.id)?.width ? { ...image, ...byId.get(image.id) } : image)));
-      });
-    }
+    Promise.all(found.map(naturalSize)).then((sizes) => {
+      if (scanRef.current !== scan) return;
+      const sized = new Map(found.map((image, index) => [image.id, sizes[index]]));
+      setImages((current) => current.map((image) => (sized.get(image.id)?.width ? { ...image, ...sized.get(image.id) } : image)));
+    });
     return true;
-  }, [claimFree, callServer, host, readFreeImages, unlockRows]);
+  }, [claimFree, callServer, host, readFreeImages]);
 
   const extractImages = useCallback(async () => {
     setError('');
@@ -738,13 +719,13 @@ function useImageExtractor() {
       return;
     }
 
-    // Free plan: picking images to download uses them (once each, for good). Whatever does not fit stays out of the ZIP.
+    // Free plan: downloading images counts them (once each, for good). Whatever does not fit stays out of the ZIP.
     let grant = '';
     if (plan === 'free') {
       setDownloading(true);
       try {
-        const { accepted } = await claimImages(list.filter((image) => image.locked).map((image) => image.id));
-        list = list.filter((image) => !image.locked || accepted.includes(image.id));
+        const { accepted } = await claimImages(list.map((image) => image.id));
+        list = list.filter((image) => accepted.includes(image.id));
         grant = await ensureGrant();
       } catch (failure) {
         setDownloading(false);
@@ -891,7 +872,7 @@ function Panel({ images, results, thumbAspect, loading, error, deselected, missi
   const { file } = useWords();
   const hasAlt = (image) => Boolean(image.altDescription || image.altTitle);
   const visible = missingOnly ? images.filter((image) => !hasAlt(image)) : images;
-  const lockedCount = images.filter((image) => image.locked).length;
+  const uncounted = images.filter((image) => !image.counted).length;
   const left = freeUsage ? Math.max(0, freeUsage.limit - freeUsage.used) : 0;
   return (
     <section className="panel" aria-label="Extracted images" aria-live="polite">
@@ -908,8 +889,8 @@ function Panel({ images, results, thumbAspect, loading, error, deselected, missi
           <p role="status">
             {freeNotice
               || (left > 0
-                ? `Free plan: ${freeUsage.used} of ${freeUsage.limit} images used. ${lockedCount > 0 ? 'An image counts once you use it, in any file.' : `${left} left.`}`
-                : `You have used all ${freeUsage.limit} free images.${lockedCount > 0 ? ` ${lockedCount} in this ${file} stay locked.` : ''}`)}
+                ? `Free plan: ${freeUsage.used} of ${freeUsage.limit} images used. ${uncounted > 0 ? 'An image counts when you copy or download it, in any file.' : `${left} left.`}`
+                : `You have used all ${freeUsage.limit} free images.${uncounted > 0 ? ` ${uncounted} in this ${file} cannot be downloaded.` : ''}`)}
           </p>
           <button className="secondary-button" type="button" onClick={onUpgrade}>Unlock unlimited images</button>
         </div>
@@ -1340,19 +1321,11 @@ function PaywallNotice({ state, error, price, checkoutUrl, onBuy, onCheck, onBac
       ) : (
         <>
           <h1 id="paywall-title">{waiting ? 'Waiting for your payment' : 'Unlock Pluckr'}</h1>
-          {!waiting && state !== 'error' && (
-            <ul className="notice-list">
-              <li>Unlimited images (the free plan covers {FREE_IMAGE_LIMIT} per Google account)</li>
-              <li>Output settings: convert, compress, resize and crop, with alt text and Markdown export</li>
-              <li>Bulk rename, alt text editing and Optimize</li>
-            </ul>
-          )}
           {waiting ? (
             <p>Finish checking out in the tab that just opened. This screen updates by itself when your payment goes through.</p>
           ) : (
             <>
-              <p>One-time purchase of {price}. Pay once and use it on any Doc or Slides deck with this Google account.</p>
-              <p>You check out securely with Polar. Pluckr never sees your card details, and uses your Google email only to find your licence. Document images are never sent to Pluckr's servers.</p>
+              <p>{price} once, no subscription. Unlimited images, bulk rename, alt text and output tools, in every Doc and deck on this Google account.</p>
               {state !== 'error' && (
                 <label className="notice-agree">
                   <input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} />
@@ -1367,17 +1340,23 @@ function PaywallNotice({ state, error, price, checkoutUrl, onBuy, onCheck, onBac
           <div className="notice-actions">
             {waiting ? (
               <>
-                <a className="secondary-button" href={checkoutUrl} target="_blank" rel="noopener noreferrer">Open checkout again</a>
                 <button className="primary-button" type="button" onClick={onCheck}>I have paid, check again</button>
-                <button className="secondary-button" type="button" onClick={onBack}>Continue with the free plan</button>
+                <div className="notice-links">
+                  <a className="text-button" href={checkoutUrl} target="_blank" rel="noopener noreferrer">Open checkout again</a>
+                  <button className="text-button" type="button" onClick={onBack}>Continue with the free plan</button>
+                </div>
               </>
             ) : (
               <>
-                {state === 'unpaid' && <button className="secondary-button" type="button" onClick={onCheck}>I have already paid</button>}
-                {state === 'unpaid' && <button className="secondary-button" type="button" onClick={onBack}>Continue with the free plan</button>}
                 <button className="primary-button" type="button" disabled={state !== 'error' && !agreed} onClick={state === 'error' ? onCheck : onBuy}>
                   {state === 'error' ? 'Try again' : `Buy Pluckr for ${price}`}
                 </button>
+                {state === 'unpaid' && (
+                  <div className="notice-links">
+                    <button className="text-button" type="button" onClick={onCheck}>I have already paid</button>
+                    <button className="text-button" type="button" onClick={onBack}>Continue with the free plan</button>
+                  </div>
+                )}
               </>
             )}
           </div>

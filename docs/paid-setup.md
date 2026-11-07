@@ -52,7 +52,7 @@ An image is identified by the SHA-256 of its bytes (base64url, 43 characters). T
 
 1. Opening Pluckr without a licence: `getImageFingerprints` lists every image with its name, size, dimensions, alt text and hash, and no bytes. The sidebar sends no hashes yet: `POST /free/claim` with an empty list returns the account's state.
 2. `/free/claim` (Convex) stores up to 50 hashes per Google account (table `freeUsage`, rule in `convex/freeLimit.ts`) and returns a **grant**: `exp.hash,hash,....signature`, signed with `ENTITLEMENT_SECRET`, valid 6 hours, bound to the account.
-3. Images already used open straight away (`getImagesByIndex`). The others show "Use 1 free image". Using one, or downloading selected ones, claims them. What does not fit stays locked and the sidebar says so.
+3. Every image previews at once (`getImagePreviews`, no grant). Copying or downloading an image claims it, and the ZIP (`getImagesArchive`) only holds images in the grant. What does not fit is not downloaded and the sidebar says so.
 4. `Code.gs` (`grantedHashes_`, `readPolicy_`) verifies the grant offline, recomputes each image's hash on the server and returns bytes only for hashes in the grant. A licence skips all of this.
 5. Counting happens once, in Convex. A new Google account gets a new 50, which is the usual limit of any free tier.
 6. Privacy: the hashes are stored with the account ID. They are in the privacy policy. `deleteBySub` removes them with the licence rows.

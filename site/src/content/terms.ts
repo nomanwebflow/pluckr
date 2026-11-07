@@ -69,7 +69,7 @@ export const terms = {
         },
         {
           "type": "p",
-          "html": "Pluckr is free for up to 50 images for each Google account, in total, in all of your files. An image counts when you use it, and it counts once. Bulk rename, alt text editing, output settings, Optimize, Markdown export and Save to Drive need a paid license. Pluckr checks your license with its license service. It uses your Google account email address for this check. The Privacy Policy describes the check."
+          "html": "Pluckr is free for up to 50 images for each Google account, in total, in all of your files. An image counts when you copy or download it, and it counts once. You can see every image and its preview before that. Bulk rename, alt text editing, output settings, Optimize, Markdown export and Save to Drive need a paid license. Pluckr checks your license with its license service. It uses your Google account email address for this check. The Privacy Policy describes the check."
         }
       ]
     },
