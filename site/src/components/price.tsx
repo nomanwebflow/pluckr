@@ -146,7 +146,7 @@ export function Price() {
         </div>
 
         <div className="flex justify-center pt-6">
-          <CtaButton />
+          <CtaButton location="price" />
         </div>
       </div>
     </section>

@@ -67,7 +67,7 @@ export function Size() {
         >
           Convert Google Docs images to WebP or AVIF
         </Link>
-        <CtaButton />
+        <CtaButton location="size" />
       </div>
     </section>
   );

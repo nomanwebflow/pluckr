@@ -126,7 +126,7 @@ export function Hero() {
           </p>
         </div>
         <div data-hero="cta">
-          <CtaButton />
+          <CtaButton location="hero" />
         </div>
       </div>
 

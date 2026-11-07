@@ -2,14 +2,13 @@ import type { Metadata } from "next";
 
 import { Hero } from "@/components/hero";
 import { ClosingCta } from "@/components/closing-cta";
-import { MARKETPLACE_URL } from "@/components/cta-button";
 import { Faq, faqs } from "@/components/faq";
 import { Nav } from "@/components/nav";
 import { MarkdownExport } from "@/components/markdown-export";
 import { Price } from "@/components/price";
 import { Process } from "@/components/process";
 import { Size } from "@/components/size";
-import { PRICE } from "@/content/site";
+import { MARKETPLACE_URL, PRICE } from "@/content/site";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },

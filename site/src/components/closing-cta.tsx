@@ -33,7 +33,7 @@ export function ClosingCta() {
             to WebP or AVIF, keep the alt text.
           </p>
         </div>
-        <CtaButton />
+        <CtaButton location="closing" />
       </div>
     </section>
   );
