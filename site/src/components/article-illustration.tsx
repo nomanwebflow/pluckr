@@ -111,6 +111,55 @@ function DownloadAllIllustration() {
   );
 }
 
+function SaveToDriveIllustration() {
+  return (
+    <div className="flex size-full items-center justify-center gap-3 px-5 py-4 sm:gap-5 sm:px-8">
+      {/* Doc with inline images */}
+      <div className="flex w-[40%] max-w-[160px] flex-col gap-2.5 rounded-xl border border-white/10 bg-[#0d0d0d] p-3">
+        <div className="flex items-center gap-1.5">
+          <span className="size-2 rounded-full bg-[#0062fb]" />
+          <span className="font-mono text-[10px] text-white/60">doc.gdoc</span>
+        </div>
+        <div className="h-1.5 w-3/4 rounded-full bg-white/15" />
+        <div className="grid grid-cols-2 gap-1.5">
+          <div className="flex aspect-[4/3] items-center justify-center rounded-md border border-white/10 bg-black text-white/70">
+            <ImageGlyph />
+          </div>
+          <div className="flex aspect-[4/3] items-center justify-center rounded-md border border-white/10 bg-black text-white/70">
+            <ImageGlyph />
+          </div>
+        </div>
+        <div className="h-1.5 w-full rounded-full bg-white/10" />
+      </div>
+
+      <Arrow />
+
+      {/* Drive folder with the saved files */}
+      <div className="flex w-[50%] max-w-[200px] flex-col gap-2 rounded-xl border border-white/10 bg-[#0d0d0d] p-3">
+        <div className="flex items-center justify-between gap-2">
+          <span className="truncate font-mono text-[10px] text-white/60">
+            My Drive / doc images
+          </span>
+        </div>
+        {["image-01.webp", "image-02.webp", "image-03.webp"].map((name) => (
+          <div
+            key={name}
+            className="flex items-center gap-2 rounded-lg border border-white/5 bg-black px-2.5 py-1.5"
+          >
+            <ImageGlyph className="size-3 shrink-0 text-white/60" />
+            <span className="truncate font-mono text-[10px] text-white/85">
+              {name}
+            </span>
+          </div>
+        ))}
+        <div className="mt-0.5 rounded-lg bg-[#0062fb] py-1 text-center font-mono text-[10px] font-medium text-white">
+          Saved 3 files to Drive
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ConvertWebpIllustration() {
   return (
     <div className="flex size-full items-center justify-center gap-3 px-5 py-4 sm:gap-5 sm:px-8">
@@ -388,6 +437,8 @@ export function ArticleIllustration({
           <ExportMarkdownIllustration />
         ) : slug === "google-docs-to-wordpress-images" ? (
           <WordpressExportIllustration />
+        ) : slug === "save-google-docs-images-to-google-drive" ? (
+          <SaveToDriveIllustration />
         ) : kind === "compare" ? (
           <CompareIllustration />
         ) : (

@@ -80,6 +80,7 @@ Each page: one H1 with the target phrase, a 400 to 900 word answer with a real s
 | P2 | `/compress-images-from-google-docs` | Compress Images from Google Docs | Quality slider, max width, never-enlarge rule |
 | P2 | `/guides/google-docs-to-wordpress-images` | Google Docs to WordPress: Get the Images Out | Content-team workflow, rename and convert before upload |
 | P2 | `/pluckr-vs-extract-and-download` | Pluckr vs Extract and Download | Table: price (one-time vs subscription), formats, conversion, privacy |
+| P2 | `/guides/save-google-docs-images-to-google-drive` | How to save Google Docs images to Google Drive | Four methods (web page ZIP and upload, Apps Script, single-image add-on, Pluckr Save to Drive). SERP check Nov 7, 2026: Labnol and GreenFlux scripts, "Save Inline Images" add-on, manual upload guides; nobody explains one-click save of all images, converted. **Written, not deployed.** |
 | P3 | `/guides/crop-google-docs-images-to-16-9` | Crop Google Docs Images to 16:9 | Aspect ratio feature |
 | P3 | `/faq` (or keep on homepage) | Pluckr FAQ | Privacy, supported images, licence |
 
