@@ -76,7 +76,12 @@ function AccordionContent({
       // Keep closed answers in the HTML so crawlers and answer engines can
       // read them. Radix unmounts closed content by default.
       forceMount
-      className="grid transition-[grid-template-rows,visibility] duration-200 ease-out data-[state=closed]:invisible data-[state=closed]:grid-rows-[0fr] data-[state=open]:grid-rows-[1fr]"
+      // Radix writes an inline `transition-duration: 0s` on every item that has
+      // not been opened yet (it measures the height with animations off), so
+      // the duration is !important: without it the first open and close of each
+      // item snaps. The visibility step lands at the end of a close, so the
+      // answer stays visible while it collapses.
+      className="grid [transition:grid-template-rows_320ms_cubic-bezier(0.32,0.72,0,1),visibility_320ms] [transition-duration:320ms]! motion-reduce:[transition-duration:0s]! data-[state=closed]:invisible data-[state=closed]:grid-rows-[0fr] data-[state=open]:grid-rows-[1fr]"
       {...props}
     >
       <div className="min-h-0 overflow-hidden">
