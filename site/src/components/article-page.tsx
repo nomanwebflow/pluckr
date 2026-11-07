@@ -26,11 +26,22 @@ export const formatDate = (iso: string) => dateFormat.format(new Date(iso));
 
 // Shared page frame: nav, grain background, the closing CTA. Used by the
 // article pages and the index pages.
-export function ArticleFrame({ children }: { children: React.ReactNode }) {
+// `after` is a full-width section that sits between the article and the CTA.
+export function ArticleFrame({
+  children,
+  after,
+}: {
+  children: React.ReactNode;
+  after?: React.ReactNode;
+}) {
   return (
     <>
       <Nav />
-      <main className="relative flex flex-col items-center gap-16 px-6 pt-12 pb-24 text-white md:p-16 md:pb-32">
+      <main
+        className={`relative flex flex-col items-center gap-16 px-6 pt-12 text-white md:p-16 ${
+          after ? "pb-0 md:pb-0" : "pb-24 md:pb-32"
+        }`}
+      >
         <div aria-hidden className="pointer-events-none absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-t from-black to-[#0d0d0d]" />
           <div
@@ -47,6 +58,7 @@ export function ArticleFrame({ children }: { children: React.ReactNode }) {
         </div>
         {children}
       </main>
+      {after}
       <ClosingCta />
     </>
   );
@@ -259,19 +271,39 @@ export function ArticleCard({
   );
 }
 
+// "Keep reading" is its own full-width section, built like the homepage
+// sections: large centered heading, wide padding, the same grain.
 function Related({ article }: { article: Article }) {
   const items = (article.related ?? [])
     .map((slug) => articles.find((a) => a.slug === slug))
     .filter((a): a is Article => Boolean(a));
   if (items.length === 0) return null;
   return (
-    <section className="flex flex-col gap-4">
-      <h2 className="font-display text-[32px] leading-none capitalize [text-box:trim-both_cap_alphabetic]">
+    <section
+      aria-labelledby="keep-reading"
+      className="relative flex flex-col items-center gap-[72px] bg-black px-6 py-24 text-white md:px-16 md:py-32"
+    >
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div
+          className="absolute inset-0 bg-top-left opacity-40"
+          style={{
+            backgroundImage: 'url("/assets/hero-noise.webp")',
+            backgroundSize: "220px 220px",
+            // Fade the grain in and out so neither end sits on a hard line.
+            maskImage:
+              "linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent)",
+          }}
+        />
+      </div>
+      <h2
+        id="keep-reading"
+        className="font-display relative w-full max-w-[18ch] text-center text-[clamp(34px,5vw,56px)] leading-none text-balance capitalize [text-box:trim-both_cap_alphabetic]"
+      >
         Keep reading
       </h2>
-      <ul className="flex flex-wrap gap-4">
+      <ul className="relative flex w-full max-w-[1000px] flex-wrap justify-center gap-4">
         {items.map((item) => (
-          <li key={item.slug} className="w-full sm:w-[calc(50%-8px)]">
+          <li key={item.slug} className="w-full md:w-[calc(50%-8px)]">
             <ArticleCard article={item} />
           </li>
         ))}
@@ -359,7 +391,7 @@ export function ArticlePage({ article }: { article: Article }) {
   ];
 
   return (
-    <ArticleFrame>
+    <ArticleFrame after={<Related article={article} />}>
       <header className="relative flex flex-col items-center gap-6 pt-8 text-center">
         <Link
           href={`/${sectionOf(article.kind)}`}
@@ -465,7 +497,6 @@ export function ArticlePage({ article }: { article: Article }) {
           </section>
         )}
 
-        <Related article={article} />
       </div>
 
       <script
