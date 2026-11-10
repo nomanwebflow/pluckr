@@ -1,4 +1,5 @@
 import { Logo } from "@/components/logo";
+import { AskAi } from "@/components/ask-ai";
 import { NavMenu } from "@/components/nav-menu";
 
 type NavLink = { label: string; href: string };
@@ -18,15 +19,18 @@ function Bar({
   label,
   flip = false,
   menu = false,
+  before,
 }: {
   as: "header" | "footer";
   links: NavLink[];
   label: string;
   flip?: boolean;
   menu?: boolean;
+  // Content that sits above the bar, inside the same background.
+  before?: React.ReactNode;
 }) {
   return (
-    <Tag className="relative z-40 flex items-center justify-between px-6 py-4 text-white md:px-16">
+    <Tag className="relative z-40 text-white">
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div
           className={`absolute inset-0 from-[#0d0d0d] to-black ${flip ? "bg-gradient-to-b" : "bg-gradient-to-t"}`}
@@ -40,6 +44,9 @@ function Bar({
         />
       </div>
 
+      {before && <div className="relative">{before}</div>}
+
+      <div className="relative flex items-center justify-between px-6 py-4 md:px-16">
       <div className="relative">
         <Logo size="sm" />
       </div>
@@ -60,6 +67,7 @@ function Bar({
           ))}
         </ul>
       </nav>
+      </div>
     </Tag>
   );
 }
@@ -76,5 +84,13 @@ const footerLinks: NavLink[] = [
 ];
 
 export function Footer() {
-  return <Bar as="footer" links={footerLinks} label="Footer" flip />;
+  return (
+    <Bar
+      as="footer"
+      links={footerLinks}
+      label="Footer"
+      flip
+      before={<AskAi />}
+    />
+  );
 }
