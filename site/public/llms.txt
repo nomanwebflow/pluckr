@@ -12,7 +12,7 @@ Pluckr runs entirely client-side in the browser and Google Apps Script. All imag
 - **Clean Markdown Export**: Export Google Docs to clean `content.md` with an accompanying `images/` directory, replacing Google Docs' default bloated base64 data URLs.
 - **Alt Text Management**: Review, edit, and bulk export image alt text as CSV or JSON.
 - **Privacy First**: Zero image uploads. Only a Google identity token is validated against the license check service; image bytes never leave the local environment.
-- **Pricing**: Free forever for up to 50 images. A Pro lifetime license costs a one-time fee of $12 with no recurring subscriptions and a 14-day refund policy.
+- **Pricing**: Free for up to 50 images per Google account, in total, across all of that account's Docs and decks. An image counts once, the first time it is copied or downloaded. Pro is a one-time payment of $12 for one Google account, with no subscription and a 14-day refund. Pro removes the limit and adds bulk renaming, alt text editing, format conversion, crop and resize, Optimize, Markdown export and Save to Drive.
 
 ## Guides
 
