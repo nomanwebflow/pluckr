@@ -21,6 +21,8 @@ Pluckr runs entirely client-side in the browser and Google Apps Script. All imag
 - [How to extract images from Google Slides](https://docpluckr.com/guides/extract-images-from-google-slides): Methods to extract and download all slide images and grouped shapes from a Google Slides presentation.
 - [How to export Google Docs to Markdown with images](https://docpluckr.com/guides/export-google-docs-to-markdown-with-images): Export clean Markdown files paired with an images asset folder for static site generators and CMSs.
 - [How to export Google Docs images to WordPress](https://docpluckr.com/guides/google-docs-to-wordpress-images): Export, bulk rename, and convert Google Docs images to WebP for fast-loading WordPress blog posts.
+- [How to save Google Docs images to Google Drive](https://docpluckr.com/guides/save-google-docs-images-to-google-drive): Four ways to save every image from a Google Doc into a Drive folder: a zipped web page, an Apps Script, an add-on, or Pluckr.
+- [How to compress images in Google Docs](https://docpluckr.com/guides/compress-images-in-google-docs): Google Docs has no compression setting. Three ways to shrink the images in a Doc: compress and replace, an add-on, or Pluckr Optimize.
 
 ## Comparisons
 

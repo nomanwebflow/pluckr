@@ -160,6 +160,64 @@ function SaveToDriveIllustration() {
   );
 }
 
+function DocSizesCard({
+  label,
+  sizes,
+  after,
+}: {
+  label: string;
+  sizes: readonly string[];
+  after?: boolean;
+}) {
+  return (
+    <div
+      className={`flex w-[42%] max-w-[170px] flex-col gap-2 rounded-xl border bg-[#0d0d0d] p-3 ${after ? "border-[#0062fb]/40" : "border-white/10"}`}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-mono text-[10px] text-white/60">doc.gdoc</span>
+        <span
+          className={`font-mono text-[9px] ${after ? "text-[#6ea8fe]" : "text-white/50"}`}
+        >
+          {label}
+        </span>
+      </div>
+      <div className="h-1.5 w-3/4 rounded-full bg-white/15" />
+      {sizes.map((size) => (
+        <div
+          key={size}
+          className="flex items-center justify-between gap-2 rounded-lg border border-white/5 bg-black px-2.5 py-1.5"
+        >
+          <ImageGlyph className="size-3 shrink-0 text-white/60" />
+          <span
+            className={`font-mono text-[10px] ${after ? "text-white" : "text-white/85"}`}
+          >
+            {size}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CompressDocIllustration() {
+  return (
+    <div className="flex size-full items-center justify-center gap-3 px-5 py-4 sm:gap-5 sm:px-8">
+      <DocSizesCard label="BEFORE" sizes={["4.1 MB", "2.6 MB", "1.9 MB"]} />
+      <div className="flex flex-col items-center gap-1.5">
+        <span className="rounded-full border border-white/10 bg-[#0d0d0d] px-2 py-0.5 font-mono text-[9px] whitespace-nowrap text-white/70">
+          1600 px
+        </span>
+        <Arrow />
+      </div>
+      <DocSizesCard
+        label="OPTIMIZED"
+        sizes={["388 KB", "301 KB", "254 KB"]}
+        after
+      />
+    </div>
+  );
+}
+
 function ConvertWebpIllustration() {
   return (
     <div className="flex size-full items-center justify-center gap-3 px-5 py-4 sm:gap-5 sm:px-8">
@@ -439,6 +497,8 @@ export function ArticleIllustration({
           <WordpressExportIllustration />
         ) : slug === "save-google-docs-images-to-google-drive" ? (
           <SaveToDriveIllustration />
+        ) : slug === "compress-images-in-google-docs" ? (
+          <CompressDocIllustration />
         ) : kind === "compare" ? (
           <CompareIllustration />
         ) : (
