@@ -145,7 +145,7 @@ export const article: Article = {
         },
         {
           type: "p",
-          html: 'If you need the images as separate files and not inside the Doc, see <a href="/guides/convert-google-docs-images-to-webp">how to convert Google Docs images to WebP</a>.',
+          html: 'If you need the images as separate files and not inside the Doc, see <a href="/guides/convert-google-docs-images-to-webp">how to convert Google Docs images to WebP</a>. To compare the built-in download options, see <a href="/compare/pluckr-vs-google-docs-built-in-downloads">Pluckr vs the Google Docs downloads</a>.',
         },
       ],
     },
@@ -173,7 +173,8 @@ export const article: Article = {
     },
   ],
   related: [
+    "google-docs-to-wordpress-images",
     "convert-google-docs-images-to-webp",
-    "download-all-images-from-google-docs",
+    "save-google-docs-images-to-google-drive",
   ],
 };

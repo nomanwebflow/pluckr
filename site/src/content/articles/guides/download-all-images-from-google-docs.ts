@@ -75,7 +75,7 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: 'An Apps Script is a short program that loops over a Google Doc and saves each image to Google Drive. The method is free and repeatable, but you paste the code and authorize it yourself, and you get no preview and no resizing. <a href="https://labnol.org/extract-images-google-docs-slides-230913" target="_blank" rel="noopener">Amit Agarwal’s guide on Digital Inspiration</a> shows a fuller version. The core idea looks like this:',
+          html: 'An Apps Script is a short program that loops over a Google Doc and <a href="/guides/save-google-docs-images-to-google-drive">saves each image to Google Drive</a>. The method is free and repeatable, but you paste the code and authorize it yourself, and you get no preview and no resizing. <a href="https://labnol.org/extract-images-google-docs-slides-230913" target="_blank" rel="noopener">Amit Agarwal’s guide on Digital Inspiration</a> shows a fuller version. The core idea looks like this:',
         },
         {
           type: "code",
@@ -130,7 +130,7 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "Use the zipped web page for one Doc, once, because it is free and needs no install. Use an Apps Script if you like scripts and do this task often. Use Pluckr for many Docs, or when the images need good names, a smaller format such as WebP, or a fixed shape.",
+          html: "Use the zipped web page for one Doc, once, because it is free and needs no install. Use an Apps Script if you like scripts and do this task often. Use Pluckr for many Docs, or when the images need good names, a smaller format such as WebP, or a fixed shape. For a deck, see <a href=\"/guides/extract-images-from-google-slides\">how to extract images from Google Slides</a>.",
         },
         {
           type: "table",
@@ -188,8 +188,8 @@ export const article: Article = {
     },
   ],
   related: [
-    "convert-google-docs-images-to-webp",
     "extract-images-from-google-slides",
+    "save-google-docs-images-to-google-drive",
     "pluckr-vs-google-docs-built-in-downloads",
   ],
 };

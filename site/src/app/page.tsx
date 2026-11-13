@@ -1,5 +1,3 @@
-import type { Metadata } from "next";
-
 import { Hero } from "@/components/hero";
 import { ClosingCta } from "@/components/closing-cta";
 import { Faq, faqs } from "@/components/faq";
@@ -9,10 +7,6 @@ import { Price } from "@/components/price";
 import { Process } from "@/components/process";
 import { Size } from "@/components/size";
 import { MARKETPLACE_URL, PRICE } from "@/content/site";
-
-export const metadata: Metadata = {
-  alternates: { canonical: "/" },
-};
 
 // SoftwareApplication + FAQPage, per docs/seo-plan.md section 4 item 2.
 // The FAQPage only lists questions that are visible on this page.
@@ -57,6 +51,9 @@ const jsonLd = {
 export default function Home() {
   return (
     <>
+      {/* Written by hand: Next.js metadata drops the trailing slash on the
+          root URL, and Google read that as a different URL from the sitemap's. */}
+      <link rel="canonical" href="https://docpluckr.com/" />
       <Nav />
       <main>
         <Hero />

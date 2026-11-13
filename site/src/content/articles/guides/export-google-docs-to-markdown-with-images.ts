@@ -49,7 +49,7 @@ export const article: Article = {
         },
         {
           type: "p",
-          html: "To convert the PNG files to WebP with this method, you need a separate tool.",
+          html: 'To <a href="/guides/convert-google-docs-images-to-webp">convert the PNG files to WebP</a> with this method, you need a separate tool.',
         },
       ],
     },
@@ -144,6 +144,7 @@ export const article: Article = {
     },
   ],
   related: [
+    "google-docs-to-wordpress-images",
     "convert-google-docs-images-to-webp",
     "download-all-images-from-google-docs",
   ],

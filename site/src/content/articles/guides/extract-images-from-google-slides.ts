@@ -153,7 +153,8 @@ export const article: Article = {
   ],
   related: [
     "download-all-images-from-google-docs",
-    "convert-google-docs-images-to-webp",
+    "save-google-docs-images-to-google-drive",
+    "compress-images-in-google-docs",
   ],
 };
 

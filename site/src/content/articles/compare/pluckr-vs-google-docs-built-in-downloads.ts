@@ -92,5 +92,9 @@ export const article: Article = {
       a: "No. Only the Apps Script method needs code. You open Pluckr from Extensions > Pluckr > Extract images inside the Doc.",
     },
   ],
-  related: ["download-all-images-from-google-docs"],
+  related: [
+    "download-all-images-from-google-docs",
+    "save-google-docs-images-to-google-drive",
+    "compress-images-in-google-docs",
+  ],
 };

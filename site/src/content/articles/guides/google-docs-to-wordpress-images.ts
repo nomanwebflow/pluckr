@@ -83,7 +83,7 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "WordPress blog images load fast when you follow four practices. Use descriptive file names with lowercase letters and hyphens, for example wordpress-seo-settings.webp. Use a modern format such as WebP. Resize each image to the maximum content width of your theme. Write concise alt text in the WordPress media settings.",
+          html: "WordPress blog images load fast when you follow four practices. Use descriptive file names with lowercase letters and hyphens, for example wordpress-seo-settings.webp. Use a modern format such as <a href=\"/guides/convert-google-docs-images-to-webp\">WebP</a>. Resize each image to the maximum content width of your theme. Write concise alt text in the WordPress media settings.",
         },
         { type: "h3", text: "How do the methods compare?" },
         {
@@ -126,9 +126,9 @@ export const article: Article = {
     },
   ],
   related: [
-    "download-all-images-from-google-docs",
-    "convert-google-docs-images-to-webp",
+    "compress-images-in-google-docs",
     "export-google-docs-to-markdown-with-images",
+    "convert-google-docs-images-to-webp",
   ],
 };
 

@@ -25,7 +25,7 @@ export const article: Article = {
       blocks: [
         {
           type: "p",
-          html: "Convert Google Docs images to WebP because WebP files are much smaller than PNG files at a similar visual quality. Smaller images help your Largest Contentful Paint score, save bandwidth for your visitors and fit CMS upload limits. Google Docs stores most pictures as PNG or JPEG files, so the saving is often large.",
+          html: "Convert Google Docs images to WebP because WebP files are much smaller than PNG files at a similar visual quality. Smaller images help your Largest Contentful Paint score, save bandwidth for your visitors and fit CMS upload limits. Google Docs stores most pictures as PNG or JPEG files, so the saving is often large. To shrink the images inside the Doc itself, see <a href=\"/guides/compress-images-in-google-docs\">how to compress images in Google Docs</a>.",
         },
         {
           type: "table",
@@ -137,8 +137,8 @@ export const article: Article = {
     },
   ],
   related: [
-    "download-all-images-from-google-docs",
-    "export-google-docs-to-markdown-with-images",
+    "compress-images-in-google-docs",
+    "google-docs-to-wordpress-images",
     "pluckr-vs-google-docs-built-in-downloads",
   ],
 };

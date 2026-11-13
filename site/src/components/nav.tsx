@@ -1,6 +1,7 @@
 import { Logo } from "@/components/logo";
 import { AskAi } from "@/components/ask-ai";
 import { NavMenu } from "@/components/nav-menu";
+import { articles, sectionOf } from "@/content/articles";
 
 type NavLink = { label: string; href: string };
 
@@ -83,6 +84,29 @@ const footerLinks: NavLink[] = [
   { label: "Terms", href: "/terms" },
 ];
 
+// Every guide and comparison, linked from every page, so no page relies on
+// the index pages alone to be found.
+function ArticleIndex() {
+  return (
+    <nav aria-label="All guides" className="px-6 pb-10 md:px-16">
+      <ul className="mx-auto flex max-w-4xl flex-wrap justify-center gap-x-6 gap-y-2 text-center text-sm leading-normal text-white/50">
+        {articles
+          .filter((a) => !a.draft)
+          .map((a) => (
+            <li key={a.slug}>
+              <a
+                href={`/${sectionOf(a.kind)}/${a.slug}`}
+                className="transition-colors hover:text-white focus-visible:text-white"
+              >
+                {a.title.replace(/^How to /, "").replace(/^./, (c) => c.toUpperCase())}
+              </a>
+            </li>
+          ))}
+      </ul>
+    </nav>
+  );
+}
+
 export function Footer() {
   return (
     <Bar
@@ -90,7 +114,12 @@ export function Footer() {
       links={footerLinks}
       label="Footer"
       flip
-      before={<AskAi />}
+      before={
+        <>
+          <AskAi />
+          <ArticleIndex />
+        </>
+      }
     />
   );
 }
