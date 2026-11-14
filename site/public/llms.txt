@@ -23,6 +23,8 @@ Pluckr runs entirely client-side in the browser and Google Apps Script. All imag
 - [How to export Google Docs images to WordPress](https://docpluckr.com/guides/google-docs-to-wordpress-images): Export, bulk rename, and convert Google Docs images to WebP for fast-loading WordPress blog posts.
 - [How to save Google Docs images to Google Drive](https://docpluckr.com/guides/save-google-docs-images-to-google-drive): Four ways to save every image from a Google Doc into a Drive folder: a zipped web page, an Apps Script, an add-on, or Pluckr.
 - [How to compress images in Google Docs](https://docpluckr.com/guides/compress-images-in-google-docs): Google Docs has no compression setting. Three ways to shrink the images in a Doc: compress and replace, an add-on, or Pluckr Optimize.
+- [How to copy an image from Google Docs into Figma or Canva](https://docpluckr.com/guides/copy-image-from-google-docs-to-figma-canva): Why Docs images paste as nothing in other apps, and four ways to copy one across: through another app, download, a Chrome extension, or Pluckr.
+- [How to see the file size of images in a Google Doc](https://docpluckr.com/guides/see-image-file-size-in-google-docs): Google Docs does not show file size or pixel size. Three ways to find the heavy images: a web page download, an add-on, or Pluckr.
 
 ## Comparisons
 

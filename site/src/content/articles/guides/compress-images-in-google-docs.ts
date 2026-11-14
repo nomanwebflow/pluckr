@@ -37,7 +37,7 @@ export const article: Article = {
         },
         {
           type: "p",
-          html: "To see the real size of each image, open the Doc in Pluckr. The free plan lists every image with its pixel size and its file size. You do not have to copy or download anything to see the list.",
+          html: "To see the real size of each image, open the Doc in Pluckr. The free plan lists every image with its pixel size and its file size. You do not have to copy or download anything to see the list. For the steps, see <a href=\"/guides/see-image-file-size-in-google-docs\">how to see the file size of images in a Google Doc</a>.",
         },
       ],
     },
@@ -173,8 +173,8 @@ export const article: Article = {
     },
   ],
   related: [
+    "see-image-file-size-in-google-docs",
     "google-docs-to-wordpress-images",
     "convert-google-docs-images-to-webp",
-    "save-google-docs-images-to-google-drive",
   ],
 };

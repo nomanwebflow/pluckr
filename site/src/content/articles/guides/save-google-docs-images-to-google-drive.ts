@@ -184,7 +184,7 @@ export const article: Article = {
   ],
   related: [
     "download-all-images-from-google-docs",
+    "copy-image-from-google-docs-to-figma-canva",
     "compress-images-in-google-docs",
-    "extract-images-from-google-slides",
   ],
 };

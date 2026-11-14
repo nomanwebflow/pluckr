@@ -218,6 +218,90 @@ function CompressDocIllustration() {
   );
 }
 
+function CopyImageIllustration() {
+  return (
+    <div className="flex size-full items-center justify-center gap-3 px-5 py-4 sm:gap-5 sm:px-8">
+      {/* Doc with inline images */}
+      <div className="flex w-[40%] max-w-[160px] flex-col gap-2.5 rounded-xl border border-white/10 bg-[#0d0d0d] p-3">
+        <div className="flex items-center gap-1.5">
+          <span className="size-2 rounded-full bg-[#0062fb]" />
+          <span className="font-mono text-[10px] text-white/60">doc.gdoc</span>
+        </div>
+        <div className="h-1.5 w-3/4 rounded-full bg-white/15" />
+        <div className="flex aspect-[4/3] items-center justify-center rounded-md border border-white/10 bg-black text-white/70">
+          <ImageGlyph />
+        </div>
+        <div className="h-1.5 w-full rounded-full bg-white/10" />
+      </div>
+
+      <div className="flex flex-col items-center gap-1.5">
+        <span className="rounded-md bg-[#0062fb] px-2 py-0.5 font-mono text-[9px] font-medium text-white">
+          Copy
+        </span>
+        <Arrow />
+      </div>
+
+      {/* Clipboard with a PNG, ready to paste */}
+      <div className="flex w-[40%] max-w-[160px] flex-col gap-2.5 rounded-xl border border-[#0062fb]/40 bg-[#0d0d0d] p-3">
+        <div className="flex items-center justify-between gap-2">
+          <span className="font-mono text-[10px] text-[#6ea8fe]">
+            clipboard
+          </span>
+          <span className="rounded bg-[#0062fb] px-1.5 py-0.5 font-mono text-[9px] text-white">
+            PNG
+          </span>
+        </div>
+        <div className="flex aspect-[4/3] items-center justify-center rounded-md border border-white/10 bg-black text-white/70">
+          <ImageGlyph />
+        </div>
+        <p className="font-mono text-[10px] text-white/85">Ctrl+V</p>
+      </div>
+    </div>
+  );
+}
+
+function ImageSizesIllustration() {
+  const rows = [
+    { px: "4032 × 3024", size: "4.1 MB", bar: "100%" },
+    { px: "1600 × 900", size: "312 KB", bar: "24%" },
+    { px: "640 × 360", size: "38 KB", bar: "6%" },
+  ];
+  return (
+    <div className="flex size-full items-center justify-center px-5 py-4 sm:px-8">
+      <div className="flex w-full max-w-[300px] flex-col gap-2 rounded-xl border border-white/10 bg-[#0d0d0d] p-3">
+        <div className="flex items-center gap-1.5">
+          <span className="size-2 rounded-full bg-[#0062fb]" />
+          <span className="font-mono text-[10px] text-white/60">doc.gdoc</span>
+        </div>
+        {rows.map((row) => (
+          <div
+            key={row.px}
+            className="flex flex-col gap-1.5 rounded-lg border border-white/5 bg-black px-2.5 py-2"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="flex items-center gap-2">
+                <ImageGlyph className="size-3 shrink-0 text-white/60" />
+                <span className="font-mono text-[10px] text-white/60">
+                  {row.px}
+                </span>
+              </span>
+              <span className="font-mono text-[10px] text-white">
+                {row.size}
+              </span>
+            </div>
+            <div className="h-1 w-full rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-[#0062fb]"
+                style={{ width: row.bar }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ConvertWebpIllustration() {
   return (
     <div className="flex size-full items-center justify-center gap-3 px-5 py-4 sm:gap-5 sm:px-8">
@@ -499,6 +583,10 @@ export function ArticleIllustration({
           <SaveToDriveIllustration />
         ) : slug === "compress-images-in-google-docs" ? (
           <CompressDocIllustration />
+        ) : slug === "copy-image-from-google-docs-to-figma-canva" ? (
+          <CopyImageIllustration />
+        ) : slug === "see-image-file-size-in-google-docs" ? (
+          <ImageSizesIllustration />
         ) : kind === "compare" ? (
           <CompareIllustration />
         ) : (

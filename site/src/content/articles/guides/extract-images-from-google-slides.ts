@@ -153,8 +153,8 @@ export const article: Article = {
   ],
   related: [
     "download-all-images-from-google-docs",
-    "save-google-docs-images-to-google-drive",
-    "compress-images-in-google-docs",
+    "copy-image-from-google-docs-to-figma-canva",
+    "see-image-file-size-in-google-docs",
   ],
 };
 

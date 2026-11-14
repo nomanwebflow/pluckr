@@ -111,7 +111,7 @@ export const article: Article = {
         },
         {
           type: "p",
-          html: 'You can read how Pluckr handles <a href="/guides/convert-google-docs-images-to-webp">converting images to WebP or AVIF</a> or <a href="/guides/export-google-docs-to-markdown-with-images">exporting a Doc to Markdown with images</a>.',
+          html: 'You can read how Pluckr handles <a href="/guides/convert-google-docs-images-to-webp">converting images to WebP or AVIF</a> or <a href="/guides/export-google-docs-to-markdown-with-images">exporting a Doc to Markdown with images</a>. To paste one image into another app, see <a href="/guides/copy-image-from-google-docs-to-figma-canva">how to copy an image from Google Docs into Figma or Canva</a>.',
         },
         {
           type: "image",
@@ -190,6 +190,7 @@ export const article: Article = {
   related: [
     "extract-images-from-google-slides",
     "save-google-docs-images-to-google-drive",
+    "copy-image-from-google-docs-to-figma-canva",
     "pluckr-vs-google-docs-built-in-downloads",
   ],
 };

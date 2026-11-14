@@ -138,7 +138,7 @@ export const article: Article = {
   ],
   related: [
     "compress-images-in-google-docs",
-    "google-docs-to-wordpress-images",
+    "see-image-file-size-in-google-docs",
     "pluckr-vs-google-docs-built-in-downloads",
   ],
 };
